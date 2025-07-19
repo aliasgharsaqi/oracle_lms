@@ -9,9 +9,15 @@ use App\Models\User;
 
 class UserSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
     public function run(): void
     {
-        DB::table('users')->truncate();
+        // The migrate:fresh command already handles cleaning the database.
+        // We only need to create the initial users here.
 
         User::create([
             'name' => 'Super Admin',
