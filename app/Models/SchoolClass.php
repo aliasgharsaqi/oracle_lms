@@ -5,19 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ServiceRequest extends Model
+class SchoolClass extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'name',
-        'email',
-        'club',
-        'location',
-        'services',
+        'created_by',
     ];
-
-    protected $casts = [
-        'services' => 'array',
-    ];
+    
 }

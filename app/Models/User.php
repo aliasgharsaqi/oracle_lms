@@ -6,8 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany; // <-- Import this
+use Laravel\Sanctum\HasApiTokens; // <-- Import this
 
 class User extends Authenticatable
 {
@@ -26,12 +25,15 @@ class User extends Authenticatable
         'address',
         'role',
         'user_pic',
-        'com_name', 
+        'twitter_profile',
+        'facebook_profile',
+        'linkedin_profile',
+        'com_name',
         'com_pic',
-        'country',  
+        'country',
         'zip_code',
-        'city',     
-        'state',    
+        'city',
+        'state',
         'otp',
         'reset_pswd_time',
         'reset_pswd_attempt',
@@ -40,10 +42,11 @@ class User extends Authenticatable
         'status',
         'created_by',
         'updated_by',
-        'subscribed_to_newsletter',     
-        'terms_accepted_at',            
-        'privacy_policy_accepted_at',   
+        'subscribed_to_newsletter',
+        'terms_accepted_at',
+        'privacy_policy_accepted_at',
     ];
+
 
     /**
      * The attributes that should be hidden for serialization.
@@ -67,12 +70,14 @@ class User extends Authenticatable
         'privacy_policy_accepted_at' => 'datetime',          
     ];
 
-    /**
-     * The services that belong to the user.
-     * Defines the many-to-many relationship.
-     */
-    public function services(): BelongsToMany   
+    public function student()
     {
-        return $this->belongsToMany(Service::class, 'service_user', 'user_id', 'service_id');
+        return $this->hasOne(Student::class);
     }
+
+    public function teacher()
+    {
+        return $this->hasOne(Teacher::class);
+    }
+
 }
