@@ -22,7 +22,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="text-white-75 small">Total Students</div>
-                        <div class="h2 mb-0 fw-bold">1,250</div>
+                        <div class="h2 mb-0 fw-bold">{{ $user }}</div>
                     </div>
                     <i class="bi bi-people-fill" style="font-size: 3rem;"></i>
                 </div>
@@ -36,7 +36,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="text-white-75 small">Total Staff</div>
-                        <div class="h2 mb-0 fw-bold">85</div>
+                        <div class="h2 mb-0 fw-bold">{{ $staff }}</div>
                     </div>
                     <i class="bi bi-person-workspace" style="font-size: 3rem;"></i>
                 </div>
@@ -50,7 +50,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="text-white-75 small">Courses Offered</div>
-                        <div class="h2 mb-0 fw-bold">48</div>
+                        <div class="h2 mb-0 fw-bold">{{ $course }}</div>
                     </div>
                     <i class="bi bi-journal-bookmark-fill" style="font-size: 3rem;"></i>
                 </div>
