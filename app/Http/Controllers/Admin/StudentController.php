@@ -35,17 +35,17 @@ class StudentController extends Controller
         $this->authorize('create', Student::class);
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8'],
+            'email' => ['nullable','string', 'email', 'max:255'],
+            'password' => ['nullable','string', 'min:8'],
             'profile_image' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'father_name' => ['required', 'string', 'max:255'],
-            'id_card_number' => ['required', 'string', 'max:255', 'unique:students'],
+            'id_card_number' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:20'],
             'father_phone' => ['required', 'string', 'max:20'],
             'address' => ['required', 'string'],
             'school_class_id' => ['required', 'exists:school_classes,id'],
-            'section' => ['required', 'string', 'max:255'],
-            'previous_docs' => ['nullable', 'file', 'mimes:pdf,jpg,png', 'max:5120'],
+            'section' => ['nullable','string', 'max:255'],
+            'previous_docs' => ['nullable', 'file', 'max:5120'],
         ]);
 
         DB::beginTransaction();
@@ -103,20 +103,21 @@ class StudentController extends Controller
     {
         $this->authorize('update', $student);
         $user = $student->user;
-
+        
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'email' => ['nullable','string', 'email', 'max:255'],
             'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'father_name' => ['required', 'string', 'max:255'],
-            'id_card_number' => ['required', 'string', 'max:255', Rule::unique('students')->ignore($student->id)],
+            'id_card_number' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:20'],
             'father_phone' => ['required', 'string', 'max:20'],
             'address' => ['required', 'string'],
             'school_class_id' => ['required', 'exists:school_classes,id'],
-            'section' => ['required', 'string', 'max:255'],
-            'previous_docs' => ['nullable', 'file', 'mimes:pdf,jpg,png', 'max:5120'],
+            'section' => ['nullable','string', 'max:255'],
+            'previous_docs' => ['nullable', 'file', 'max:5120'],
         ]);
+
 
         DB::beginTransaction();
         try {

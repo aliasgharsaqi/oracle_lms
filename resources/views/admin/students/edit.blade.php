@@ -28,7 +28,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="email" class="form-label">Email Address</label>
-                            <input type="email" class="form-control" id="email" name="email" value="{{ old('email', $student->user->email) }}" required>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ old('email', $student->user->email) }}" >
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="phone" class="form-label">Student Phone</label>
@@ -64,7 +64,7 @@
                         </div>
                          <div class="col-md-6 mb-3">
                             <label for="section" class="form-label">Section</label>
-                            <input type="text" class="form-control" id="section" name="section" value="{{ old('section', $student->section) }}" required>
+                            <input type="text" class="form-control" id="section" name="section" value="{{ old('section', $student->section) }}" >
                         </div>
                         
                         <div class="col-12 mt-4"><h5 class="mb-3 border-bottom pb-2">Documents</h5></div>

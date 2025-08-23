@@ -29,11 +29,11 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="email" class="form-label">Email Address (for login)</label>
-                            <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}" required>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}" >
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
+                            <input type="password" class="form-control" id="password" name="password">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="phone" class="form-label">Student Phone Number</label>
@@ -78,7 +78,7 @@
                         </div>
                          <div class="col-md-6 mb-3">
                             <label for="section" class="form-label">Section</label>
-                            <input type="text" class="form-control" id="section" name="section" value="{{ old('section') }}" required placeholder="e.g., A, B, Blue, etc.">
+                            <input type="text" class="form-control" id="section" name="section" value="{{ old('section') }}"  placeholder="e.g., A, B, Blue, etc.">
                         </div>
                         <div class="col-md-12 mb-3">
                             <label for="previous_docs" class="form-label">Previous Study Documents (Optional)</label>
