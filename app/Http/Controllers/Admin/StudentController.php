@@ -163,10 +163,16 @@ class StudentController extends Controller
         
         DB::beginTransaction();
         try {
+               $userPic = $student->user->user_pic ?? null;
+        $previousDocs = $student->previous_school_docs ?? null;
             // The user record will be deleted automatically due to the cascade constraint
             $student->delete();
-            Storage::disk('public')->delete($student->user->user_pic);
-            Storage::disk('public')->delete($student->previous_school_docs);
+             if ($userPic) {
+            Storage::disk('public')->delete($userPic);
+        }
+        if ($previousDocs) {
+            Storage::disk('public')->delete($previousDocs);
+        }
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
