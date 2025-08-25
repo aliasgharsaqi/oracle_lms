@@ -23,7 +23,10 @@ class FeePaymentController extends Controller
 
         if ($request->filled('class_id')) {
             $selectedClass = SchoolClass::find($request->class_id);
-            $studentsInClass = Student::where('school_class_id', $selectedClass->id)->with('user')->get();
+            $studentsInClass = Student::where('school_class_id', $selectedClass->id)
+                ->with('user')
+                ->get();
+
             $voucherDate = Carbon::parse($selectedMonth . "-01");
             $year = $voucherDate->year;
             $month = $voucherDate->month;
@@ -31,37 +34,60 @@ class FeePaymentController extends Controller
             foreach ($studentsInClass as $student) {
                 // Find the specific fee plan for this student for this month
                 $feePlan = StudentFeePlan::where('student_id', $student->id)
-                                         ->where('year', $year)
-                                         ->where('month', $month)
-                                         ->first();
+                    ->where('year', $year)
+                    ->where('month', $month)
+                    ->first();
 
                 // Only create a voucher if a fee plan exists for that month
                 if ($feePlan) {
+                    $baseAmount = $feePlan->amount;
+
+                    // Get previous month’s voucher
+                    $previousVoucher = StudentFeeVoucher::where('student_id', $student->id)
+                        ->where('voucher_month', $voucherDate->copy()->subMonth()->format('Y-m-d'))
+                        ->first();
+
+                    $carryForward = 0;
+                    if ($previousVoucher && $previousVoucher->amount_due > ($previousVoucher->amount_paid ?? 0)) {
+                        $carryForward = $previousVoucher->amount_due - ($previousVoucher->amount_paid ?? 0);
+                    }
+
                     $voucher = StudentFeeVoucher::firstOrCreate(
                         [
-                            'student_id' => $student->id,
+                            'student_id'    => $student->id,
                             'voucher_month' => $voucherDate->format('Y-m-d'),
                         ],
                         [
-                            'amount_due' => $feePlan->amount, // Use the amount from the student's plan
-                            'due_date' => $voucherDate->copy()->day(10)->format('Y-m-d'),
-                            'status' => 'pending',
+                            'amount_due' => $baseAmount + $carryForward,
+                            'due_date'   => $voucherDate->copy()->day(10)->format('Y-m-d'),
+                            'status'     => 'pending',
                         ]
                     );
+
+                    // Optional: if voucher already exists, also update amount_due with carry forward
+                    if (!$voucher->wasRecentlyCreated && $carryForward > 0) {
+                        $voucher->update([
+                            'amount_due' => $baseAmount + $carryForward
+                        ]);
+                    }
+
                     $student->voucher = $voucher;
                 } else {
                     // If no plan, create a placeholder voucher to show the status
                     $student->voucher = (object)[
-                        'status' => 'no_plan',
+                        'status'     => 'no_plan',
                         'amount_due' => 0
                     ];
                 }
+
                 $students->push($student);
             }
         }
 
         return view('admin.fees.payments.index', compact('classes', 'students', 'selectedClass', 'selectedMonth'));
     }
+
+
 
     public function storePayment(Request $request): RedirectResponse
     {

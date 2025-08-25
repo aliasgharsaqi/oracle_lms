@@ -43,7 +43,18 @@
                                     <td>{{ $teacher->user->phone }}</td>
                                     <td>{{ $teacher->education }}</td>
                                     <td>
-                                        <a href="#" class="btn btn-sm btn-info">View</a>
+                                        {{-- <a href="#" class="btn btn-sm btn-info">View</a> --}}
+                                        
+    <a href="{{ route('teachers.edit', $teacher->id) }}" class="btn btn-sm btn-warning">Edit</a>
+    <form action="{{ route('teachers.destroy', $teacher->id) }}" method="POST" class="d-inline">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this teacher?')">
+            Delete
+        </button>
+    </form>
+</td>
+
                                     </td>
                                 </tr>
                             @endforeach

@@ -34,11 +34,16 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::patch('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::post('users/{id}/restore', [UserController::class, 'restore'])->name('users.restore');
 
     // Class Management Routes
     Route::get('/classes', [ClassController::class, 'index'])->name('classes.index');
     Route::get('/classes/create', [ClassController::class, 'create'])->name('classes.create');
+    Route::get('/classes/edit/{id}', [ClassController::class, 'edit'])->name('classes.edit');
+      Route::post('/classes/update/{id}', [ClassController::class, 'update'])->name('classes.update');
     Route::post('/classes', [ClassController::class, 'store'])->name('classes.store');
+    Route::delete('/classes/delete/{id}', [ClassController::class, 'destroy'])->name('classes.destroy');
+
 
     // Profile Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -55,17 +60,31 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::delete('/students/{student}', [StudentController::class, 'destroy'])->name('students.destroy');
 
     Route::get('/subjects', [SubjectController::class, 'index'])->name('subjects.index');
-    Route::get('/subjects/create', [SubjectController::class, 'create'])->name('subjects.create');
-    Route::post('/subjects', [SubjectController::class, 'store'])->name('subjects.store');
+Route::get('/subjects/create', [SubjectController::class, 'create'])->name('subjects.create');
+Route::post('/subjects', [SubjectController::class, 'store'])->name('subjects.store');
+Route::get('/subjects/{subject}/edit', [SubjectController::class, 'edit'])->name('subjects.edit');
+Route::put('/subjects/{subject}', [SubjectController::class, 'update'])->name('subjects.update');
+Route::delete('/subjects/{subject}', [SubjectController::class, 'destroy'])->name('subjects.destroy');
+Route::patch('/subjects/{subject}/toggle-status', [SubjectController::class, 'toggleStatus'])->name('subjects.toggleStatus');
+
 
     // Schedule Management Routes
-    Route::get('/schedules', [ScheduleController::class, 'index'])->name('schedules.index');
-    Route::get('/schedules/create', [ScheduleController::class, 'create'])->name('schedules.create');
-    Route::post('/schedules', [ScheduleController::class, 'store'])->name('schedules.store');
+Route::get('/schedules', [ScheduleController::class, 'index'])->name('schedules.index');
+Route::get('/schedules/create', [ScheduleController::class, 'create'])->name('schedules.create');
+Route::post('/schedules', [ScheduleController::class, 'store'])->name('schedules.store');
+Route::get('/schedules/{id}', [ScheduleController::class, 'show'])->name('schedules.show');
+Route::get('/schedules/{id}/edit', [ScheduleController::class, 'edit'])->name('schedules.edit');
+Route::put('/schedules/{id}', [ScheduleController::class, 'update'])->name('schedules.update');
+Route::delete('/schedules/{id}', [ScheduleController::class, 'destroy'])->name('schedules.destroy');
+
 
     Route::get('/teachers', [TeacherController::class, 'index'])->name('teachers.index');
     Route::get('/teachers/create', [TeacherController::class, 'create'])->name('teachers.create');
     Route::post('/teachers', [TeacherController::class, 'store'])->name('teachers.store');
+    Route::get('/teachers/{id}/edit', [TeacherController::class, 'edit'])->name('teachers.edit');
+   Route::put('/teachers/{id}', [TeacherController::class, 'update'])->name('teachers.update');
+    Route::delete('/teachers/{id}', [TeacherController::class, 'destroy'])->name('teachers.destroy');
+
 
     Route::get('/fees/plans', [StudentFeePlanController::class, 'index'])->name('fees.plans.index');
     Route::get('/fees/plans/{student}/create', [StudentFeePlanController::class, 'create'])->name('fees.plans.create');

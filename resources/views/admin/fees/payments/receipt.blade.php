@@ -46,7 +46,7 @@
                 <tbody>
                     <tr>
                         <td>Tuition Fee for {{ \Carbon\Carbon::parse($voucher->voucher_month)->format('F Y') }}</td>
-                        <td class="text-end">${{ number_format($voucher->amount_due, 2) }}</td>
+                        <td class="text-end">PKR{{ number_format($voucher->amount_due, 2) }}</td>
                     </tr>
                 </tbody>
                 <tfoot class="fw-bold">

@@ -68,4 +68,78 @@ class TeacherController extends Controller
 
         return redirect()->route('teachers.index')->with('success', 'Teacher added successfully.');
     }
+    public function edit($id): View
+{
+    $teacher = Teacher::with('user')->findOrFail($id);
+    return view('admin.teachers.edit', compact('teacher'));
+}
+
+public function update(Request $request, $id): RedirectResponse
+{
+    $teacher = Teacher::with('user')->findOrFail($id);
+
+    $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $teacher->user->id],
+        'phone' => ['required', 'string', 'max:20'],
+        'address' => ['required', 'string'],
+        'id_card_number' => ['required', 'string', 'max:255', 'unique:teachers,id_card_number,' . $teacher->id],
+        'date_of_birth' => ['required', 'date'],
+        'education' => ['required', 'string', 'max:255'],
+        'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+    ]);
+
+    DB::beginTransaction();
+    try {
+        $user = $teacher->user;
+
+        // Update profile image if provided
+        if ($request->hasFile('profile_image')) {
+            $imagePath = $request->file('profile_image')->store('profile_images', 'public');
+            $user->user_pic = $imagePath;
+        }
+
+        // Update User
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+        ]);
+
+        // Update Teacher
+        $teacher->update([
+            'id_card_number' => $request->id_card_number,
+            'date_of_birth' => $request->date_of_birth,
+            'education' => $request->education,
+            'address' => $request->address,
+        ]);
+
+        DB::commit();
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->with('error', 'Failed to update teacher. Error: ' . $e->getMessage())->withInput();
+    }
+
+    return redirect()->route('teachers.index')->with('success', 'Teacher updated successfully.');
+}
+
+public function destroy($id): RedirectResponse
+{
+    $teacher = Teacher::findOrFail($id);
+
+    DB::beginTransaction();
+    try {
+        // Delete related User too
+        $teacher->user()->delete();
+        $teacher->delete();
+
+        DB::commit();
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->with('error', 'Failed to delete teacher. Error: ' . $e->getMessage());
+    }
+
+    return redirect()->route('teachers.index')->with('success', 'Teacher deleted successfully.');
+}
+
 }

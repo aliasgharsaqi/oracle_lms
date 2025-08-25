@@ -37,8 +37,15 @@
                                 <td>{{ $class->name }}</td>
                                 <td>{{ $class->created_at->format('M d, Y') }}</td>
                                 <td>
-                                    <a href="#" class="btn btn-sm btn-info">Edit</a>
-                                    <a href="#" class="btn btn-sm btn-danger">Delete</a>
+                                    <a href="{{ route('classes.edit',$class->id) }}" class="btn btn-sm btn-info">Edit</a>
+                                    <form action="{{ route('classes.destroy', $class->id) }}" method="POST" class="d-inline">
+    @csrf
+    @method('DELETE')
+    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this class?')">
+        Delete
+    </button>
+</form>
+
                                 </td>
                             </tr>
                            @endforeach

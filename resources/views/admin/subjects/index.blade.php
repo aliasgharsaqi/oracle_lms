@@ -21,28 +21,44 @@
                     </div>
                 @endif
                 <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Subject Name</th>
-                                <th>Subject Code</th>
-                                <th>Created On</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($subjects as $subject)
-                            <tr>
-                                <td>{{ $subject->name }}</td>
-                                <td>{{ $subject->subject_code }}</td>
-                                <td>{{ $subject->created_at->format('M d, Y') }}</td>
-                                <td>
-                                    <a href="#" class="btn btn-sm btn-info">Edit</a>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                <table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Code</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach ($subjects as $subject)
+            <tr>
+                <td>{{ $subject->name }}</td>
+                <td>{{ $subject->subject_code }}</td>
+                <td>
+                    <form action="{{ route('subjects.toggleStatus', $subject->id) }}" method="POST">
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit" class="btn btn-sm {{ $subject->active ? 'btn-success' : 'btn-warning' }}">
+                            {{ $subject->active ? 'Active' : 'Inactive' }}
+                        </button>
+                    </form>
+                </td>
+                <td>
+                    <a href="{{ route('subjects.edit', $subject->id) }}" class="btn btn-sm btn-info">Edit</a>
+                    <form action="{{ route('subjects.destroy', $subject->id) }}" method="POST" style="display:inline-block;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">
+                            Delete
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        @endforeach
+    </tbody>
+</table>
+
                 </div>
             </div>
         </div>
