@@ -11,21 +11,26 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    public function index(): View
-    {
-        $query = User::where('id', '!=', Auth::id());
-       
-        if (Auth::user()->role === 'Admin') {
-            $query->whereIn('role', ['Staff', 'Student']);
-        }
+  public function index(): View
+{
+    $query = User::where('id', '!=', Auth::id());
 
-        $users = $query->latest()->get();
-        $trashedUsers = User::onlyTrashed()->get();
-        return view('admin.users.index', compact('users','trashedUsers'));
-    }
+    // if (Auth::user()->hasRole('Admin')) {
+    //     $query->whereHas('roles', function ($q) {
+    //         $q->whereIn('name', ['Staff', 'Student']);
+    //     });
+    // }
+
+    $users = $query->latest()->get();
+    $trashedUsers = User::onlyTrashed()->get();
+
+    return view('admin.users.index', compact('users','trashedUsers'));
+}
+
 
     public function restore($id)
 {
@@ -34,42 +39,39 @@ class UserController extends Controller
     return redirect()->back()->with('success', 'User restored successfully.');
 }
     public function create(): View
-    {
-        $loggedInUserRole = Auth::user()->role;
-        $roles = [];
+{
+    $roles = Role::all(); // All available roles
+    return view('admin.users.create', compact('roles'));
+}
 
-        if ($loggedInUserRole === 'Super Admin') {
-            $roles = ['Admin', 'Staff', 'Student'];
-        } elseif ($loggedInUserRole === 'Admin') {
-            $roles = ['Staff', 'Student'];
-        }
-
-        return view('admin.users.create', compact('roles'));
-    }
 
     public function store(Request $request): RedirectResponse
-    {
-        $loggedInUserRole = Auth::user()->role;
-        $allowedRoles = ($loggedInUserRole === 'Super Admin') ? ['Admin', 'Staff', 'Student'] : ['Staff', 'Student'];
+{
+    $loggedInUserRole = Auth::user()->getRoleNames()->first();
+    $allowedRoles = ($loggedInUserRole === 'Super Admin') 
+        ? ['Admin', 'Staff', 'Student'] 
+        : ['Staff', 'Student'];
 
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8'],
-            'role' => ['required', 'string', Rule::in($allowedRoles)],
-        ]);
+    $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+        'password' => ['required', 'string', 'min:8'],
+        'role' => ['required', 'string', Rule::in($allowedRoles)],
+    ]);
 
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
-            'status' => 1,
-            'created_by' => Auth::id(),
-        ]);
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'status' => 1,
+        'created_by' => Auth::id(),
+    ]);
 
-        return redirect()->route('users.index')->with('success', 'User created successfully.');
-    }
+    $user->assignRole($request->role);
+
+    return redirect()->route('users.index')->with('success', 'User created successfully.');
+}
+
 
     public function show(User $user): View
     {
@@ -81,45 +83,40 @@ class UserController extends Controller
         $this->authorize('update', $user);
 
         $loggedInUserRole = Auth::user()->role;
-        $roles = [];
-
-        if ($loggedInUserRole === 'Super Admin') {
-            $roles = ['Admin', 'Staff', 'Student'];
-        } elseif ($loggedInUserRole === 'Admin') {
-            $roles = ['Staff', 'Student'];
-        }
+        $roles = Role::all();
 
         return view('admin.users.edit', compact('user', 'roles'));
     }
 
-    public function update(Request $request, User $user): RedirectResponse
-    {
-        $this->authorize('update', $user);
+ public function update(Request $request, User $user): RedirectResponse
+{
+    $loggedInUserRole = Auth::user()->getRoleNames()->first();
+   
 
-        $loggedInUserRole = Auth::user()->role;
-        $allowedRoles = ($loggedInUserRole === 'Super Admin') ? ['Admin', 'Staff', 'Student'] : ['Staff', 'Student'];
+    $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+        'role' => ['required', 'string'],
+        'status' => ['required', 'integer'],
+    ]);
 
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'role' => ['required', 'string', Rule::in($allowedRoles)],
-            'status' => ['required', 'integer'],
-        ]);
+    $user->update([
+        'name' => $request->name,
+        'email' => $request->email,
+        'status' => $request->status,
+    ]);
 
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'role' => $request->role,
-            'status' => $request->status,
-        ]);
-
-        if ($request->filled('password')) {
-            $request->validate(['password' => ['required', 'string', 'min:8']]);
-            $user->update(['password' => Hash::make($request->password)]);
-        }
-
-        return redirect()->route('users.index')->with('success', 'User updated successfully.');
+    if ($request->filled('password')) {
+        $request->validate(['password' => ['required', 'string', 'min:8']]);
+        $user->update(['password' => Hash::make($request->password)]);
     }
+
+    // Sync roles instead of updating "role" column
+    $user->syncRoles([$request->role]);
+
+    return redirect()->route('users.index')->with('success', 'User updated successfully.');
+}
+
 
     public function destroy(User $user): RedirectResponse
     {

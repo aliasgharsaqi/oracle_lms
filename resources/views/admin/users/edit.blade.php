@@ -36,15 +36,19 @@
                         <input type="password" class="form-control" id="password" name="password" placeholder="Leave blank to keep current password">
                     </div>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="role" class="form-label">Assign Role</label>
-                            <select class="form-select" id="role" name="role" required>
-                                <option value="" disabled>Select a role...</option>
-                                @foreach ($roles as $role)
-                                    <option value="{{ $role }}" {{ old('role', $user->role) == $role ? 'selected' : '' }}>{{ $role }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                     <div class="col-md-6 mb-3">
+    <label for="role" class="form-label">Assign Role</label>
+    <select class="form-select" id="role" name="role" required>
+        <option value="" disabled selected>Select a role...</option>
+        @foreach ($roles as $role)
+            <option value="{{ $role->name }}" 
+                {{ old('role', $user->roles->pluck('name')->first()) == $role->name ? 'selected' : '' }}>
+                {{ $role->name }}
+            </option>
+        @endforeach
+    </select>
+</div>
+
                         <div class="col-md-6 mb-3">
                              <label for="status" class="form-label">Status</label>
                             <select class="form-select" id="status" name="status" required>

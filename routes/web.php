@@ -13,6 +13,11 @@ use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\StudentFeePlanController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\TeacherController;
+use App\Http\Controllers\Admin\FeeReportController;
+use App\Http\Controllers\Admin\RoleController;
+
+
+
 
 Route::get('/', [LoginController::class, 'create'])->middleware('guest');
 
@@ -93,5 +98,19 @@ Route::delete('/schedules/{id}', [ScheduleController::class, 'destroy'])->name('
     Route::get('/fees/payments', [FeePaymentController::class, 'index'])->name('fees.payments.index');
     Route::post('/fees/payments', [FeePaymentController::class, 'storePayment'])->name('fees.payments.store');
     Route::get('/fees/receipt/{voucher}', [FeePaymentController::class, 'showReceipt'])->name('fees.receipt');
+
+       Route::get('/pending-fees', [FeeReportController::class, 'pendingFees'])->name('reports.pendingFees');
+    Route::get('/paid-fees', [FeeReportController::class, 'paidFees'])->name('reports.paidFees');
+    Route::get('/monthly-revenue', [FeeReportController::class, 'monthlyRevenue'])->name('reports.monthlyRevenue');
+    Route::get('/total-revenue', [FeeReportController::class, 'totalRevenue'])->name('reports.totalRevenue');
+    Route::get('/revenue-dashboard', [FeeReportController::class, 'revenueDashboard'])
+    ->name('reports.revenueDashboard');
+
+    Route::prefix('admin')->name('admin.')->group(function () {
+   // routes/web.php
+Route::resource('roles', RoleController::class)->except(['show']);
+
+});
+
 
 });

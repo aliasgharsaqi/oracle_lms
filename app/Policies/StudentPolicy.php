@@ -12,33 +12,33 @@ class StudentPolicy
 
     public function before(User $user, $ability)
     {
-        if ($user->role === 'Super Admin') {
-            return true;
+        if ($user->hasRole('Admin')) {
+            return true; // Super Admin bypasses all checks
         }
     }
 
     public function viewAny(User $user)
     {
-        return $user->role === 'Admin';
+        return $user->hasRole('Admin');
     }
 
     public function view(User $user, Student $student)
     {
-        return $user->role === 'Admin';
+        return $user->hasRole('Admin');
     }
 
     public function create(User $user)
     {
-        return $user->role === 'Admin';
+        return $user->hasRole('Admin');
     }
 
     public function update(User $user, Student $student)
     {
-        return $user->role === 'Admin';
+        return $user->hasRole('Admin');
     }
 
     public function delete(User $user, Student $student)
     {
-        return $user->role === 'Admin';
+        return $user->hasRole('Admin');
     }
 }
