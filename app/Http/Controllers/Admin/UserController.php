@@ -17,15 +17,22 @@ class UserController extends Controller
     public function index(): View
     {
         $query = User::where('id', '!=', Auth::id());
-
+       
         if (Auth::user()->role === 'Admin') {
             $query->whereIn('role', ['Staff', 'Student']);
         }
 
         $users = $query->latest()->get();
-        return view('admin.users.index', compact('users'));
+        $trashedUsers = User::onlyTrashed()->get();
+        return view('admin.users.index', compact('users','trashedUsers'));
     }
 
+    public function restore($id)
+{
+    $user = User::withTrashed()->findOrFail($id);
+    $user->restore();
+    return redirect()->back()->with('success', 'User restored successfully.');
+}
     public function create(): View
     {
         $loggedInUserRole = Auth::user()->role;

@@ -52,6 +52,7 @@
                                 <th>Student Name</th>
                                 <th>Amount Due</th>
                                 <th>Status</th>
+                                <th>Remaining</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -59,7 +60,7 @@
                             @foreach($students as $student)
                                 <tr>
                                     <td>{{ $student->user->name }}</td>
-                                    <td>${{ number_format($student->voucher->amount_due, 2) }}</td>
+                                    <td>PKR{{ number_format($student->voucher->amount_due, 2) }}</td>
                                     <td>
                                         @if($student->voucher->status == 'paid')
                                             <span class="badge bg-success">Paid</span>
@@ -71,6 +72,11 @@
                                             <span class="badge bg-danger">Overdue</span>
                                         @endif
                                     </td>
+                                    <td>@if ($student->voucher->amount_due > $student->voucher->amount_paid )
+                                        {{ $student->voucher->amount_due - $student->voucher->amount_paid }}
+                                    @else
+                                        0
+                                    @endif</td>
                                     <td>
                                         @if($student->voucher->status == 'paid')
                                             <a href="{{ route('fees.receipt', $student->voucher->id) }}" class="btn btn-sm btn-secondary">View Receipt</a>

@@ -40,7 +40,15 @@
                                     <td>{{ $schedule->schoolClass->name }}</td>
                                     <td>{{ $schedule->subject->name }}</td>
                                     <td>{{ $schedule->teacher->user->name }}</td>
-                                    <td><a href="#" class="btn btn-sm btn-danger">Delete</a></td>
+                                    <td>
+    <a href="{{ route('schedules.show', $schedule->id) }}" class="btn btn-info btn-sm">View</a>
+    <a href="{{ route('schedules.edit', $schedule->id) }}" class="btn btn-warning btn-sm">Edit</a>
+    <form action="{{ route('schedules.destroy', $schedule->id) }}" method="POST" style="display:inline-block;">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</button>
+    </form>
+</td>
                                 </tr>
                             @empty
                                 <tr>

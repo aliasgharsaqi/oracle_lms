@@ -21,7 +21,7 @@
                     <div class="col-md-4 col-lg-3 mb-3">
                         <label for="fee-{{ $i }}" class="form-label">{{ $monthName }}</label>
                         <div class="input-group">
-                            <span class="input-group-text">$</span>
+                            <span class="input-group-text">PKR</span>
                             <input type="number" step="0.01" class="form-control" id="fee-{{ $i }}" name="fees[{{ $i }}]" value="{{ $amount }}" required>
                         </div>
                     </div>

@@ -33,8 +33,43 @@ class SubjectController extends Controller
             'name' => $request->name,
             'subject_code' => $request->subject_code,
             'created_by' => Auth::id(),
+            'active' => true,
         ]);
 
         return redirect()->route('subjects.index')->with('success', 'Subject created successfully.');
+    }
+
+    public function edit(Subject $subject): View
+    {
+        return view('admin.subjects.edit', compact('subject'));
+    }
+
+    public function update(Request $request, Subject $subject): RedirectResponse
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:subjects,name,' . $subject->id],
+            'subject_code' => ['required', 'string', 'max:50', 'unique:subjects,subject_code,' . $subject->id],
+        ]);
+
+        $subject->update([
+            'name' => $request->name,
+            'subject_code' => $request->subject_code,
+        ]);
+
+        return redirect()->route('subjects.index')->with('success', 'Subject updated successfully.');
+    }
+
+    public function destroy(Subject $subject): RedirectResponse
+    {
+        $subject->delete();
+        return redirect()->route('subjects.index')->with('success', 'Subject deleted successfully.');
+    }
+
+    public function toggleStatus(Subject $subject): RedirectResponse
+    {
+        $subject->active = !$subject->active;
+        $subject->save();
+
+        return redirect()->route('subjects.index')->with('success', 'Subject status updated.');
     }
 }
