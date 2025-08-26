@@ -21,7 +21,6 @@ return new class extends Migration
             $table->string('password')->nullable();
             $table->string('phone')->nullable();
             $table->text('address')->nullable();
-            $table->string('role')->nullable();
             $table->string('user_pic')->nullable();
             $table->string('com_name')->nullable();
             $table->string('com_pic')->nullable();

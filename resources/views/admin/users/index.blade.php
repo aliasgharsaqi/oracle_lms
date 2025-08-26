@@ -33,7 +33,16 @@
                                 <tr>
                                     <td>{{ $user->name }}</td>
                                     <td>{{ $user->email }}</td>
-                                    <td><span class="badge bg-primary">{{ $user->role }}</span></td>
+                                    <td>
+    @if($user->roles->isNotEmpty())
+        @foreach($user->roles as $role)
+            <span class="badge bg-primary">{{ $role->name }}</span>
+        @endforeach
+    @else
+        <span class="badge bg-secondary">No Role</span>
+    @endif
+</td>
+
                                     <td>
                                         @if($user->status == 1) <span class="badge bg-success">Active</span>
                                         @elseif($user->status == 2) <span class="badge bg-warning">Pending</span>

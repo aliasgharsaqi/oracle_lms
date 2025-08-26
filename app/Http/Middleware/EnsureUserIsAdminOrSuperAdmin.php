@@ -12,12 +12,13 @@ class EnsureUserIsAdminOrSuperAdmin
     public function handle(Request $request, Closure $next): Response
     {
         if (Auth::check()) {
-            $userRole = Auth::user()->role;
-            if ($userRole === 'Super Admin' || $userRole === 'Admin') {
+            $user = Auth::user();
+
+            if ($user->hasAnyRole(['Admin'])) {
                 return $next($request);
             }
         }
-        
+
         // If not the correct role, log out and redirect with an error
         Auth::guard('web')->logout();
         $request->session()->invalidate();
