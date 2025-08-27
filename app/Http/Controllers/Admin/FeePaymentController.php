@@ -76,7 +76,8 @@ class FeePaymentController extends Controller
                     // If no plan, create a placeholder voucher to show the status
                     $student->voucher = (object)[
                         'status'     => 'no_plan',
-                        'amount_due' => 0
+                        'amount_due' => 0,
+                        'amount_paid' => 0,
                     ];
                 }
 
