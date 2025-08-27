@@ -38,7 +38,7 @@
                             @foreach ($students as $student)
                             <tr>
                                 <td>
-                                    <img src="{{ asset('storage/' . $student->user->user_pic) }}" alt="{{ $student->user->name }}" class="rounded-circle" width="40" height="40" style="object-fit: cover;">
+                                    <img src="{{ asset('storage/' . $student->user->user_pic ?? '') }}" alt="{{ $student->user->name }}" class="rounded-circle" width="40" height="40" style="object-fit: cover;">
                                 </td>
                                 <td>{{ $student->user->name }}</td>
                                 <td>{{ $student->user->email }}</td>
