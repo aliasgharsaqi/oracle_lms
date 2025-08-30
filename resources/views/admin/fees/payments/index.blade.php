@@ -59,7 +59,7 @@
                         <tbody>
                             @foreach($students as $student)
                                 <tr>
-                                    <td>{{ $student->user->name }}</td>
+                                    <td>{{ $student->user->name ?? '' }}</td>
                                     <td>PKR{{ number_format($student->voucher->amount_due, 2) }}</td>
                                     <td>
                                         @if($student->voucher->status == 'paid')
@@ -72,8 +72,8 @@
                                             <span class="badge bg-danger">Overdue</span>
                                         @endif
                                     </td>
-                                    <td>@if ($student->voucher->amount_due > $student->voucher->amount_paid )
-                                        {{ $student->voucher->amount_due - $student->voucher->amount_paid }}
+                                    <td>@if ($student->voucher->amount_due > $student->voucher->amount_paid ?? 0 )
+                                        {{ $student->voucher->amount_due - $student->voucher->amount_paid ?? 0 }}
                                     @else
                                         0
                                     @endif</td>
