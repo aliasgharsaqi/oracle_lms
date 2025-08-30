@@ -10,13 +10,13 @@
     </button>
     <!-- Logo -->
     <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-        <i class="bi bi-buildings-fill me-2 fs-2"></i>
-        <span class="fs-4 fw-bold">School Admin</span>
+                <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-14 pr-2 h-auto">
+        <span class="fs-4 fw-bold">Neshat us Sania</span>
     </a>
     <hr>
 
     <!-- Menu Items -->
-    <ul class="nav nav-pills flex-column mb-auto">
+    <ul class="nav nav-pills flex-column mb-auto mt-4">
         <li class="nav-item">
             <a href="{{ route('dashboard') }}"
                 class="nav-link {{ request()->routeIs('dashboard') ? 'active' : 'text-white' }}">

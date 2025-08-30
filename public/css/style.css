@@ -86,7 +86,7 @@
 
 /* Sidebar Styling */
 .sidebar {
-    width: 260px;
+    width: 270px;
     min-height: 100vh;
     background: linear-gradient(180deg, #212529 0%, #343a40 100%);
     color: #fff;
@@ -172,3 +172,110 @@
         max-width: 120px;
     }
 }
+.sidebar {
+    background: linear-gradient(50deg, #33354a, #283593);
+    min-width: 250px;
+    transition: all 0.3s ease-in-out;
+}
+
+.sidebar .nav-link {
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+.sidebar .nav-link:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateX(5px);
+}
+
+.sidebar .nav-link.active {
+    background: #0e53ad;
+    color: white !important;
+    font-weight: 600;
+}
+
+.sidebar .dropdown-toggle::after {
+    display: none;
+}
+    .hover-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .hover-card:hover {
+        transform: translateY(-6px);
+        /* box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15); */
+    }
+    .btn-custom {
+        border-radius: 12px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        padding: 10px;
+    }
+    .btn-custom:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
+    .bts{
+        background: #1a66ca;
+    }
+     /* Timeline Custom Styling */
+    .timeline-item {
+        position: relative;
+        padding-left: 2rem;
+    }
+    .timeline-item::before {
+        content: "";
+        position: absolute;
+        top: 0.5rem;
+        left: 15px;
+        width: 2px;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.08);
+    }
+    .timeline-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    }
+      .shortcut-card:hover {
+        transform: translateY(-6px) scale(1.02);
+        transition: all 0.3s ease-in-out;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Gradient headers */
+    .card-header-gradient {
+        color: #fff;
+        border-radius: 1rem 1rem 0 0;
+        font-weight: 600;
+    }
+
+    /* List group modern look */
+    .list-group-item {
+        transition: 0.3s;
+        border: 0 !important;
+    }
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+        transform: translateX(5px);
+    }
+
+    /* Icon box */
+    .icon-box {
+        width: 60px;
+        height: 60px;
+        font-size: 1.6rem;
+    }
+
+    /* Buttons */
+    .btn-custom {
+        border-radius: 0.6rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .btn-custom:hover {
+        transform: scale(1.05);
+    }
