@@ -111,6 +111,9 @@ Route::delete('/schedules/{id}', [ScheduleController::class, 'destroy'])->name('
 Route::resource('roles', RoleController::class)->except(['show']);
 
 });
-
-
 });
+
+// web.php
+Route::get('/marks', function () {
+    return view('admin.marks.index');
+})->name('marks');

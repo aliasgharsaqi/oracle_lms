@@ -46,7 +46,7 @@
                                 <td>
                                     <img src="{{ asset('storage/' . ($student->user->user_pic ?? '')) }}" 
                                          alt="{{ $student->user->name }}" 
-                                         class="rounded-circle" width="40" height="40" style="object-fit: cover;">
+                                         class="rounded-circle" width="70" height="70" style="object-fit: cover;">
                                 </td>
                                 <td class="fw-semibold">{{ $student->user->name }}</td>
                                 <td class="text-truncate" style="max-width: 200px;">{{ $student->user->email }}</td>
@@ -55,7 +55,7 @@
                                 <td>{{ $student->father_name }}</td>
                                 <td>{{ $student->father_phone }}</td>
                                 <td class="text-center">
-                                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                                    <div class="d-flex justify-content-center gap-2">
                                         <a href="{{ route('students.show', $student->id) }}" class="btn btn-icon badge-gradient-warning">
                                             <i class="bi bi-eye"></i>
                                         </a>
