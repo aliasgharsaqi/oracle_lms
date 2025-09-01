@@ -6,24 +6,34 @@
 @section('content')
 <div class="row justify-content-center">
     <div class="col-lg-8">
-        <div class="card shadow">
-            <div class="card-header"><h5 class="card-title mb-0">Schedule Details</h5></div>
-            <div class="card-body">
-                 @if ($errors->any())
-                    <div class="alert alert-danger">
-                        <ul>
+        <div class="card shadow-lg border-0 rounded-4">
+            <!-- Card Header -->
+            <div class="custom-card-header bg-primary text-white rounded-top-4 d-flex align-items-center justify-content-between">
+                <h5 class="card-title mb-0 fw-bold">
+                    <i class="bi bi-calendar-plus-fill me-2"></i> Schedule Details
+                </h5>
+            </div>
+
+            <!-- Card Body -->
+            <div class="card-body p-4">
+                {{-- Error Messages --}}
+                @if ($errors->any())
+                    <div class="alert alert-danger rounded-3 shadow-sm">
+                        <ul class="mb-0">
                             @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
+                                <li><i class="bi bi-exclamation-circle me-1"></i> {{ $error }}</li>
                             @endforeach
                         </ul>
                     </div>
                 @endif
-                <form action="{{ route('schedules.store') }}" method="POST">
+
+                {{-- Lecture Form --}}
+                <form action="{{ route('schedules.store') }}" method="POST" class="needs-validation" novalidate>
                     @csrf
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="teacher_id" class="form-label">Select Teacher (Staff)</label>
-                            <select class="form-select" name="teacher_id" required>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="teacher_id" class="form-label fw-semibold">Select Teacher (Staff)</label>
+                            <select class="form-select rounded-3 shadow-sm" name="teacher_id" required>
                                 <option disabled {{ old('teacher_id') ? '' : 'selected' }}>Choose...</option>
                                 @foreach($teachers as $teacher)
                                     <option value="{{ $teacher->id }}" 
@@ -33,9 +43,10 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="class_id" class="form-label">Select Class</label>
-                            <select class="form-select" name="class_id" required>
+
+                        <div class="col-md-6">
+                            <label for="class_id" class="form-label fw-semibold">Select Class</label>
+                            <select class="form-select rounded-3 shadow-sm" name="class_id" required>
                                 <option disabled {{ old('class_id') ? '' : 'selected' }}>Choose...</option>
                                 @foreach($classes as $class)
                                     <option value="{{ $class->id }}" 
@@ -45,9 +56,10 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-12 mb-3">
-                            <label for="subject_id" class="form-label">Select Subject</label>
-                            <select class="form-select" name="subject_id" required>
+
+                        <div class="col-12">
+                            <label for="subject_id" class="form-label fw-semibold">Select Subject</label>
+                            <select class="form-select rounded-3 shadow-sm" name="subject_id" required>
                                 <option disabled {{ old('subject_id') ? '' : 'selected' }}>Choose...</option>
                                 @foreach($subjects as $subject)
                                     <option value="{{ $subject->id }}" 
@@ -57,9 +69,10 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="day_of_week" class="form-label">Day of the Week</label>
-                            <select class="form-select" name="day_of_week" required>
+
+                        <div class="col-md-4">
+                            <label for="day_of_week" class="form-label fw-semibold">Day of the Week</label>
+                            <select class="form-select rounded-3 shadow-sm" name="day_of_week" required>
                                 <option disabled {{ old('day_of_week') ? '' : 'selected' }}>Choose...</option>
                                 @foreach($days as $day)
                                     <option value="{{ $day }}" 
@@ -69,20 +82,29 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="start_time" class="form-label">Start Time</label>
-                            <input type="time" class="form-control" name="start_time" 
+
+                        <div class="col-md-4">
+                            <label for="start_time" class="form-label fw-semibold">Start Time</label>
+                            <input type="time" class="form-control rounded-3 shadow-sm" name="start_time" 
                                    value="{{ old('start_time') }}" required>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="end_time" class="form-label">End Time</label>
-                            <input type="time" class="form-control" name="end_time" 
+
+                        <div class="col-md-4">
+                            <label for="end_time" class="form-label fw-semibold">End Time</label>
+                            <input type="time" class="form-control rounded-3 shadow-sm" name="end_time" 
                                    value="{{ old('end_time') }}" required>
                         </div>
                     </div>
-                    <div class="d-flex justify-content-end mt-3">
-                        <a href="{{ route('schedules.index') }}" class="btn btn-secondary me-2">Cancel</a>
-                        <button type="submit" class="btn btn-primary">Assign Lecture</button>
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <a href="{{ route('schedules.index') }}" 
+                           class="btn btn-outline-secondary rounded-pill px-4 me-2 shadow-sm">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </a>
+                        <button type="submit" 
+                                class="btn btn-gradient-primary rounded-pill px-4 shadow-sm">
+                            <i class="bi bi-check-circle me-1"></i> Assign Lecture
+                        </button>
                     </div>
                 </form>
             </div>
