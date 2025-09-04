@@ -10,7 +10,7 @@
     </button>
     <!-- Logo -->
     <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-                <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-14 pr-2 h-auto">
+        <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-14 pr-2 h-auto">
         <span class="fs-4 fw-bold">Neshat us Sania</span>
     </a>
     <hr>
@@ -84,45 +84,80 @@
             </a>
         </li>
         @endcan
-
         @can('Manage Fees')
-        <li>
-            <a href="#feeSubmenu" data-bs-toggle="collapse" class="nav-link text-white dropdown-toggle">
-                <i class="bi bi-cash-coin"></i> Fee Management
+        <li class="nav-item">
+            <a href="javascript:void(0);" class="nav-link text-white d-flex align-items-center toggle-dropdown">
+                <i class="bi bi-cash-coin me-2"></i> Fee Management
             </a>
-            <ul class="collapse list-unstyled ps-3 {{ request()->routeIs('fees.*') ? 'show' : '' }}" id="feeSubmenu">
+
+            <ul class="list-unstyled ps-3 dropdown-submenu" style="display: none;">
                 @can('Manage Student Fees Plan')
-                <li><a href="{{ route('fees.plans.index') }}" class="nav-link text-white">Student Fee Plans</a></li>
+                <li>
+                    <a href="{{ route('fees.plans.index') }}"
+                        class="nav-link text-white {{ request()->routeIs('fees.plans.*') ? 'active' : '' }}">
+                        Student Fee Plans
+                    </a>
+                </li>
                 @endcan
+
                 @can('Manage Collection of Fees')
-                <li><a href="{{ route('fees.payments.index') }}" class="nav-link text-white">Collect Fees</a></li>
+                <li>
+                    <a href="{{ route('fees.payments.index') }}"
+                        class="nav-link text-white {{ request()->routeIs('fees.payments.*') ? 'active' : '' }}">
+                        Collect Fees
+                    </a>
+                </li>
                 @endcan
             </ul>
         </li>
         @endcan
 
         @can('Manage Reports')
-        <li>
-            <a href="#reportsSubmenu" data-bs-toggle="collapse" class="nav-link text-white dropdown-toggle">
-                <i class="bi bi-bar-chart-line"></i> Reports
+        <li class="nav-item">
+            <a href="javascript:void(0);" class="nav-link text-white d-flex align-items-center toggle-dropdown">
+                <i class="bi bi-bar-chart-line me-2"></i> Reports
             </a>
-            <ul class="collapse list-unstyled ps-3 {{ request()->routeIs('reports.*') ? 'show' : '' }}"
-                id="reportsSubmenu">
+
+            <ul class="list-unstyled ps-3 dropdown-submenu" style="display: none;">
                 @can('View Paid Student Reports')
-                <li><a href="{{ route('reports.paidFees') }}" class="nav-link text-white">Paid Students</a></li>
+                <li>
+                    <a href="{{ route('reports.paidFees') }}"
+                        class="nav-link text-white {{ request()->routeIs('reports.paidFees') ? 'active' : '' }}">
+                        Paid Students
+                    </a>
+                </li>
                 @endcan
+
                 @can('View Pending Student Reports')
-                <li><a href="{{ route('reports.pendingFees') }}" class="nav-link text-white">Pending Students</a></li>
+                <li>
+                    <a href="{{ route('reports.pendingFees') }}"
+                        class="nav-link text-white {{ request()->routeIs('reports.pendingFees') ? 'active' : '' }}">
+                        Pending Students
+                    </a>
+                </li>
                 @endcan
+
                 @can('View Monthly Income Reports')
-                <li><a href="{{ route('reports.monthlyRevenue') }}" class="nav-link text-white">Monthly Revenue</a></li>
+                <li>
+                    <a href="{{ route('reports.monthlyRevenue') }}"
+                        class="nav-link text-white {{ request()->routeIs('reports.monthlyRevenue') ? 'active' : '' }}">
+                        Monthly Revenue
+                    </a>
+                </li>
                 @endcan
+
                 @can('View Total Income Reports')
-                <li><a href="{{ route('reports.totalRevenue') }}" class="nav-link text-white">Total Income</a></li>
+                <li>
+                    <a href="{{ route('reports.totalRevenue') }}"
+                        class="nav-link text-white {{ request()->routeIs('reports.totalRevenue') ? 'active' : '' }}">
+                        Total Income
+                    </a>
+                </li>
                 @endcan
             </ul>
         </li>
         @endcan
+
     </ul>
 
     <hr>
@@ -156,3 +191,24 @@
     onclick="document.getElementById('sidebarMenu').classList.toggle('show')">
     <i class="bi bi-list fs-3"></i>
 </button>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll(".toggle-dropdown").forEach(function(toggle) {
+        toggle.addEventListener("click", function() {
+            let submenu = this.nextElementSibling;
+            let arrow = this.querySelector("i.bi-chevron-down");
+
+            if (submenu.style.display === "block") {
+                submenu.style.display = "none";
+                arrow.classList.remove("bi-chevron-up");
+                arrow.classList.add("bi-chevron-down");
+            } else {
+                submenu.style.display = "block";
+                arrow.classList.remove("bi-chevron-down");
+                arrow.classList.add("bi-chevron-up");
+            }
+        });
+    });
+});
+</script>

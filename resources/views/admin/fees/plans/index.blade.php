@@ -4,43 +4,75 @@
 @section('page-title', 'Student Fee Plans')
 
 @section('content')
-<div class="card shadow">
-    <div class="card-header">
-        <h5 class="card-title mb-0">Select a Student to Manage Their Fee Plan</h5>
-    </div>
-    <div class="card-body">
-        @if (session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Student Name</th>
-                        <th>Class</th>
-                        <th>Fee Plan Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($students as $student)
-                    <tr>
-                        <td>{{ $student->user->name }}</td>
-                        <td>{{ $student->schoolClass->name ?? 'N/A' }}</td>
-                        <td>
-                            @if($student->fee_plans_count > 0)
-                                <span class="badge bg-success">Plan Defined</span>
-                            @else
-                                <span class="badge bg-warning">No Plan</span>
-                            @endif
-                        </td>
-                        <td>
-                            <a href="{{ route('fees.plans.create', $student->id) }}" class="btn btn-sm btn-primary">Manage Plan</a>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+<div class="row">
+    <div class="col-12">
+        <div class="card custom-card shadow-lg border-0">
+            <!-- Card Header -->
+            <div class="card-header custom-card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <h4 class="card-title mb-0 text-primary-custom fw-bold">
+                    <i class="bi bi-cash-coin me-2"></i> Manage Student Fee Plans
+                </h4>
+            </div>
+
+            <!-- Card Body -->
+            <div class="card-body">
+                <!-- Success Message -->
+                @if (session('success'))
+                    <div class="alert alert-success alert-dismissible fade show shadow-sm rounded-3" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
+                <!-- Table -->
+                <div class="table-responsive">
+                    <table class="table table-hover custom-table align-middle mb-0 text-center">
+                        <thead class="table-header text-nowrap">
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Class</th>
+                                <th>Status</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($students as $student)
+                                <tr>
+                                    <td class="fw-semibold text-truncate" style="max-width: 150px;">
+                                        {{ $student->user->name }}
+                                    </td>
+                                    <td class="text-truncate" style="max-width: 120px;">
+                                        {{ $student->schoolClass->name ?? 'N/A' }}
+                                    </td>
+                                    <td>
+                                        @if($student->fee_plans_count > 0)
+                                            <span class="badge badge-gradient-success px-3 py-2">Plan Defined</span>
+                                        @else
+                                            <span class="badge badge-gradient-warning px-3 py-2">No Plan</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-flex flex-wrap justify-content-center gap-2">
+                                            <a href="{{ route('fees.plans.create', $student->id) }}" 
+                                               class="btn btn-icon badge-gradient-primary" 
+                                               title="Manage Plan">
+                                                <i class="bi bi-gear-fill"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">
+                                        <i class="bi bi-emoji-frown fs-4 d-block mb-2"></i>
+                                        No students available for fee plan management.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
