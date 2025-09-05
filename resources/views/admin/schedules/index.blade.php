@@ -48,9 +48,9 @@
                                         {{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }} -
                                         {{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}
                                     </td>
-                                    <td class="text-truncate" style="max-width: 150px;">{{ $schedule->schoolClass->name }}</td>
-                                    <td class="text-truncate" style="max-width: 150px;">{{ $schedule->subject->name }}</td>
-                                    <td class="text-truncate" style="max-width: 150px;">{{ $schedule->teacher->user->name }}</td>
+                                    <td class="text-truncate" style="max-width: 150px;">{{ $schedule->schoolClass->name  ?? '' }}</td>
+                                    <td class="text-truncate" style="max-width: 150px;">{{ $schedule->subject->name ?? '' }}</td>
+                                    <td class="text-truncate" style="max-width: 150px;">{{ $schedule->teacher->user->name ?? '' }}</td>
                                     <td class="text-center">
                                         <div class="d-flex flex-wrap justify-content-center gap-2">
                                             <a href="{{ route('schedules.show', $schedule->id) }}" class="btn btn-icon badge-gradient-warning">
