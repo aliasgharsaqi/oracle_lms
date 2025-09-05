@@ -84,6 +84,17 @@
             </a>
         </li>
         @endcan
+
+        @can('Manage Marks')
+        <li>
+            <a href="{{ route('marks.index') }}"
+                class="nav-link {{ request()->routeIs('marks.*') ? 'active' : 'text-white' }}">
+                <i class="bi bi-person-check-fill"></i> Marks
+            </a>
+        </li>
+        @endcan
+
+
         @can('Manage Fees')
         <li class="nav-item">
             <a href="javascript:void(0);" class="nav-link text-white d-flex align-items-center toggle-dropdown">
