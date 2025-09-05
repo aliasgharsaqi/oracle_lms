@@ -306,8 +306,3 @@
 .btn-custom:hover {
     transform: scale(1.05);
 }
-/* rotate arrow when open */
-.sidebar .nav-link[aria-expanded="true"] .bi-chevron-down {
-  transform: rotate(180deg);
-  transition: transform 0.3s ease;
-}
