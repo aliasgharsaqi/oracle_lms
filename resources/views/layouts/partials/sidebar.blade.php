@@ -1,19 +1,22 @@
 <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
-
 <!-- Sidebar -->
 <nav class="d-flex flex-column flex-shrink-0 p-3 sidebar" id="sidebarMenu">
-    <!-- Close Button (Mobile Only) -->
-    <button class="btn text-white d-lg-none position-absolute top-0 end-0 my-3 mx-1"
-        onclick="document.getElementById('sidebarMenu').classList.remove('show')">
-        <i class="bi bi-x-lg fs-4"></i>
-    </button>
-    <!-- Logo -->
-    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-        <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-14 pr-2 h-auto">
-        <span class="fs-4 fw-bold">Neshat us Sania</span>
-    </a>
+    <!-- Logo and Close Button -->
+    <div class="sidebar-brand-container d-flex justify-content-between align-items-center">
+        <a href="/" class="d-flex align-items-center text-white text-decoration-none">
+            <div class="sidebar-brand-icon bg-white rounded-circle d-flex align-items-center justify-content-center" >
+                <img src="{{ asset('images/logo.png') }}" alt="Logo" style="max-width: 70px; max-height: 90px;">
+            </div>
+            <span class="fs-4 fw-bold ms-3 d-none d-lg-inline">Neshat us Sania</span>
+        </a>
+        <!-- Close Button (Mobile Only) -->
+        <button class="btn text-white d-lg-none" id="closeSidebarBtn">
+            <i class="bi bi-x-lg fs-4"></i>
+        </button>
+    </div>
     <hr>
+
 
     <!-- Menu Items -->
     <ul class="nav nav-pills flex-column mb-auto mt-4">
@@ -197,29 +200,28 @@
     </div>
 </nav>
 
-<!-- Toggle Button (Mobile) -->
-<button style="height: 50px; position: absolute;" class="btn btn-primary d-lg-none top-0 start-0 m-3" type="button"
-    onclick="document.getElementById('sidebarMenu').classList.toggle('show')">
-    <i class="bi bi-list fs-3"></i>
-</button>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    document.querySelectorAll(".toggle-dropdown").forEach(function(toggle) {
-        toggle.addEventListener("click", function() {
-            let submenu = this.nextElementSibling;
-            let arrow = this.querySelector("i.bi-chevron-down");
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll(".toggle-dropdown").forEach(function(toggle) {
+            toggle.addEventListener("click", function() {
+                let submenu = this.nextElementSibling;
+                let arrow = this.querySelector("i.bi-chevron-down");
 
-            if (submenu.style.display === "block") {
-                submenu.style.display = "none";
-                arrow.classList.remove("bi-chevron-up");
-                arrow.classList.add("bi-chevron-down");
-            } else {
-                submenu.style.display = "block";
-                arrow.classList.remove("bi-chevron-down");
-                arrow.classList.add("bi-chevron-up");
-            }
+                if (submenu.style.display === "block") {
+                    submenu.style.display = "none";
+                    if (arrow) {
+                        arrow.classList.remove("bi-chevron-up");
+                        arrow.classList.add("bi-chevron-down");
+                    }
+                } else {
+                    submenu.style.display = "block";
+                    if (arrow) {
+                        arrow.classList.remove("bi-chevron-down");
+                        arrow.classList.add("bi-chevron-up");
+                    }
+                }
+            });
         });
     });
-});
 </script>
