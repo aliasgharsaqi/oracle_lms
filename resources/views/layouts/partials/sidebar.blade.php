@@ -5,7 +5,7 @@
     <!-- Logo and Close Button -->
     <div class="sidebar-brand-container d-flex justify-content-between align-items-center">
         <a href="/" class="d-flex align-items-center text-white text-decoration-none">
-            <div class="sidebar-brand-icon bg-white rounded-circle d-flex align-items-center justify-content-center" >
+            <div class="sidebar-brand-icon bg-white rounded-circle d-flex align-items-center justify-content-center">
                 <img src="{{ asset('images/logo.png') }}" alt="Logo" style="max-width: 70px; max-height: 90px;">
             </div>
             <span class="fs-4 fw-bold ms-3 d-none d-lg-inline">Neshat us Sania</span>
@@ -21,8 +21,8 @@
     <!-- Menu Items -->
     <ul class="nav nav-pills flex-column mb-auto mt-4">
         <li class="nav-item">
-            <a href="{{ route('dashboard') }}"
-                class="nav-link {{ request()->routeIs('dashboard') ? 'active' : 'text-white' }}">
+            <a href="{{ Auth::user()->hasRole('Admin') ? route('dashboard') : route('user.dashboard') }}"
+                class="nav-link {{ (request()->routeIs('dashboard') || request()->routeIs('user.dashboard')) ? 'active' : 'text-white' }}">
                 <i class="bi bi-speedometer2"></i> Dashboard
             </a>
         </li>
@@ -36,12 +36,15 @@
         </li>
         @endcan
 
+        @can('Manage Roles')
         <li>
             <a href="{{ route('admin.roles.index') }}"
                 class="nav-link {{ request()->routeIs('admin.*') ? 'active' : 'text-white' }}">
                 <i class="bi bi-shield-lock-fill"></i> Roles & Permissions
             </a>
         </li>
+        @endcan
+
 
         @can('Manage Classes')
         <li>

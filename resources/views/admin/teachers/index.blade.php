@@ -11,72 +11,75 @@
                 <h4 class="card-title mb-0 text-primary-custom fw-bold">
                     <i class="bi bi-people-fill me-2"></i> All Staff / Teachers
                 </h4>
+                @can('Add Teachers')
                 <a href="{{ route('teachers.create') }}" class="btn btn-gradient-primary">
                     <i class="bi bi-person-plus-fill me-1"></i> Add New Teacher
                 </a>
+                @endcan
             </div>
             <div class="card-body">
                 {{-- Success Message --}}
                 @if (session('success'))
-                    <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm" role="alert">
-                        <i class="bi bi-check-circle-fill me-1"></i> {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
+                <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm" role="alert">
+                    <i class="bi bi-check-circle-fill me-1"></i> {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
                 @endif
 
                 <div class="table-responsive">
-                    <table class="table table-hover custom-table align-middle mb-0">
+                    <table class="table table-hover custom-table align-middle" id="teachersTable">
                         <thead class="table-header text-nowrap">
                             <tr>
-                                <th><i class="bi bi-image"></i> Photo</th>
-                                <th><i class="bi bi-person"></i> Name</th>
-                                <th><i class="bi bi-envelope"></i> Email</th>
-                                <th><i class="bi bi-telephone"></i> Phone</th>
-                                <th><i class="bi bi-mortarboard"></i> Education</th>
-                                <th class="text-center"><i class="bi bi-gear"></i> Actions</th>
+                                <th>Photo</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Education</th>
+                                <th class="text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($teachers as $teacher)
-                                <tr>
-                                    <td>
-                                        <img src="{{ asset('storage/' . $teacher->user->user_pic) }}" 
-                                             alt="{{ $teacher->user->name }}" 
-                                             class="rounded-circle shadow-sm" width="45" height="45">
-                                    </td>
-                                    <td class="fw-semibold text-truncate" style="max-width: 160px;">
-                                        {{ $teacher->user->name }}
-                                    </td>
-                                    <td class="text-truncate" style="max-width: 200px;">
-                                        {{ $teacher->user->email }}
-                                    </td>
-                                    <td>{{ $teacher->user->phone }}</td>
-                                    <td>{{ $teacher->education }}</td>
-                                    <td class="text-center">
-                                        <div class="d-flex flex-wrap justify-content-center gap-2">
-                                            <a href="{{ route('teachers.edit', $teacher->id) }}" 
-                                               class="btn btn-icon badge-gradient-warning">
-                                                <i class="bi bi-pencil-square"></i>
-                                            </a>
-                                            <form action="{{ route('teachers.destroy', $teacher->id) }}" 
-                                                  method="POST" class="d-inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" 
-                                                        class="btn btn-icon badge-gradient-danger" 
-                                                        onclick="return confirm('Are you sure you want to delete this teacher?')">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
+                            <tr>
+                                <td>
+                                    <img src="{{ asset('storage/' . $teacher->user->user_pic) }}"
+                                        alt="{{ $teacher->user->name }}"
+                                        class="rounded-circle shadow-sm" width="45" height="45">
+                                </td>
+                                <td class="fw-semibold">{{ $teacher->user->name }}</td>
+                                <td>{{ $teacher->user->email }}</td>
+                                <td>{{ $teacher->user->phone }}</td>
+                                <td>{{ $teacher->education }}</td>
+                                <td class="text-center">
+                                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                                        @can('Edit Teachers')
+                                        <a href="{{ route('teachers.edit', $teacher->id) }}"
+                                            class="btn btn-icon badge-gradient-warning">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        @endcan
+
+                                        @can('Delete Teachers')
+                                        <form action="{{ route('teachers.destroy', $teacher->id) }}"
+                                            method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="btn btn-icon badge-gradient-danger"
+                                                onclick="return confirm('Are you sure you want to delete this teacher?')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                        @endcan
+                                    </div>
+                                </td>
+                            </tr>
                             @empty
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">
-                                        <i class="bi bi-emoji-frown fs-4"></i> No teachers found.
-                                    </td>
-                                </tr>
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <i class="bi bi-emoji-frown fs-4"></i> No teachers found.
+                                </td>
+                            </tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -86,3 +89,26 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        $('#teachersTable').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel', 'pdf', 'print', 'colvis'
+            ],
+            paging: true,
+            searching: true,
+            ordering: true,
+            info: true,
+            responsive: true,
+            "columnDefs": [{
+                    "orderable": false,
+                    "targets": [0, 5]
+                } // Disable sorting on Photo and Actions columns
+            ]
+        });
+    });
+</script>
+@endpush

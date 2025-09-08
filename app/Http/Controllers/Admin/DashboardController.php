@@ -14,8 +14,13 @@ class DashboardController extends Controller
     public function index(): View
     {
         $user = Student::count();
-        $staff =Teacher::count();
+        $staff = Teacher::count();
         $course = SchoolClass::count();
-        return view('admin.dashboard',compact('user','staff','course'));
+        return view('admin.dashboard', compact('user', 'staff', 'course'));
+    }
+
+    public function teacherDashboard(): View
+    {
+        return view('admin.teacher_dashboard');
     }
 }
