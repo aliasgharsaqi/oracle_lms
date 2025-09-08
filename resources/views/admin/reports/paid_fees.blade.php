@@ -87,7 +87,9 @@
                         <tbody>
                             @foreach($paidFees as $fee)
                             <tr>
-                                <td class="border px-2 py-1">{{ $fee->student->user->name }}</td>
+                               <td class="border px-2 py-1">
+                             {{ $fee->student?->user?->name ?? 'N/A' }}
+                              </td>
                                 <td class="border px-2 py-1">
                                     {{ \Carbon\Carbon::parse($fee->voucher_month)->format('F Y') }}</td>
                                 <td class="border px-2 py-1">{{ $fee->amount_due }}</td>
