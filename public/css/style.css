@@ -127,7 +127,7 @@
 .sidebar .nav-link.active {
     background: linear-gradient(90deg, #1b49c8, #1849d1);
     color: #fff !important;
-    box-shadow: 0 3px 8px rgba(13, 110, 253, 0.4);
+    box-shadow: 0 2px 0px rgba(13, 110, 253, 0.4);
 }
 
 .sidebar hr {
