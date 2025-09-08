@@ -1,35 +1,41 @@
 <?php
 
-    use Illuminate\Support\Facades\Route;
-    use App\Http\Controllers\Admin\DashboardController;
-    use App\Http\Controllers\Auth\LoginController;
-    use App\Http\Controllers\Admin\UserController;
-    use App\Http\Controllers\Admin\ClassController;
-    use App\Http\Controllers\Admin\FeePaymentController;
-    use App\Http\Controllers\Admin\FeeStructureController;
-    use App\Http\Controllers\Admin\ProfileController;
-    use App\Http\Controllers\Admin\ScheduleController;
-    use App\Http\Controllers\Admin\StudentController;
-    use App\Http\Controllers\Admin\StudentFeePlanController;
-    use App\Http\Controllers\Admin\SubjectController;
-    use App\Http\Controllers\Admin\TeacherController;
-    use App\Http\Controllers\Admin\FeeReportController;
-    use App\Http\Controllers\Admin\RoleController;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\ClassController;
+use App\Http\Controllers\Admin\FeePaymentController;
+use App\Http\Controllers\Admin\FeeStructureController;
+use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Admin\ScheduleController;
+use App\Http\Controllers\Admin\StudentController;
+use App\Http\Controllers\Admin\StudentFeePlanController;
+use App\Http\Controllers\Admin\SubjectController;
+use App\Http\Controllers\Admin\TeacherController;
+use App\Http\Controllers\Admin\FeeReportController;
+use App\Http\Controllers\Admin\RoleController;
 
 
 
 
-    Route::get('/', [LoginController::class, 'create'])->middleware('guest');
+Route::get('/', [LoginController::class, 'create'])->middleware('guest');
 
-    Route::middleware('guest')->group(function () {
-        Route::get('login', [LoginController::class, 'create'])->name('login');
-        Route::post('login', [LoginController::class, 'store']);
-    });
+Route::middleware('guest')->group(function () {
+    Route::get('login', [LoginController::class, 'create'])->name('login');
+    Route::post('login', [LoginController::class, 'store']);
+});
 
-    // Apply both 'auth' and the new 'is_admin' middleware
-    Route::middleware(['auth', 'is_admin'])->group(function () {
+// Apply both 'auth' and the new 'is_admin' middleware
+Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
+
+    // Admin Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Teacher Dashboard
+    Route::get('/teacher/dashboard', [DashboardController::class, 'teacherDashboard'])->name('user.dashboard');
+
 
     // User Management Routes
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -104,16 +110,15 @@
     Route::get('/monthly-revenue', [FeeReportController::class, 'monthlyRevenue'])->name('reports.monthlyRevenue');
     Route::get('/total-revenue', [FeeReportController::class, 'totalRevenue'])->name('reports.totalRevenue');
     Route::get('/revenue-dashboard', [FeeReportController::class, 'revenueDashboard'])
-    ->name('reports.revenueDashboard');
+        ->name('reports.revenueDashboard');
 
     Route::prefix('admin')->name('admin.')->group(function () {
-    // routes/web.php
-    Route::resource('roles', RoleController::class)->except(['show']);
-
+        // routes/web.php
+        Route::resource('roles', RoleController::class)->except(['show']);
+    });
 });
-});
 
-    // web.php
-  Route::get('/marks', function () {
+// web.php
+Route::get('/marks', function () {
     return view('admin.marks.index');
 })->name('marks.index'); // ✅ name updated

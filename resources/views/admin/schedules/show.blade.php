@@ -18,16 +18,16 @@
             <div class="card-body p-4">
                 <dl class="row mb-4">
                     <dt class="col-sm-4 fw-semibold">Teacher</dt>
-                    <dd class="col-sm-8">{{ $schedule->teacher->name }}</dd>
+                    <dd class="col-sm-8">{{ $schedule->teacher->name ?? '' }}</dd>
 
                     <dt class="col-sm-4 fw-semibold">Class</dt>
-                    <dd class="col-sm-8">{{ $schedule->schoolClass->name }}</dd>
+                    <dd class="col-sm-8">{{ $schedule->schoolClass->name ?? '' }}</dd>
 
                     <dt class="col-sm-4 fw-semibold">Subject</dt>
-                    <dd class="col-sm-8">{{ $schedule->subject->name }}</dd>
+                    <dd class="col-sm-8">{{ $schedule->subject->name ?? '' }}</dd>
 
                     <dt class="col-sm-4 fw-semibold">Day</dt>
-                    <dd class="col-sm-8">{{ $schedule->day_of_week }}</dd>
+                    <dd class="col-sm-8">{{ $schedule->day_of_week ?? '' }}</dd>
 
                     <dt class="col-sm-4 fw-semibold">Start Time</dt>
                     <dd class="col-sm-8">{{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }}</dd>

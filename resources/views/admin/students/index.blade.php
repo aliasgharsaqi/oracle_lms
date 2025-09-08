@@ -12,22 +12,24 @@
                 <h4 class="card-title mb-0 text-primary-custom fw-bold">
                     <i class="bi bi-people-fill me-2"></i> Enrolled Students
                 </h4>
+                @can('Add Admission')
                 <a href="{{ route('students.create') }}" class="btn btn-gradient-primary">
                     <i class="bi bi-plus-circle me-1"></i> Enroll New Student
                 </a>
+                @endcan
             </div>
 
             <!-- Card Body -->
             <div class="card-body">
                 @if (session('success'))
-                    <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm" role="alert">
-                        {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
+                <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm" role="alert">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
                 @endif
 
                 <div class="table-responsive">
-                    <table class="table table-hover custom-table align-middle mb-0">
+                    <table class="table table-hover custom-table align-middle" id="studentsTable">
                         <thead class="table-header text-nowrap">
                             <tr>
                                 <th>Photo</th>
@@ -44,28 +46,34 @@
                             @forelse ($students as $student)
                             <tr>
                                 <td>
-                                    <img src="{{ asset('storage/' . ($student->user->user_pic ?? '')) }}" 
-                                         alt="{{ $student->user->name ?? '' }}" 
-                                         class="rounded-circle" width="70" height="70" style="object-fit: cover;">
+                                    <img src="{{ asset('storage/' . ($student->user->user_pic ?? '')) }}"
+                                        alt="{{ $student->user->name ?? '' }}"
+                                        class="rounded-circle" width="50" height="50" style="object-fit: cover;">
                                 </td>
                                 <td class="fw-semibold">{{ $student->user->name ?? '' }}</td>
-                                <td class="text-truncate" style="max-width: 200px;">{{ $student->user->email ?? '' }}</td>
+                                <td>{{ $student->user->email ?? '' }}</td>
                                 <td>{{ $student->schoolClass->name ?? ''}}</td>
                                 <td>{{ $student->section ?? '' }}</td>
                                 <td>{{ $student->father_name ?? '' }}</td>
                                 <td>{{ $student->father_phone  ?? ''}}</td>
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-2">
+                                        @can('View Admission')
                                         <a href="{{ route('students.show', $student->id) }}" class="btn btn-icon badge-gradient-warning">
                                             <i class="bi bi-eye"></i>
                                         </a>
+                                        @endcan
+                                        @can('Edit Admission')
                                         <a href="{{ route('students.edit', $student->id) }}" class="btn btn-icon badge-gradient-primary">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
-                                        <button type="button" class="btn btn-icon badge-gradient-danger" 
-                                                data-bs-toggle="modal" data-bs-target="#deleteModal-{{ $student->id }}">
+                                        @endcan
+                                        @can('Delete Admission')
+                                        <button type="button" class="btn btn-icon badge-gradient-danger"
+                                            data-bs-toggle="modal" data-bs-target="#deleteModal-{{ $student->id }}">
                                             <i class="bi bi-trash"></i>
                                         </button>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>
@@ -111,3 +119,26 @@
 </div>
 @endforeach
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        $('#studentsTable').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel', 'pdf', 'print', 'colvis'
+            ],
+            paging: true,
+            searching: true,
+            ordering: true,
+            info: true,
+            responsive: true,
+            "columnDefs": [{
+                    "orderable": false,
+                    "targets": [0, 7]
+                } // Disable sorting on Photo and Actions columns
+            ]
+        });
+    });
+</script>
+@endpush

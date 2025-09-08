@@ -1,11 +1,11 @@
 @extends('layouts.admin')
 
 @section('title', 'Edit Role')
-@section('page-title', 'Edit Role')
+@section('page-title', 'Edit Role: ' . $role->name)
 
 @section('content')
 <div class="row justify-content-center">
-    <div class="">
+    <div class="col-lg-10">
         <div class="card shadow-lg border-0 rounded-4">
             <div class="custom-card-header bg-primary text-white rounded-top-4 d-flex align-items-center justify-content-between">
                 <h5 class="card-title mb-0 fw-bold">
@@ -16,54 +16,65 @@
                 </a>
             </div>
             <div class="card-body p-4">
-                {{-- Error Messages --}}
-                @if ($errors->any())
-                    <div class="alert alert-danger rounded-3 shadow-sm mb-4">
-                        <ul class="mb-0">
-                            @foreach ($errors->all() as $error)
-                                <li><i class="bi bi-exclamation-circle me-1"></i> {{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
-                {{-- Edit Role Form --}}
-                <form method="POST" action="{{ route('admin.roles.update', $role->id) }}" class="needs-validation" novalidate>
+                <form method="POST" action="{{ route('admin.roles.update', $role->id) }}">
                     @csrf
                     @method('PUT')
 
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Role Name</label>
-                        <input type="text" name="name" class="form-control rounded-3 shadow-sm" 
-                               value="{{ old('name', $role->name) }}" placeholder="Enter role name" required>
+                    <div class="mb-4">
+                        <label for="roleName" class="form-label fw-bold">Role Name</label>
+                        <input type="text" name="name" class="form-control rounded-3 shadow-sm" id="roleName" value="{{ old('name', $role->name) }}" required>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold">Assign Permissions</label>
-                        <div class="d-flex flex-wrap gap-2 mt-2">
-                            @foreach($permissions as $permission)
-                                <div class="form-check">
-                                    <input type="checkbox" name="permissions[]" value="{{ $permission->name }}"
-                                        class="form-check-input" 
-                                        id="perm-{{ $permission->id }}"
-                                        {{ $role->permissions->contains($permission->id) ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="perm-{{ $permission->id }}">
-                                        {{ $permission->name }}
+                    <h5 class="mb-3 text-dark">Assign Permissions</h5>
+
+                    @php
+                    $groupedPermissions = [];
+                    foreach ($permissions as $permission) {
+                    if (str_contains($permission->name, 'User') || str_contains($permission->name, 'Trash')) $group = 'User Management';
+                    elseif (str_contains($permission->name, 'Role')) $group = 'Role Management';
+                    elseif (str_contains($permission->name, 'Class')) $group = 'Class Management';
+                    elseif (str_contains($permission->name, 'Teacher')) $group = 'Teacher Management';
+                    elseif (str_contains($permission->name, 'Subject')) $group = 'Subject Management';
+                    elseif (str_contains($permission->name, 'Schedule')) $group = 'Schedule Management';
+                    elseif (str_contains($permission->name, 'Admission')) $group = 'Admission Management';
+                    elseif (str_contains($permission->name, 'Mark')) $group = 'Marks Management';
+                    elseif (str_contains($permission->name, 'Fee')) $group = 'Fee Management';
+                    elseif (str_contains($permission->name, 'Report')) $group = 'Report Management';
+                    else $group = 'General';
+
+                    $groupedPermissions[$group][] = $permission;
+                    }
+                    @endphp
+
+                    @foreach($groupedPermissions as $group => $permissionsInGroup)
+                    <div class="card bg-light p-3 mb-3 border-start border-primary border-4 rounded-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold text-primary mb-0">{{ $group }}</h6>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="selectAll-{{ Str::slug($group) }}">
+                                <label class="form-check-label" for="selectAll-{{ Str::slug($group) }}">Select All</label>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+                        <div class="row permission-group" data-group-id="{{ Str::slug($group) }}">
+                            @foreach($permissionsInGroup as $permission)
+                            <div class="col-md-4 col-sm-6">
+                                <div class="form-check form-switch mb-2">
+                                    <input type="checkbox" name="permissions[]" value="{{ $permission->name }}" class="form-check-input permission-checkbox" id="permission-{{ $permission->id }}"
+                                        {{ $role->hasPermissionTo($permission->name) ? 'checked' : '' }}>
+                                    <label class="form-check-label text-capitalize" for="permission-{{ $permission->id }}">
+                                        {{ str_replace(['-', '_'], ' ', $permission->name) }}
                                     </label>
                                 </div>
+                            </div>
                             @endforeach
                         </div>
                     </div>
+                    @endforeach
 
-                    <div class="d-flex justify-content-end">
-                        <a href="{{ route('admin.roles.index') }}" 
-                           class="btn btn-outline-secondary rounded-pill px-4 me-2 shadow-sm">
-                            <i class="bi bi-x-circle me-1"></i> Cancel
-                        </a>
-                        <button type="submit" 
-                                class="btn btn-gradient-primary rounded-pill px-4 shadow-sm">
-                            <i class="bi bi-check-circle me-1"></i> Update Role
-                        </button>
+                    <div class="d-flex justify-content-end mt-4">
+                        <a href="{{ route('admin.roles.index') }}" class="btn btn-outline-secondary rounded-pill px-4 me-2 shadow-sm">Cancel</a>
+                        <button type="submit" class="btn btn-gradient-primary rounded-pill px-4 shadow-sm">Update Role</button>
                     </div>
                 </form>
             </div>
@@ -71,3 +82,39 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Function to check if all checkboxes in a group are checked
+        function checkSelectAllState(groupId) {
+            const checkboxes = document.querySelectorAll('.permission-group[data-group-id="' + groupId + '"] .permission-checkbox');
+            const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+            document.getElementById('selectAll-' + groupId).checked = allChecked;
+        }
+
+        // Handle "Select All" checkbox changes
+        document.querySelectorAll('input[id^="selectAll-"]').forEach(function(selectAllCheckbox) {
+            const groupId = selectAllCheckbox.id.replace('selectAll-', '');
+
+            // Set initial state on page load
+            checkSelectAllState(groupId);
+
+            selectAllCheckbox.addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('.permission-group[data-group-id="' + groupId + '"] .permission-checkbox');
+                checkboxes.forEach(function(checkbox) {
+                    checkbox.checked = selectAllCheckbox.checked;
+                });
+            });
+        });
+
+        // Handle individual permission checkbox changes
+        document.querySelectorAll('.permission-checkbox').forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                const groupId = this.closest('.permission-group').dataset.groupId;
+                checkSelectAllState(groupId);
+            });
+        });
+    });
+</script>
+@endpush

@@ -14,9 +14,7 @@ class EnsureUserIsAdminOrSuperAdmin
         if (Auth::check()) {
             $user = Auth::user();
 
-            if ($user->hasAnyRole(['Admin'])) {
-                return $next($request);
-            }
+            return $next($request);
         }
 
         // If not the correct role, log out and redirect with an error
@@ -25,7 +23,7 @@ class EnsureUserIsAdminOrSuperAdmin
         $request->session()->regenerateToken();
 
         return redirect()->route('login')->withErrors([
-            'email' => 'You do not have permission to access the admin dashboard.'
+            'email' => 'You do not have permission to access this area.'
         ]);
     }
 }

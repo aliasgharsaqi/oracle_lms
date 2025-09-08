@@ -26,7 +26,27 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended('dashboard');
+
+            $user = Auth::user();
+
+            if ($user->hasRole(['Super Admin'])) {
+                return redirect()->intended(route('dashboard'));
+            }
+
+
+            if ($user->hasRole(['Admin'])) {
+                return redirect()->intended(route('dashboard'));
+            }
+
+            if ($user->hasRole(['Teacher', 'Staff'])) {
+                return redirect()->route('user.dashboard');
+            }
+
+            // Fallback for any other authenticated user
+            Auth::logout();
+            return back()->withErrors([
+                'email' => 'No dashboard is available for your role.',
+            ])->onlyInput('email');
         }
 
         return back()->withErrors([
