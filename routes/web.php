@@ -122,3 +122,7 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
 Route::get('/marks', function () {
     return view('admin.marks.index');
 })->name('marks.index'); // ✅ name updated
+
+Route::get('/teacher_diary', function () {
+    return view('admin.teacher_diary');
+})->name('teacher_diary'); // ✅ name updated
