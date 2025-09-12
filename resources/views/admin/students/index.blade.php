@@ -4,93 +4,93 @@
 @section('page-title', 'Enrolled Students')
 
 @section('content')
-<div class="row">
-    <div class="col-12">
-        <div class="card custom-card shadow-lg border-0">
-            <!-- Card Header -->
-            <div class="card-header custom-card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-                <h4 class="card-title mb-0 text-primary-custom fw-bold">
-                    <i class="bi bi-people-fill me-2"></i> Enrolled Students
-                </h4>
-                @can('Add Admission')
-                <a href="{{ route('students.create') }}" class="btn btn-gradient-primary">
-                    <i class="bi bi-plus-circle me-1"></i> Enroll New Student
-                </a>
-                @endcan
+<div class="grid grid-cols-1">
+    <div class="bg-white shadow-lg rounded-2xl overflow-hidden">
+        <!-- Card Header -->
+        <div class="custom-card-header flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 px-4 py-3 border-b">
+            <h4 class="text-lg font-bold text-primary-custom flex items-center gap-2">
+                <i class="bi bi-people-fill"></i> Enrolled Students
+            </h4>
+            @can('Add Admission')
+            <a href="{{ route('students.create') }}"
+               class="btn btn-gradient-primary inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white w-full sm:w-auto justify-center">
+                <i class="bi bi-plus-circle"></i> Enroll New Student
+            </a>
+            @endcan
+        </div>
+
+        <!-- Card Body -->
+        <div class="p-0">
+            @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm m-4" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
+            @endif
 
-            <!-- Card Body -->
-            <div class="card-body">
-                @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                @endif
-
-                <div class="table-responsive">
-                    <table class="table table-hover custom-table align-middle" id="studentsTable">
-                        <thead class="table-header text-nowrap">
-                            <tr>
-                                <th>Photo</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Class</th>
-                                <th>Section</th>
-                                <th>Father's Name</th>
-                                <th>Father's Phone</th>
-                                <th class="text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($students as $student)
-                            <tr>
-                                <td>
-                                    <img src="{{ asset('storage/' . ($student->user->user_pic ?? '')) }}"
-                                        alt="{{ $student->user->name ?? '' }}"
-                                        class="rounded-circle" width="50" height="50" style="object-fit: cover;">
-                                </td>
-                                <td class="fw-semibold">{{ $student->user->name ?? '' }}</td>
-                                <td>{{ $student->user->email ?? '' }}</td>
-                                <td>{{ $student->schoolClass->name ?? ''}}</td>
-                                <td>{{ $student->section ?? '' }}</td>
-                                <td>{{ $student->father_name ?? '' }}</td>
-                                <td>{{ $student->father_phone  ?? ''}}</td>
-                                <td class="text-center">
-                                    <div class="d-flex justify-content-center gap-2">
-                                        @can('View Admission')
-                                        <a href="{{ route('students.show', $student->id) }}" class="btn btn-icon badge-gradient-warning">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                        @endcan
-                                        @can('Edit Admission')
-                                        <a href="{{ route('students.edit', $student->id) }}" class="btn btn-icon badge-gradient-primary">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        @endcan
-                                        @can('Delete Admission')
-                                        <button type="button" class="btn btn-icon badge-gradient-danger"
-                                            data-bs-toggle="modal" data-bs-target="#deleteModal-{{ $student->id }}">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                        @endcan
-                                    </div>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="8" class="text-center text-muted py-4">
-                                    <i class="bi bi-emoji-frown fs-4"></i> No students enrolled yet.
-                                </td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+            <div class="overflow-x-auto">
+                <table id="studentsTable" class="min-w-full table-auto text-sm text-left">
+                    <thead class="bg-gray-100 text-gray-700 text-nowrap">
+                        <tr>
+                            <th class="px-4 py-3">Photo</th>
+                            <th class="px-4 py-3">Name</th>
+                            <th class="px-4 py-3">Email</th>
+                            <th class="px-4 py-3">Class</th>
+                            <th class="px-4 py-3">Section</th>
+                            <th class="px-4 py-3">Father's Name</th>
+                            <th class="px-4 py-3">Father's Phone</th>
+                            <th class="px-4 py-3 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($students as $student)
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="px-4 py-3">
+                                <img src="{{ asset('storage/' . ($student->user->user_pic ?? '')) }}"
+                                     alt="{{ $student->user->name ?? '' }}"
+                                     class="rounded-full w-12 h-12 object-cover">
+                            </td>
+                            <td class="px-4 py-3 font-semibold max-w-[160px] truncate">{{ $student->user->name ?? '' }}</td>
+                            <td class="px-4 py-3 max-w-[200px] truncate">{{ $student->user->email ?? '' }}</td>
+                            <td class="px-4 py-3">{{ $student->schoolClass->name ?? ''}}</td>
+                            <td class="px-4 py-3">{{ $student->section ?? '' }}</td>
+                            <td class="px-4 py-3">{{ $student->father_name ?? '' }}</td>
+                            <td class="px-4 py-3">{{ $student->father_phone ?? ''}}</td>
+                            <td class="px-4 py-3 text-center">
+                                <div class="flex flex-wrap justify-center gap-2">
+                                    @can('View Admission')
+                                    <a href="{{ route('students.show', $student->id) }}" class="btn btn-icon badge-gradient-warning">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    @endcan
+                                    @can('Edit Admission')
+                                    <a href="{{ route('students.edit', $student->id) }}" class="btn btn-icon badge-gradient-primary">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    @endcan
+                                    @can('Delete Admission')
+                                    <button type="button" class="btn btn-icon badge-gradient-danger"
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal-{{ $student->id }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                    @endcan
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="8" class="text-center text-gray-500 py-6">
+                                <i class="bi bi-emoji-frown text-lg"></i> No students enrolled yet.
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
+
 
 <!-- Delete Modals -->
 @foreach ($students as $student)
@@ -124,19 +124,40 @@
 <script>
     $(document).ready(function() {
         $('#studentsTable').DataTable({
-            dom: 'Bfrtip',
+            dom: 
+                "<'flex flex-col md:flex-row justify-between items-center my-3 mx-3'<'flex items-center gap-2'B><'ml-auto'f>>" + // Buttons + Search aligned
+                "<'overflow-x-auto'tr>" + // Table with responsive scroll
+                "<'flex flex-col md:flex-row justify-between items-center my-3 mx-3'<'text-sm'i><'mt-2 md:mt-0'p>>", // Info + Pagination aligned
             buttons: [
-                'copy', 'csv', 'excel', 'pdf', 'print', 'colvis'
+                {
+                    extend: 'copy',
+                },
+                {
+                    extend: 'csv',
+                },
+                {
+                    extend: 'excel',
+                },
+                {
+                    extend: 'pdf',
+                },
+                {
+                    extend: 'print',
+                },
+                {
+                    extend: 'colvis',
+                }
             ],
             paging: true,
             searching: true,
             ordering: true,
             info: true,
             responsive: true,
-            "columnDefs": [{
-                    "orderable": false,
-                    "targets": [0, 7]
-                } // Disable sorting on Photo and Actions columns
+            columnDefs: [
+                {
+                    orderable: false,
+                    targets: 5 // Disable sorting on 'Actions' column
+                }
             ]
         });
     });
