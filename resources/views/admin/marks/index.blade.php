@@ -43,120 +43,138 @@
 @endphp
 
 <!-- Selection Card -->
-<div class="card shadow-lg border-0 rounded-4 mb-5">
-    <div class="card-header bg-gradient bg-primary text-white rounded-top-4">
-        <h5 class="mb-0 fw-bold"><i class="bi bi-funnel-fill me-2"></i> Select Class & Subject</h5>
-    </div>
-    <div class="card-body p-4">
-        <form>
-            <div class="row g-4 align-items-end">
+<div class="grid grid-cols-1">
+    <div class="bg-white shadow-lg rounded-2xl overflow-hidden mb-6">
+        <!-- Card Header -->
+        <div class="px-4 py-3 border-b bg-gradient-to-r from-blue-500 to-blue-600">
+            <h4 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="bi bi-funnel-fill"></i> Select Class & Subject
+            </h4>
+        </div>
 
-                <!-- Semester Dropdown -->
-                <div class="col-md-3">
-                    <label for="semester" class="form-label fw-semibold">Semester</label>
-                    <select class="form-select shadow-sm border-primary" id="semester" name="semester">
-                        <option value="">Select Semester</option>
-                        <option value="1">Semester 1</option>
-                        <option value="2">Semester 2</option>
-                        <option value="3">Semester 3</option>
-                        <option value="4">Semester 4</option>
-                    </select>
-                </div>
+        <!-- Card Body -->
+        <div class="p-4">
+            <form>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Semester Dropdown -->
+                    <div>
+                        <label for="semester" class="block text-sm font-semibold mb-1">Semester</label>
+                        <select id="semester" name="semester"
+                            class="w-full rounded-lg border border-blue-500 shadow-sm px-3 py-2 focus:ring focus:ring-blue-300">
+                            <option value="">Select Semester</option>
+                            <option value="1">Semester 1</option>
+                            <option value="2">Semester 2</option>
+                            <option value="3">Semester 3</option>
+                            <option value="4">Semester 4</option>
+                        </select>
+                    </div>
 
-                <!-- Class Dropdown -->
-                <div class="col-md-3">
-                    <label for="class_id" class="form-label fw-semibold">Class</label>
-                    <select class="form-select shadow-sm border-primary" id="class_id" name="class_id" required>
-                        <option value="">Select a class</option>
-                        @foreach($classes as $class)
+                    <!-- Class Dropdown -->
+                    <div>
+                        <label for="class_id" class="block text-sm font-semibold mb-1">Class</label>
+                        <select id="class_id" name="class_id" required
+                            class="w-full rounded-lg border border-blue-500 shadow-sm px-3 py-2 focus:ring focus:ring-blue-300">
+                            <option value="">Select a class</option>
+                            @foreach($classes as $class)
                             <option value="{{ $class->id }}" {{ $selectedClass && $selectedClass->id == $class->id ? 'selected' : '' }}>
                                 {{ $class->name }}
                             </option>
-                        @endforeach
-                    </select>
-                </div>
+                            @endforeach
+                        </select>
+                    </div>
 
-                <!-- Subject Dropdown -->
-                <div class="col-md-3">
-                    <label for="subject_id" class="form-label fw-semibold">Subject</label>
-                    <select class="form-select shadow-sm border-primary" id="subject_id" name="subject_id" required>
-                        <option value="">Select a subject</option>
-                        @if($subjects)
-                            @foreach($subjects as $subject)
+                    <!-- Subject Dropdown -->
+                    <div>
+                        <label for="subject_id" class="block text-sm font-semibold mb-1">Subject</label>
+                        <select id="subject_id" name="subject_id" required
+                            class="w-full rounded-lg border border-blue-500 shadow-sm px-3 py-2 focus:ring focus:ring-blue-300">
+                            <option value="">Select a subject</option>
+                            @if($subjects)
+                                @foreach($subjects as $subject)
                                 <option value="{{ $subject->id }}" {{ $selectedSubject && $selectedSubject->id == $subject->id ? 'selected' : '' }}>
                                     {{ $subject->name }}
                                 </option>
-                            @endforeach
-                        @endif
-                    </select>
-                </div>
+                                @endforeach
+                            @endif
+                        </select>
+                    </div>
 
-                <!-- Button -->
-                <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary w-100 shadow-sm fw-bold rounded-pill">
-                        <i class="bi bi-search me-1"></i> Load Students
-                    </button>
+                    <!-- Button -->
+                    <div class="flex items-end">
+                        <button type="submit"
+                            class="w-full btn btn-gradient-primary font-bold py-2 px-4 rounded-lg shadow">
+                            <i class="bi bi-search me-1"></i> Load Students
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 
-<!-- Students Table -->
 @if(isset($students) && $selectedClass && $selectedSubject)
-    <div class="card shadow-lg border-0 rounded-4">
-        <div class="card-header bg-gradient bg-secondary text-white rounded-top-4">
-            <h5 class="mb-0 fw-bold">
-                <i class="bi bi-people-fill me-2"></i> Marks for {{ $selectedSubject->name }} - {{ $selectedClass->name }}
-            </h5>
+<div class="grid grid-cols-1">
+    <div class="bg-white shadow-lg rounded-2xl overflow-hidden">
+        <!-- Card Header -->
+        <div class="px-4 py-3 border-b bg-gradient-to-r from-gray-600 to-gray-800">
+            <h4 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="bi bi-people-fill"></i> Marks for {{ $selectedSubject->name }} - {{ $selectedClass->name }}
+            </h4>
         </div>
-        <div class="card-body p-4">
+
+        <!-- Card Body -->
+        <div class="p-0">
             @if($students->isEmpty())
-                <div class="alert alert-info text-center shadow-sm">
-                    <i class="bi bi-info-circle me-2"></i> No students enrolled in this class.
-                </div>
+            <div class="p-6 text-center text-blue-600">
+                <i class="bi bi-info-circle me-2"></i> No students enrolled in this class.
+            </div>
             @else
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle shadow-sm rounded-3 overflow-hidden">
-                        <thead class="bg-dark text-white text-center">
-                            <tr>
-                                <th><i class="bi bi-person"></i> Student</th>
-                                <th><i class="bi bi-journal-bookmark"></i> Subject</th>
-                                <th><i class="bi bi-123"></i> Total Marks</th>
-                                <th><i class="bi bi-pencil"></i> Obtained Marks</th>
-                                <th><i class="bi bi-gear"></i> Actions</th>
+            <div class="overflow-x-auto">
+                <table class="min-w-full table-auto text-sm text-center">
+                    <thead class="bg-gray-100 text-gray-700 text-nowrap">
+                        <tr>
+                            <th class="px-4 py-3"><i class="bi bi-person"></i> Student</th>
+                            <th class="px-4 py-3"><i class="bi bi-journal-bookmark"></i> Subject</th>
+                            <th class="px-4 py-3"><i class="bi bi-123"></i> Total Marks</th>
+                            <th class="px-4 py-3"><i class="bi bi-pencil"></i> Obtained Marks</th>
+                            <th class="px-4 py-3"><i class="bi bi-gear"></i> Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($students as $student)
+                        <form>
+                            @csrf
+                            <input type="hidden" name="student_id" value="{{ $student->id }}">
+                            <input type="hidden" name="subject_id" value="{{ $selectedSubject->id }}">
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="px-4 py-3 font-semibold text-blue-600">{{ $student->name }}</td>
+                                <td class="px-4 py-3">{{ $selectedSubject->name }}</td>
+                                <td class="px-4 py-3">
+                                    <span class="badge badge-gradient-info text-black px-3 py-1">400</span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <input type="number" name="obtained_marks"
+                                        class="w-full rounded-lg border border-green-500 text-center font-semibold shadow-sm px-2 py-1"
+                                        value="{{ $student->pivot->obtained_marks ?? '' }}" required>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <button type="submit"
+                                        class="btn btn-sm btn-gradient-success rounded-lg px-3 py-1">
+                                        <i class="bi bi-check-circle me-1"></i> Save
+                                    </button>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($students as $student)
-                                <form>
-                                    @csrf
-                                    <input type="hidden" name="student_id" value="{{ $student->id }}">
-                                    <input type="hidden" name="subject_id" value="{{ $selectedSubject->id }}">
-                                    <tr class="text-center">
-                                        <td class="fw-bold text-primary">{{ $student->name }}</td>
-                                        <td>{{ $selectedSubject->name }}</td>
-                                        <td><span class="badge bg-gradient bg-info text-dark px-3 py-2">400</span></td>
-                                        <td class="w-25">
-                                            <input type="number" name="obtained_marks"
-                                                class="form-control text-center fw-semibold shadow-sm border-success"
-                                                value="{{ $student->pivot->obtained_marks ?? '' }}" required>
-                                        </td>
-                                        <td>
-                                            <button type="submit" class="btn btn-sm btn-success shadow-sm rounded-pill px-3">
-                                                <i class="bi bi-check-circle me-1"></i> Save
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </form>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                        </form>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
             @endif
         </div>
     </div>
+</div>
 @endif
+
 @endsection
 
 @push('scripts')

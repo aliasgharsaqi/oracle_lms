@@ -4,111 +4,133 @@
 @section('page-title', 'All Teachers')
 
 @section('content')
-<div class="row">
-    <div class="col-12">
-        <div class="card custom-card shadow-lg border-0">
-            <div class="card-header custom-card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-                <h4 class="card-title mb-0 text-primary-custom fw-bold">
-                    <i class="bi bi-people-fill me-2"></i> All Staff / Teachers
-                </h4>
-                @can('Add Teachers')
-                <a href="{{ route('teachers.create') }}" class="btn btn-gradient-primary">
-                    <i class="bi bi-person-plus-fill me-1"></i> Add New Teacher
-                </a>
-                @endcan
+<div class="grid grid-cols-1">
+    <div class="bg-white shadow-lg rounded-2xl overflow-hidden">
+        <!-- Card Header -->
+        <div
+            class="custom-card-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 px-4 py-3 border-b bg-primary">
+            <h4 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="bi bi-people-fill"></i> All Staff / Teachers
+            </h4>
+            @can('Add Teachers')
+            <a href="{{ route('teachers.create') }}"
+                class="btn btn-gradient-primary inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-white w-full sm:w-auto">
+                <i class="bi bi-person-plus-fill"></i> Add New Teacher
+            </a>
+            @endcan
+        </div>
+
+        <!-- Card Body -->
+        <div class="p-0">
+            {{-- Success Message --}}
+            @if (session('success'))
+            <div class="mx-4 my-3 bg-green-100 text-green-800 px-4 py-3 rounded-lg flex items-center justify-between shadow-sm"
+                role="alert">
+                <span class="flex items-center gap-2">
+                    <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
+                </span>
+                <button type="button" class="text-green-700 hover:text-green-900" data-bs-dismiss="alert">
+                    <i class="bi bi-x-lg"></i>
+                </button>
             </div>
-            <div class="card-body">
-                {{-- Success Message --}}
-                @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm" role="alert">
-                    <i class="bi bi-check-circle-fill me-1"></i> {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                @endif
+            @endif
 
-                <div class="table-responsive">
-                    <table class="table table-hover custom-table align-middle" id="teachersTable">
-                        <thead class="table-header text-nowrap">
-                            <tr>
-                                <th>Photo</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Phone</th>
-                                <th>Education</th>
-                                <th class="text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($teachers as $teacher)
-                            <tr>
-                                <td>
-                                    <img src="{{ asset('storage/' . $teacher->user->user_pic) }}"
-                                        alt="{{ $teacher->user->name }}"
-                                        class="rounded-circle shadow-sm" width="45" height="45">
-                                </td>
-                                <td class="fw-semibold">{{ $teacher->user->name }}</td>
-                                <td>{{ $teacher->user->email }}</td>
-                                <td>{{ $teacher->user->phone }}</td>
-                                <td>{{ $teacher->education }}</td>
-                                <td class="text-center">
-                                    <div class="d-flex flex-wrap justify-content-center gap-2">
-                                        @can('Edit Teachers')
-                                        <a href="{{ route('teachers.edit', $teacher->id) }}"
-                                            class="btn btn-icon badge-gradient-warning">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        @endcan
-
-                                        @can('Delete Teachers')
-                                        <form action="{{ route('teachers.destroy', $teacher->id) }}"
-                                            method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                class="btn btn-icon badge-gradient-danger"
-                                                onclick="return confirm('Are you sure you want to delete this teacher?')">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                        @endcan
-                                    </div>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="6" class="text-center text-muted py-4">
-                                    <i class="bi bi-emoji-frown fs-4"></i> No teachers found.
-                                </td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+            <div class="overflow-x-auto">
+                <table id="teachersTable" class="min-w-full table-auto text-sm text-left">
+                    <thead class="bg-gray-100 text-gray-700 text-nowrap">
+                        <tr>
+                            <th class="px-4 py-3">Photo</th>
+                            <th class="px-4 py-3">Name</th>
+                            <th class="px-4 py-3">Email</th>
+                            <th class="px-4 py-3">Phone</th>
+                            <th class="px-4 py-3">Education</th>
+                            <th class="px-4 py-3 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($teachers as $teacher)
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="px-4 py-3">
+                                <img src="{{ asset('storage/' . $teacher->user->user_pic) }}"
+                                    alt="{{ $teacher->user->name }}"
+                                    class="rounded-full shadow-sm w-11 h-11 object-cover">
+                            </td>
+                            <td class="px-4 py-3 font-semibold max-w-[160px] truncate">{{ $teacher->user->name }}</td>
+                            <td class="px-4 py-3 max-w-[200px] truncate">{{ $teacher->user->email }}</td>
+                            <td class="px-4 py-3">{{ $teacher->user->phone }}</td>
+                            <td class="px-4 py-3">{{ $teacher->education }}</td>
+                            <td class="px-4 py-3 text-center">
+                                <div class="flex flex-wrap justify-center gap-2">
+                                    @can('Edit Teachers')
+                                    <a href="{{ route('teachers.edit', $teacher->id) }}"
+                                        class="btn btn-icon badge-gradient-warning">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    @endcan
+                                    @can('Delete Teachers')
+                                    <form action="{{ route('teachers.destroy', $teacher->id) }}" method="POST"
+                                        class="inline-block"
+                                        onsubmit="return confirm('Are you sure you want to delete this teacher?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-icon badge-gradient-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                    @endcan
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="6" class="text-center text-gray-500 py-6">
+                                <i class="bi bi-emoji-frown text-lg"></i> No teachers found.
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
+
 @endsection
 
 @push('scripts')
 <script>
-    $(document).ready(function() {
-        $('#teachersTable').DataTable({
-            dom: 'Bfrtip',
-            buttons: [
-                'copy', 'csv', 'excel', 'pdf', 'print', 'colvis'
-            ],
-            paging: true,
-            searching: true,
-            ordering: true,
-            info: true,
-            responsive: true,
-            "columnDefs": [{
-                    "orderable": false,
-                    "targets": [0, 5]
-                } // Disable sorting on Photo and Actions columns
-            ]
-        });
+$(document).ready(function () {
+    $('#teachersTable').DataTable({
+        dom:
+            "<'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-2'<'flex flex-wrap gap-2'B><'ml-auto'f>>" + // Top: buttons left, search right
+            "<'overflow-x-auto'tr>" + // Table
+            "<'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-2'<'text-sm text-gray-600'i><'ml-auto'p>>", // Bottom: info left, pagination right
+
+        buttons: [
+            { extend: 'copy'  },
+            { extend: 'csv' },
+            { extend: 'excel'},
+            { extend: 'pdf' },
+            { extend: 'print' },
+            { extend: 'colvis' }
+        ],
+
+        paging: true,
+        searching: true,
+        ordering: true,
+        info: true,
+        responsive: true,
+
+        columnDefs: [
+            { orderable: false, targets: [0, 5] } // Disable sorting on Photo & Actions
+        ],
+
+        language: {
+            search: "_INPUT_",
+            searchPlaceholder: "Search teachers..."
+        }
     });
+});
 </script>
+
 @endpush
