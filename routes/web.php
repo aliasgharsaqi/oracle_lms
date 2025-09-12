@@ -124,5 +124,14 @@ Route::get('/marks', function () {
 })->name('marks.index'); // ✅ name updated
 
 Route::get('/teacher_diary', function () {
-    return view('admin.teacher_diary');
+    return view('admin.diary.teacher_diary');
 })->name('teacher_diary'); // ✅ name updated
+
+Route::get('/student_diary', function () {
+    return view('admin.diary.student_diary');
+})->name('student_diary'); // ✅ name updated
+
+Route::get('/attendence', function () {
+    return view('admin.diary.attendence');
+})->name('attendence'); // ✅ name updated
+
