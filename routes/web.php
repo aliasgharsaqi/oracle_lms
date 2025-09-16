@@ -121,8 +121,37 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
 // web.php
 Route::get('/marks', function () {
     return view('admin.marks.index');
-})->name('marks.index'); // ✅ name updated
+})->name('marks.index'); 
 
 Route::get('/teacher_diary', function () {
-    return view('admin.teacher_diary');
-})->name('teacher_diary'); // ✅ name updated
+    return view('admin.diary.teacher_diary');
+})->name('teacher_diary'); 
+
+Route::get('/student_diary', function () {
+    return view('admin.diary.student_diary');
+})->name('student_diary'); 
+
+Route::get('/attendence', function () {
+    return view('admin.diary.attendence');
+})->name('attendence');
+
+Route::get('/exam', function () {
+    return view('admin.exam');
+})->name('exam'); 
+
+Route::get('/quiz', function () {
+    return view('admin.quiz');
+})->name('quiz'); 
+
+Route::get('/chatbot', function () {
+    return view('admin.chatbot');
+})->name('chatbot'); 
+
+Route::get('/transaction', function () {
+    return view('admin.transaction');
+})->name('transaction'); 
+
+Route::get('/quize_detail', function () {
+    return view('admin.quize_detail');
+})->name('quize_detail'); 
+

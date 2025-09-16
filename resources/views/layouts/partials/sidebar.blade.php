@@ -118,6 +118,7 @@
         </li>
         @endcan
 
+
         @can('Manage Fees')
         <li class="nav-item">
             <a href="javascript:void(0);" class="nav-link d-flex align-items-center text-white toggle-dropdown"
@@ -201,6 +202,31 @@
             </ul>
         </li>
         @endcan
+        <!-- static routes -->
+        <li>
+            <a href="{{ route('teacher_diary') }}"
+                class="nav-link d-flex align-items-center text-white {{ request()->routeIs('teacher_diary') ? 'active' : '' }}"
+                style="gap: 6px; padding: 2px 12px;">
+                <i class="bi bi-journal-check"></i> <!-- Teacher Diary Icon -->
+                Teacher Diary
+            </a>
+        </li>
+        <li>
+            <a href="{{ route('student_diary') }}"
+                class="nav-link d-flex align-items-center text-white {{ request()->routeIs('student_diary') ? 'active' : '' }}"
+                style="gap: 6px; padding: 2px 12px;">
+                <i class="bi bi-journal-text"></i> <!-- Student Diary Icon -->
+                Student Diary
+            </a>
+        </li>
+         <li>
+            <a href="{{ route('attendence') }}"
+                class="nav-link d-flex align-items-center text-white {{ request()->routeIs('attendence') ? 'active' : '' }}"
+                style="gap: 6px; padding: 2px 12px;">
+                <i class="bi bi-journal-text"></i> <!-- Student Diary Icon -->
+                Attendence
+            </a>
+        </li>
 
     </ul>
 
