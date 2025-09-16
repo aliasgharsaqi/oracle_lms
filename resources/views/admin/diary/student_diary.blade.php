@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Academic Progress')
-@section('page-title', 'Class Subject Progress')
+@section('page-title', 'Class Progress')
 
 @section('content')
 <body class="bg-slate-100 text-slate-800 min-h-screen">

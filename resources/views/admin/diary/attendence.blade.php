@@ -1,14 +1,14 @@
 @extends('layouts.admin')
 
 @section('title', 'Attendance')
-@section('page-title', 'Mark Student Attendance')
+@section('page-title', 'Attendance')
 
 @section('content')
 <body class="bg-slate-100 text-slate-800 min-h-screen">
     <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-8">
 
         {{-- Filter Section for Attendance --}}
-        <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-200 mb-8 mx-auto">
+        <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-200 mb-8 `mx-auto">
             {{-- Updated Header with Import Button --}}
             <div class="flex items-center justify-between gap-4 mb-4">
                 <div class="flex items-center gap-3">

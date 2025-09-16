@@ -6,7 +6,6 @@
 @section('content')
 <body class="bg-slate-50 text-slate-800 min-h-screen">
     <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-8">
-
         <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-200 mb-8 max-w-2xl mx-auto">
             <h2 class="text-xl font-bold text-slate-700">Schedule Viewer</h2>
             <p class="text-sm text-slate-500 mt-1 mb-4">Select a teacher to view their daily subject schedule and overall progress.</p>
