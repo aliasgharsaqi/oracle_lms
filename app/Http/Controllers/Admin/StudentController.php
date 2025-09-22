@@ -19,14 +19,14 @@ class StudentController extends Controller
     public function index(): View
     {
         $this->authorize('viewAny', Student::class);
-        $students = Student::with(['user', 'schoolClass'])->latest()->get();
+        $students = Student::with('user', 'schoolClass')->latest()->get();
         return view('admin.students.index', compact('students'));
     }
 
     public function create(): View
     {
         $this->authorize('create', Student::class);
-        $classes = SchoolClass::all();
+        $classes = SchoolClass::where('school_id', auth()->user()->school_id)->get();
         return view('admin.students.create', compact('classes'));
     }
 
@@ -35,8 +35,8 @@ class StudentController extends Controller
         $this->authorize('create', Student::class);
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable','string', 'email', 'max:255'],
-            'password' => ['nullable','string', 'min:8'],
+            'email' => ['nullable', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['nullable', 'string', 'min:8'],
             'profile_image' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'father_name' => ['required', 'string', 'max:255'],
             'id_card_number' => ['required', 'string', 'max:255'],
@@ -44,23 +44,28 @@ class StudentController extends Controller
             'father_phone' => ['required', 'string', 'max:20'],
             'address' => ['required', 'string'],
             'school_class_id' => ['required', 'exists:school_classes,id'],
-            'section' => ['nullable','string', 'max:255'],
+            'section' => ['nullable', 'string', 'max:255'],
             'previous_docs' => ['nullable', 'file', 'max:5120'],
         ]);
 
         DB::beginTransaction();
         try {
             $imagePath = $request->file('profile_image')->store('profile_images', 'public');
-            
+
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'role' => 'Student',
+                'password' => Hash::make($request->password ?? 'password'), // Default password if null
+                'role' => 'Student', // This is still useful for display purposes
+                'school_id' => auth()->user()->school_id,
                 'status' => 1,
                 'phone' => $request->phone,
                 'user_pic' => $imagePath,
             ]);
+
+            // *** THIS IS THE FIX ***
+            // Assign the "Student" role using the Spatie package method.
+            $user->assignRole('Student');
 
             $docsPath = $request->hasFile('previous_docs') ? $request->file('previous_docs')->store('previous_documents', 'public') : null;
 
@@ -73,6 +78,7 @@ class StudentController extends Controller
                 'school_class_id' => $request->school_class_id,
                 'section' => $request->section,
                 'previous_school_docs' => $docsPath,
+                'school_id' => auth()->user()->school_id,
             ]);
 
             DB::commit();
@@ -95,7 +101,7 @@ class StudentController extends Controller
     {
         $this->authorize('update', $student);
         $student->load('user');
-        $classes = SchoolClass::all();
+        $classes = SchoolClass::where('school_id', auth()->user()->school_id)->get();
         return view('admin.students.edit', compact('student', 'classes'));
     }
 
@@ -103,10 +109,10 @@ class StudentController extends Controller
     {
         $this->authorize('update', $student);
         $user = $student->user;
-        
+
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable','string', 'email', 'max:255'],
+            'email' => ['nullable', 'string', 'email', 'max:255'],
             'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
             'father_name' => ['required', 'string', 'max:255'],
             'id_card_number' => ['required', 'string', 'max:255'],
@@ -114,7 +120,7 @@ class StudentController extends Controller
             'father_phone' => ['required', 'string', 'max:20'],
             'address' => ['required', 'string'],
             'school_class_id' => ['required', 'exists:school_classes,id'],
-            'section' => ['nullable','string', 'max:255'],
+            'section' => ['nullable', 'string', 'max:255'],
             'previous_docs' => ['nullable', 'file', 'max:5120'],
         ]);
 
@@ -132,7 +138,7 @@ class StudentController extends Controller
                 $user->user_pic = $request->file('profile_image')->store('profile_images', 'public');
                 $user->save();
             }
-            
+
             $docsPath = $student->previous_school_docs;
             if ($request->hasFile('previous_docs')) {
                 Storage::disk('public')->delete($student->previous_school_docs);
@@ -161,25 +167,26 @@ class StudentController extends Controller
     public function destroy(Student $student): RedirectResponse
     {
         $this->authorize('delete', $student);
-        
+
         DB::beginTransaction();
         try {
-               $userPic = $student->user->user_pic ?? null;
-        $previousDocs = $student->previous_school_docs ?? null;
-            // The user record will be deleted automatically due to the cascade constraint
+            // Find the associated user
+            $user = $student->user;
+
+            // Soft delete the student profile first
             $student->delete();
-             if ($userPic) {
-            Storage::disk('public')->delete($userPic);
-        }
-        if ($previousDocs) {
-            Storage::disk('public')->delete($previousDocs);
-        }
+
+            // If a user exists, soft delete them as well
+            if ($user) {
+                $user->delete();
+            }
+
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Failed to delete student. Please try again.');
+            return back()->with('error', 'Failed to move student to trash. Please try again.');
         }
 
-        return redirect()->route('students.index')->with('success', 'Student deleted successfully.');
+        return redirect()->route('students.index')->with('success', 'Student moved to trash successfully.');
     }
 }

@@ -34,7 +34,7 @@ class LoginController extends Controller
             }
 
 
-            if ($user->hasRole(['Admin'])) {
+            if ($user->hasRole(['School Admin'])) {
                 return redirect()->intended(route('dashboard'));
             }
 

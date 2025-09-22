@@ -12,7 +12,7 @@
             <h4 class="text-lg font-bold text-white flex items-center gap-2">
                 <i class="bi bi-people-fill"></i> Active Users
             </h4>
-            @can('create', App\Models\User::class)
+            @can('Add User', App\Models\User::class)
             <a href="{{ route('users.create') }}"
                 class="bts hover-card btn btn-gradient-primary inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white">
                 <i class="bi bi-plus-circle"></i> Add User
@@ -64,13 +64,13 @@
                                         class="btn btn-icon badge-gradient-warning">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    @can('update', $user)
+                                    @can('Edit User', $user)
                                     <a href="{{ route('users.edit', $user->id) }}"
                                         class="btn btn-icon badge-gradient-primary">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
                                     @endcan
-                                    @can('delete', $user)
+                                    @can('Delete User', $user)
                                     <button type="button" class="btn btn-icon badge-gradient-danger"
                                         data-bs-toggle="modal" data-bs-target="#deleteModal-{{ $user->id }}">
                                         <i class="bi bi-trash"></i>
@@ -94,6 +94,7 @@
 </div>
 
 <!-- Trashed Users -->
+ @can('Manage Trash User', App\Models\User::class)
 <div class="grid grid-cols-1 mt-6">
     <div class="bg-white shadow-lg rounded-2xl overflow-hidden">
         <!-- Card Header -->
@@ -145,5 +146,6 @@
         </div>
     </div>
 </div>
+@endcan
 
 @endsection

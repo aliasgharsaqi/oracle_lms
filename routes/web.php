@@ -15,9 +15,7 @@ use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Admin\FeeReportController;
 use App\Http\Controllers\Admin\RoleController;
-
-
-
+use App\Http\Controllers\Admin\SchoolController;
 
 Route::get('/', [LoginController::class, 'create'])->middleware('guest');
 
@@ -113,23 +111,23 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
         ->name('reports.revenueDashboard');
 
     Route::prefix('admin')->name('admin.')->group(function () {
-        // routes/web.php
         Route::resource('roles', RoleController::class)->except(['show']);
+        Route::resource('schools', SchoolController::class);
     });
 });
 
 // web.php
 Route::get('/marks', function () {
     return view('admin.marks.index');
-})->name('marks.index'); 
+})->name('marks.index');
 
 Route::get('/teacher_diary', function () {
     return view('admin.diary.teacher_diary');
-})->name('teacher_diary'); 
+})->name('teacher_diary');
 
 Route::get('/student_diary', function () {
     return view('admin.diary.student_diary');
-})->name('student_diary'); 
+})->name('student_diary');
 
 Route::get('/attendence', function () {
     return view('admin.diary.attendence');
@@ -137,21 +135,20 @@ Route::get('/attendence', function () {
 
 Route::get('/exam', function () {
     return view('admin.exam');
-})->name('exam'); 
+})->name('exam');
 
 Route::get('/quiz', function () {
     return view('admin.quiz');
-})->name('quiz'); 
+})->name('quiz');
 
 Route::get('/chatbot', function () {
     return view('admin.chatbot');
-})->name('chatbot'); 
+})->name('chatbot');
 
 Route::get('/transaction', function () {
     return view('admin.transaction');
-})->name('transaction'); 
+})->name('transaction');
 
 Route::get('/quize_detail', function () {
     return view('admin.quize_detail');
-})->name('quize_detail'); 
-
+})->name('quize_detail');

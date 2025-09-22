@@ -202,6 +202,15 @@
             </ul>
         </li>
         @endcan
+
+        @role('Super Admin')
+        <li class="nav-item {{ request()->is('admin/schools*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.schools.index') }}">
+                <i class="fas fa-fw fa-school"></i>
+                <span>Manage Schools</span>
+            </a>
+        </li>
+        @endrole
         <!-- static routes -->
         <li>
             <a href="{{ route('teacher_diary') }}"
@@ -219,7 +228,7 @@
                 Student Diary
             </a>
         </li>
-         <li>
+        <li>
             <a href="{{ route('attendence') }}"
                 class="nav-link d-flex align-items-center text-white {{ request()->routeIs('attendence') ? 'active' : '' }}"
                 style="gap: 6px; padding: 2px 12px;">
@@ -259,26 +268,26 @@
 
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    document.querySelectorAll(".toggle-dropdown").forEach(function(toggle) {
-        toggle.addEventListener("click", function() {
-            let submenu = this.nextElementSibling;
-            let arrow = this.querySelector("i.bi-chevron-down");
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll(".toggle-dropdown").forEach(function(toggle) {
+            toggle.addEventListener("click", function() {
+                let submenu = this.nextElementSibling;
+                let arrow = this.querySelector("i.bi-chevron-down");
 
-            if (submenu.style.display === "block") {
-                submenu.style.display = "none";
-                if (arrow) {
-                    arrow.classList.remove("bi-chevron-up");
-                    arrow.classList.add("bi-chevron-down");
+                if (submenu.style.display === "block") {
+                    submenu.style.display = "none";
+                    if (arrow) {
+                        arrow.classList.remove("bi-chevron-up");
+                        arrow.classList.add("bi-chevron-down");
+                    }
+                } else {
+                    submenu.style.display = "block";
+                    if (arrow) {
+                        arrow.classList.remove("bi-chevron-down");
+                        arrow.classList.add("bi-chevron-up");
+                    }
                 }
-            } else {
-                submenu.style.display = "block";
-                if (arrow) {
-                    arrow.classList.remove("bi-chevron-down");
-                    arrow.classList.add("bi-chevron-up");
-                }
-            }
+            });
         });
     });
-});
 </script>
