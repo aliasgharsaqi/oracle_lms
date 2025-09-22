@@ -15,17 +15,21 @@ class TeacherController extends Controller
 {
     public function index(): View
     {
+        $this->authorize('viewAny', Teacher::class);
         $teachers = Teacher::with('user')->latest()->get();
         return view('admin.teachers.index', compact('teachers'));
     }
 
     public function create(): View
     {
+        $this->authorize('create', Teacher::class);
         return view('admin.teachers.create');
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $this->authorize('create', Teacher::class);
+
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
@@ -41,16 +45,19 @@ class TeacherController extends Controller
         DB::beginTransaction();
         try {
             $imagePath = $request->file('profile_image')->store('profile_images', 'public');
-            
+
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'role' => 'Staff',
+                'role' => 'Teacher',
                 'status' => 1,
                 'phone' => $request->phone,
                 'user_pic' => $imagePath,
+                'school_id' => auth()->user()->school_id,
             ]);
+
+            $user->assignRole('Teacher');
 
             Teacher::create([
                 'user_id' => $user->id,
@@ -58,6 +65,7 @@ class TeacherController extends Controller
                 'date_of_birth' => $request->date_of_birth,
                 'education' => $request->education,
                 'address' => $request->address,
+                'school_id' => auth()->user()->school_id,
             ]);
 
             DB::commit();
@@ -68,78 +76,82 @@ class TeacherController extends Controller
 
         return redirect()->route('teachers.index')->with('success', 'Teacher added successfully.');
     }
+
     public function edit($id): View
-{
-    $teacher = Teacher::with('user')->findOrFail($id);
-    return view('admin.teachers.edit', compact('teacher'));
-}
+    {
+        $teacher = Teacher::with('user')->findOrFail($id);
+        $this->authorize('update', $teacher);
+        return view('admin.teachers.edit', compact('teacher'));
+    }
 
-public function update(Request $request, $id): RedirectResponse
-{
-    $teacher = Teacher::with('user')->findOrFail($id);
+    public function update(Request $request, $id): RedirectResponse
+    {
+        $teacher = Teacher::with('user')->findOrFail($id);
+        $this->authorize('update', $teacher);
 
-    $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $teacher->user->id],
-        'phone' => ['required', 'string', 'max:20'],
-        'address' => ['required', 'string'],
-        'id_card_number' => ['required', 'string', 'max:255', 'unique:teachers,id_card_number,' . $teacher->id],
-        'date_of_birth' => ['required', 'date'],
-        'education' => ['required', 'string', 'max:255'],
-        'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
-    ]);
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $teacher->user->id],
+            'phone' => ['required', 'string', 'max:20'],
+            'address' => ['required', 'string'],
+            'id_card_number' => ['required', 'string', 'max:255', 'unique:teachers,id_card_number,' . $teacher->id],
+            'date_of_birth' => ['required', 'date'],
+            'education' => ['required', 'string', 'max:255'],
+            'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+        ]);
 
-    DB::beginTransaction();
-    try {
-        $user = $teacher->user;
+        DB::beginTransaction();
+        try {
+            $user = $teacher->user;
 
-        // Update profile image if provided
-        if ($request->hasFile('profile_image')) {
-            $imagePath = $request->file('profile_image')->store('profile_images', 'public');
-            $user->user_pic = $imagePath;
+            // Update profile image if provided
+            if ($request->hasFile('profile_image')) {
+                $imagePath = $request->file('profile_image')->store('profile_images', 'public');
+                $user->user_pic = $imagePath;
+            }
+
+            // Update User
+            $user->update([
+                'name' => $request->name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+            ]);
+
+            // Update Teacher
+            $teacher->update([
+                'id_card_number' => $request->id_card_number,
+                'date_of_birth' => $request->date_of_birth,
+                'education' => $request->education,
+                'address' => $request->address,
+            ]);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to update teacher. Error: ' . $e->getMessage())->withInput();
         }
 
-        // Update User
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-        ]);
-
-        // Update Teacher
-        $teacher->update([
-            'id_card_number' => $request->id_card_number,
-            'date_of_birth' => $request->date_of_birth,
-            'education' => $request->education,
-            'address' => $request->address,
-        ]);
-
-        DB::commit();
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return back()->with('error', 'Failed to update teacher. Error: ' . $e->getMessage())->withInput();
+        return redirect()->route('teachers.index')->with('success', 'Teacher updated successfully.');
     }
 
-    return redirect()->route('teachers.index')->with('success', 'Teacher updated successfully.');
-}
+    public function destroy($id): RedirectResponse
+    {
 
-public function destroy($id): RedirectResponse
-{
-    $teacher = Teacher::findOrFail($id);
+        $teacher = Teacher::findOrFail($id);
+        $this->authorize('delete', $teacher);
 
-    DB::beginTransaction();
-    try {
-        // Delete related User too
-        $teacher->user()->delete();
-        $teacher->delete();
+        DB::beginTransaction();
+        try {
+            // Delete related User too
+            $teacher->user()->delete();
+            $teacher->delete();
 
-        DB::commit();
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return back()->with('error', 'Failed to delete teacher. Error: ' . $e->getMessage());
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to delete teacher. Error: ' . $e->getMessage());
+        }
+
+        return redirect()->route('teachers.index')->with('success', 'Teacher deleted successfully.');
     }
-
-    return redirect()->route('teachers.index')->with('success', 'Teacher deleted successfully.');
-}
-
 }

@@ -22,33 +22,33 @@ class ClassController extends Controller
         return view('admin.classes.create');
     }
 
-     public function edit($id): View
+    public function edit($id): View
     {
         $data = SchoolClass::find($id);
-        return view('admin.classes.edit',compact('data'));
+        return view('admin.classes.edit', compact('data'));
     }
 
-       public function update(request $request,$id)
-   {
+    public function update(request $request, $id)
+    {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
         ]);
 
-        $data =SchoolClass::find($id);
+        $data = SchoolClass::find($id);
         $data->name = $request->name;
         $data->created_by = Auth::id();
         $data->save();
- 
+
         return redirect()->route('classes.index')->with('success', 'Class update successfully.');
     }
 
-public function destroy($id): RedirectResponse
-{
-    $class = SchoolClass::findOrFail($id);
-    $class->delete();
+    public function destroy($id): RedirectResponse
+    {
+        $class = SchoolClass::findOrFail($id);
+        $class->delete();
 
-    return redirect()->route('classes.index')->with('success', 'Class deleted successfully.');
-}
+        return redirect()->route('classes.index')->with('success', 'Class deleted successfully.');
+    }
 
 
     public function store(Request $request): RedirectResponse
@@ -59,6 +59,7 @@ public function destroy($id): RedirectResponse
 
         SchoolClass::create([
             'name' => $request->name,
+            'school_id' => auth()->user()->school_id,
             'created_by' => Auth::id(),
         ]);
 

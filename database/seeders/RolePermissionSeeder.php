@@ -14,7 +14,7 @@ class RolePermissionSeeder extends Seeder
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Step 1: Define all permissions
+        // Permissions List
         $permissions = [
             'View Dashboard',
             'Manage Roles',
@@ -59,46 +59,41 @@ class RolePermissionSeeder extends Seeder
             'View Pending Student Reports',
             'View Monthly Income Reports',
             'View Total Income Reports',
+            'Manage Schools',
         ];
 
-        // Step 2: Create permissions
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
-        // Step 3: Create Super Admin role and assign all permissions
+        // Super Admin Role - Gets all permissions
         $superAdminRole = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
         $superAdminRole->syncPermissions(Permission::all());
 
-        // Step 4: Create Admin role and assign all permissions
-        $adminRole = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
-        $adminRole->syncPermissions(Permission::all());
+        // School Admin Role (Previously 'Admin') - Gets all permissions EXCEPT managing schools and roles
+        $schoolAdminRole = Role::firstOrCreate(['name' => 'School Admin', 'guard_name' => 'web']);
+        $schoolAdminPermissions = Permission::where('name', '!=', 'Manage Schools')
+            ->where('name', '!=', 'Manage Roles')
+            ->get();
+        $schoolAdminRole->syncPermissions($schoolAdminPermissions);
 
-        // Step 5: Create Teacher role and assign specific permissions
+        // Teacher Role
         $teacherRole = Role::firstOrCreate(['name' => 'Teacher', 'guard_name' => 'web']);
-        $teacherPermissions = [
-            'View Dashboard',
-            'Manage Schedules',
-            'Manage Marks',
-            'View Admission',
-        ];
-        $teacherRole->syncPermissions($teacherPermissions);
+        $teacherRole->syncPermissions(['View Dashboard', 'Manage Schedules', 'Manage Marks', 'View Admission']);
 
-        // Step 6: Create Staff role
+        // Staff Role
         $staffRole = Role::firstOrCreate(['name' => 'Staff', 'guard_name' => 'web']);
         $staffRole->givePermissionTo('View Dashboard');
 
-        // Step 7: Assign roles to specific users
-        // Assign Super Admin to user with ID 1
-        $superAdminUser = User::find(1);
+        // Assign Roles to Users by Email (More reliable than ID)
+        $superAdminUser = User::where('email', 'superadmin@example.com')->first();
         if ($superAdminUser) {
             $superAdminUser->syncRoles($superAdminRole);
         }
 
-        // Assign Admin to user with ID 2
-        $adminUser = User::find(2);
+        $adminUser = User::where('email', 'admin@example.com')->first();
         if ($adminUser) {
-            $adminUser->syncRoles($adminRole);
+            $adminUser->syncRoles($schoolAdminRole);
         }
 
         $this->command->info('Roles and permissions have been seeded successfully!');

@@ -11,7 +11,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, SoftDeletes,HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -22,6 +22,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'password',
+        'school_id',
         'phone',
         'address',
         'user_pic',
@@ -65,9 +67,9 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'subscribed_to_newsletter' => 'boolean',            
-        'terms_accepted_at' => 'datetime',                   
-        'privacy_policy_accepted_at' => 'datetime',          
+        'subscribed_to_newsletter' => 'boolean',
+        'terms_accepted_at' => 'datetime',
+        'privacy_policy_accepted_at' => 'datetime',
     ];
 
     public function student()
@@ -80,4 +82,9 @@ class User extends Authenticatable
         return $this->hasOne(Teacher::class);
     }
 
+    public function school()
+    {
+        return $this->belongsTo(School::class);
+    }
+    
 }

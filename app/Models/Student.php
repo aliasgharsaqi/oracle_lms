@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use App\Scopes\SchoolScope;
+use Illuminate\Database\Eloquent\SoftDeletes;
 class Student extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -15,6 +16,7 @@ class Student extends Model
         'id_card_number',
         'father_phone',
         'address',
+        'school_id',
         'school_class_id',
         'section',
         'previous_school_docs',
@@ -37,5 +39,15 @@ class Student extends Model
     public function feePlans()
     {
         return $this->hasMany(StudentFeePlan::class);
+    }
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new SchoolScope);
+    }
+
+    public function school()
+    {
+        return $this->belongsTo(School::class);
     }
 }
