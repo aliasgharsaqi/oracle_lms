@@ -30,6 +30,15 @@
             </a>
         </li>
 
+        @role('Super Admin')
+        <li class="nav-item {{ request()->is('admin/schools*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.schools.index') }}">
+                <i class="bi bi-people-fill"></i>
+                <span>Manage Schools</span>
+            </a>
+        </li>
+        @endrole
+
         @can('Manage User')
         <li>
             <a href="{{ route('users.index') }}"
@@ -202,15 +211,6 @@
             </ul>
         </li>
         @endcan
-
-        @role('Super Admin')
-        <li class="nav-item {{ request()->is('admin/schools*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('admin.schools.index') }}">
-                <i class="fas fa-fw fa-school"></i>
-                <span>Manage Schools</span>
-            </a>
-        </li>
-        @endrole
         <!-- static routes -->
         <li>
             <a href="{{ route('teacher_diary') }}"
