@@ -100,7 +100,6 @@
         });
     });
 </script>
-``
 
 
 @endpush
