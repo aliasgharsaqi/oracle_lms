@@ -25,4 +25,9 @@ class SchoolClass extends Model
     {
         return $this->belongsTo(\App\Models\School::class);
     }
+    
+    public function subjects()
+    {
+        return $this->hasMany(Subject::class, 'school_class_id');
+    }
 }

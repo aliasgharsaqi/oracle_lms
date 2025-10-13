@@ -48,17 +48,23 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($teachers as $teacher)
+                        @foreach ($teachers ?? [] as $teacher)
                         <tr class="border-b hover:bg-gray-50">
+                            {{-- Column 1: Photo --}}
                             <td class="px-4 py-3">
                                 <img src="{{ asset('storage/' . $teacher->user->user_pic) }}"
                                     alt="{{ $teacher->user->name }}"
                                     class="rounded-full shadow-sm w-11 h-11 object-cover">
                             </td>
+                            {{-- Column 2: Name --}}
                             <td class="px-4 py-3 font-semibold max-w-[160px] truncate">{{ $teacher->user->name }}</td>
+                            {{-- Column 3: Email --}}
                             <td class="px-4 py-3 max-w-[200px] truncate">{{ $teacher->user->email }}</td>
+                            {{-- Column 4: Phone --}}
                             <td class="px-4 py-3">{{ $teacher->user->phone }}</td>
+                            {{-- Column 5: Education --}}
                             <td class="px-4 py-3">{{ $teacher->education }}</td>
+                            {{-- Column 6: Actions --}}
                             <td class="px-4 py-3 text-center">
                                 <div class="flex flex-wrap justify-center gap-2">
                                     @can('Edit Teachers')
@@ -81,13 +87,7 @@
                                 </div>
                             </td>
                         </tr>
-                        @empty
-                        <tr>
-                            <td colspan="6" class="text-center text-gray-500 py-6">
-                                <i class="bi bi-emoji-frown text-lg"></i> No teachers found.
-                            </td>
-                        </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -99,38 +99,50 @@
 
 @push('scripts')
 <script>
-$(document).ready(function () {
-    $('#teachersTable').DataTable({
-        dom:
-            "<'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-2'<'flex flex-wrap gap-2'B><'ml-auto'f>>" + // Top: buttons left, search right
-            "<'overflow-x-auto'tr>" + // Table
-            "<'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-2'<'text-sm text-gray-600'i><'ml-auto'p>>", // Bottom: info left, pagination right
+    $(document).ready(function() {
+        $('#teachersTable').DataTable({
+            dom: "<'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-2'<'flex flex-wrap gap-2'B><'ml-auto'f>>" + // Top: buttons left, search right
+                "<'overflow-x-auto'tr>" + // Table
+                "<'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-2'<'text-sm text-gray-600'i><'ml-auto'p>>", // Bottom: info left, pagination right
 
-        buttons: [
-            { extend: 'copy'  },
-            { extend: 'csv' },
-            { extend: 'excel'},
-            { extend: 'pdf' },
-            { extend: 'print' },
-            { extend: 'colvis' }
-        ],
+            buttons: [{
+                    extend: 'copy'
+                },
+                {
+                    extend: 'csv'
+                },
+                {
+                    extend: 'excel'
+                },
+                {
+                    extend: 'pdf'
+                },
+                {
+                    extend: 'print'
+                },
+                {
+                    extend: 'colvis'
+                }
+            ],
 
-        paging: true,
-        searching: true,
-        ordering: true,
-        info: true,
-        responsive: true,
+            paging: true,
+            searching: true,
+            ordering: true,
+            info: true,
+            responsive: true,
 
-        columnDefs: [
-            { orderable: false, targets: [0, 5] } // Disable sorting on Photo & Actions
-        ],
+            columnDefs: [{
+                    orderable: false,
+                    targets: [0, 5]
+                } // Disable sorting on Photo & Actions
+            ],
 
-        language: {
-            search: "_INPUT_",
-            searchPlaceholder: "Search teachers..."
-        }
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search teachers..."
+            }
+        });
     });
-});
 </script>
 
 @endpush

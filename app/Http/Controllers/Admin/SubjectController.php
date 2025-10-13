@@ -3,36 +3,48 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\SchoolClass;
 use App\Models\Subject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\Rule;
 
 class SubjectController extends Controller
 {
+    // ... index() and create() methods remain the same ...
     public function index(): View
     {
-        $subjects = Subject::latest()->get();
+        // Eager load the schoolClass relationship
+        $subjects = Subject::with('schoolClass')->latest()->get();
         return view('admin.subjects.index', compact('subjects'));
     }
 
     public function create(): View
     {
-        return view('admin.subjects.create');
+        // Get classes belonging to the user's school
+        $classes = SchoolClass::where('school_id', Auth::user()->school_id)->get();
+        return view('admin.subjects.create', compact('classes'));
     }
+
 
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:subjects'],
-            'subject_code' => ['required', 'string', 'max:50', 'unique:subjects'],
+            'name' => ['required', 'string', 'max:255'], // Removed 'unique' rule
+            'subject_code' => ['nullable', 'string', 'max:50', Rule::unique('subjects')->where('school_id', Auth::user()->school_id)], // Now nullable
+            'school_class_id' => ['nullable', 'exists:school_classes,id'],
+            'type' => ['required', Rule::in(['core', 'optional'])],
         ]);
 
         Subject::create([
             'name' => $request->name,
             'subject_code' => $request->subject_code,
+            'school_class_id' => $request->school_class_id,
+            'type' => $request->type,
             'created_by' => Auth::id(),
+            'school_id' => Auth::user()->school_id,
             'active' => true,
         ]);
 
@@ -41,25 +53,30 @@ class SubjectController extends Controller
 
     public function edit(Subject $subject): View
     {
-        return view('admin.subjects.edit', compact('subject'));
+        $classes = SchoolClass::where('school_id', Auth::user()->school_id)->get();
+        return view('admin.subjects.edit', compact('subject', 'classes'));
     }
+
 
     public function update(Request $request, Subject $subject): RedirectResponse
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:subjects,name,' . $subject->id],
-            'subject_code' => ['required', 'string', 'max:50', 'unique:subjects,subject_code,' . $subject->id],
+            'name' => ['required', 'string', 'max:255'], // Removed 'unique' rule
+            'subject_code' => ['nullable', 'string', 'max:50', Rule::unique('subjects')->where('school_id', Auth::user()->school_id)->ignore($subject->id)], // Now nullable
+            'school_class_id' => ['nullable', 'exists:school_classes,id'],
+            'type' => ['required', Rule::in(['core', 'optional'])],
         ]);
 
         $subject->update([
             'name' => $request->name,
             'subject_code' => $request->subject_code,
+            'school_class_id' => $request->school_class_id,
+            'type' => $request->type,
         ]);
 
         return redirect()->route('subjects.index')->with('success', 'Subject updated successfully.');
     }
-
-    public function destroy(Subject $subject): RedirectResponse
+     public function destroy(Subject $subject): RedirectResponse
     {
         $subject->delete();
         return redirect()->route('subjects.index')->with('success', 'Subject deleted successfully.');
@@ -69,7 +86,7 @@ class SubjectController extends Controller
     {
         $subject->active = !$subject->active;
         $subject->save();
-
         return redirect()->route('subjects.index')->with('success', 'Subject status updated.');
     }
+    // ... destroy() and toggleStatus() methods remain the same ...
 }

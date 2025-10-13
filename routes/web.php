@@ -85,6 +85,7 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::get('/schedules/{id}/edit', [ScheduleController::class, 'edit'])->name('schedules.edit');
     Route::put('/schedules/{id}', [ScheduleController::class, 'update'])->name('schedules.update');
     Route::delete('/schedules/{id}', [ScheduleController::class, 'destroy'])->name('schedules.destroy');
+    Route::get('/admin/get-subjects-by-class/{class_id}', [ScheduleController::class, 'getSubjectsByClass'])->name('admin.getSubjectsByClass');
 
 
     Route::get('/teachers', [TeacherController::class, 'index'])->name('teachers.index');

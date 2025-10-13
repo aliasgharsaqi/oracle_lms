@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('teacher_id')->constrained('teachers')->onDelete('cascade');
             $table->foreignId('class_id')->constrained('school_classes')->onDelete('cascade');
             $table->foreignId('subject_id')->constrained('subjects')->onDelete('cascade');
-            $table->string('day_of_week'); // e.g., Monday, Tuesday
+            $table->text('day_of_week'); // e.g., Monday, Tuesday
             $table->time('start_time');
             $table->time('end_time');
             $table->timestamps();
