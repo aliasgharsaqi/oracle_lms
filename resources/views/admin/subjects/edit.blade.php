@@ -5,50 +5,79 @@
 
 @section('content')
 <div class="row justify-content-center">
-    <div class="col-lg-6">
+    <div class="col-lg-8">
         <div class="card shadow-lg border-0 rounded-4">
             <div class="custom-card-header bg-primary text-white rounded-top-4 d-flex align-items-center justify-content-between">
                 <h5 class="card-title mb-0 fw-bold">
-                    <i class="bi bi-journal-text me-2"></i> Subject Details
+                    <i class="bi bi-pencil-square me-2"></i> Edit Subject Details
                 </h5>
-                <a href="{{ route('subjects.index') }}" class="btn btn-outline-light btn-sm rounded-pill">
-                    <i class="bi bi-arrow-left-circle me-1"></i> Back to Subjects
-                </a>
             </div>
             <div class="card-body p-4">
                 {{-- Error Messages --}}
                 @if ($errors->any())
-                    <div class="alert alert-danger rounded-3 shadow-sm mb-4">
-                        <ul class="mb-0">
-                            @foreach ($errors->all() as $error)
-                                <li><i class="bi bi-exclamation-circle me-1"></i> {{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
+                <div class="alert alert-danger rounded-3 shadow-sm">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                        <li><i class="bi bi-exclamation-circle me-1"></i> {{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
                 @endif
 
-                {{-- Edit Subject Form --}}
+                {{-- Subject Form --}}
                 <form action="{{ route('subjects.update', $subject->id) }}" method="POST" class="needs-validation" novalidate>
                     @csrf
                     @method('PUT')
 
-                    <div class="mb-3">
-                        <label for="name" class="form-label fw-semibold">Subject Name</label>
-                        <input type="text" class="form-control rounded-3 shadow-sm" id="name" name="name"
-                            value="{{ old('name', $subject->name) }}" placeholder="Enter subject name" required>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label fw-semibold">Subject Name</label>
+                            <input type="text"
+                                   class="form-control rounded-3 shadow-sm"
+                                   id="name" name="name"
+                                   value="{{ old('name', $subject->name) }}"
+                                   placeholder="e.g., Mathematics" required>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="subject_code" class="form-label fw-semibold">Subject Code (Optional)</label>
+                            <input type="text"
+                                   class="form-control rounded-3 shadow-sm"
+                                   id="subject_code" name="subject_code"
+                                   value="{{ old('subject_code', $subject->subject_code) }}"
+                                   placeholder="e.g., MATH101">
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="subject_code" class="form-label fw-semibold">Subject Code</label>
-                        <input type="text" class="form-control rounded-3 shadow-sm" id="subject_code" name="subject_code"
-                            value="{{ old('subject_code', $subject->subject_code) }}" placeholder="Enter subject code" required>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="school_class_id" class="form-label fw-semibold">Assign to Class (Optional)</label>
+                            <select class="form-select rounded-3 shadow-sm" id="school_class_id" name="school_class_id">
+                                <option value="">-- Select a Class --</option>
+                                @foreach ($classes as $class)
+                                    <option value="{{ $class->id }}" {{ old('school_class_id', $subject->school_class_id) == $class->id ? 'selected' : '' }}>
+                                        {{ $class->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="type" class="form-label fw-semibold">Subject Type</label>
+                            <select class="form-select rounded-3 shadow-sm" id="type" name="type" required>
+                                <option value="core" {{ old('type', $subject->type) == 'core' ? 'selected' : '' }}>Core</option>
+                                <option value="optional" {{ old('type', $subject->type) == 'optional' ? 'selected' : '' }}>Optional</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="d-flex justify-content-end mt-4">
-                        <a href="{{ route('subjects.index') }}" class="btn btn-outline-secondary rounded-pill px-4 me-2 shadow-sm">
+                        <a href="{{ route('subjects.index') }}"
+                           class="btn btn-outline-secondary rounded-pill px-4 me-2 shadow-sm">
                             <i class="bi bi-x-circle me-1"></i> Cancel
                         </a>
-                        <button type="submit" class="btn btn-gradient-primary rounded-pill px-4 shadow-sm">
+                        <button type="submit"
+                                class="btn btn-gradient-primary rounded-pill px-4 shadow-sm">
                             <i class="bi bi-check-circle me-1"></i> Update Subject
                         </button>
                     </div>

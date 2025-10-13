@@ -1,59 +1,69 @@
 @extends('layouts.admin')
 
-@section('title', 'Schedule Details')
-@section('page-title', 'Lecture Schedule Details')
+@section('title', 'Teacher Timetable')
+@section('page-title', "Weekly Timetable")
 
 @section('content')
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card shadow-lg border-0 rounded-4">
-            <div class="custom-card-header bg-primary text-white rounded-top-4 d-flex align-items-center justify-content-between">
-                <h5 class="card-title mb-0 fw-bold">
-                    <i class="bi bi-calendar-event me-2"></i> Lecture Information
-                </h5>
-                <a href="{{ route('schedules.index') }}" class="btn btn-outline-light btn-sm rounded-pill">
-                    <i class="bi bi-arrow-left-circle me-1"></i> Back to Schedule
-                </a>
+<div class="container-fluid">
+    <div class="card shadow-lg border-0 rounded-4">
+        {{-- Card Header: Displays Teacher's Name and a Back Button --}}
+        <div class="custom-card-header bg-primary text-white rounded-top-4 d-flex flex-column flex-md-row align-items-center justify-content-between p-3">
+            <div class="text-center text-md-start">
+                <h4 class="card-title mb-0 fw-bold">
+                    <i class="bi bi-person-workspace me-2"></i> {{ $teacher->user->name ?? 'N/A' }}
+                </h4>
+                <p class="mb-0 small opacity-75">{{ $teacher->user->school->name ?? 'N/A' }}</p>
             </div>
-            <div class="card-body p-4">
-                <dl class="row mb-4">
-                    <dt class="col-sm-4 fw-semibold">Teacher</dt>
-                    <dd class="col-sm-8">{{ $schedule->teacher->name ?? '' }}</dd>
+            <a href="{{ route('schedules.index') }}" class="btn btn-light btn-sm rounded-pill mt-2 mt-md-0">
+                <i class="bi bi-arrow-left"></i> Back to Schedule List
+            </a>
+        </div>
 
-                    <dt class="col-sm-4 fw-semibold">Class</dt>
-                    <dd class="col-sm-8">{{ $schedule->schoolClass->name ?? '' }}</dd>
+        {{-- Card Body: Contains the grid of daily schedules --}}
+        <div class="card-body p-4">
+            <div class="row g-4">
+                @php
+                    // Array of colors to cycle through for each day's header
+                    $colors = ['bg-primary', 'bg-success', 'bg-info', 'bg-danger', 'bg-warning', 'bg-dark', 'bg-secondary'];
+                @endphp
 
-                    <dt class="col-sm-4 fw-semibold">Subject</dt>
-                    <dd class="col-sm-8">{{ $schedule->subject->name ?? '' }}</dd>
-
-                    <dt class="col-sm-4 fw-semibold">Day</dt>
-                    <dd class="col-sm-8">{{ $schedule->day_of_week ?? '' }}</dd>
-
-                    <dt class="col-sm-4 fw-semibold">Start Time</dt>
-                    <dd class="col-sm-8">{{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }}</dd>
-
-                    <dt class="col-sm-4 fw-semibold">End Time</dt>
-                    <dd class="col-sm-8">{{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}</dd>
-                </dl>
-
-                <div class="d-flex flex-wrap gap-2 justify-content-end">
-                    <a href="{{ route('schedules.index') }}" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm">
-                        <i class="bi bi-arrow-left-circle me-1"></i> Back
-                    </a>
-                    <a href="{{ route('schedules.edit', $schedule->id) }}" class="btn badge-gradient-warning text-white rounded-pill px-4 shadow-sm">
-                        <i class="bi bi-pencil-square me-1"></i> Edit
-                    </a>
-                    <form action="{{ route('schedules.destroy', $schedule->id) }}" method="POST" class="d-inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn badge-gradient-danger text-white rounded-pill px-4 shadow-sm"
-                                onclick="return confirm('Are you sure you want to delete this schedule?')">
-                            <i class="bi bi-trash me-1"></i> Delete
-                        </button>
-                    </form>
-                </div>
+                {{-- Loop through the days in the correct order (Monday -> Sunday) --}}
+                @foreach($daysOrder as $index => $day)
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm border-light rounded-3">
+                            {{-- Day Header with a unique color --}}
+                            <div class="card-header {{ $colors[$index % count($colors)] }} text-white fw-bold fs-6 rounded-top-3">
+                                {{ $day }}
+                            </div>
+                            <div class="card-body p-2">
+                                {{-- Check if there are any lectures scheduled for this day --}}
+                                @if(isset($weeklySchedules[$day]) && $weeklySchedules[$day]->count() > 0)
+                                    <ul class="list-group list-group-flush">
+                                        @foreach($weeklySchedules[$day] as $lecture)
+                                            <li class="list-group-item px-2 py-3 border-bottom">
+                                                <div class="d-flex w-100 justify-content-between align-items-start">
+                                                    <div>
+                                                        <h6 class="mb-1 fw-bold text-primary-custom">{{ $lecture->subject->name ?? 'N/A' }}</h6>
+                                                        <p class="mb-1 text-muted small">{{ $lecture->schoolClass->name ?? 'N/A' }}</p>
+                                                    </div>
+                                                    <small class="text-muted text-nowrap">{{ \Carbon\Carbon::parse($lecture->start_time)->format('h:i A') }}</small>
+                                                </div>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @else
+                                    {{-- Message for days with no lectures --}}
+                                    <div class="text-center text-muted p-4 d-flex align-items-center justify-content-center h-100">
+                                        <span class="opacity-75">No lectures scheduled.</span>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
             </div>
         </div>
     </div>
 </div>
 @endsection
+

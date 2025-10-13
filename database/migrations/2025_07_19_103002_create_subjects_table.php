@@ -10,8 +10,8 @@ return new class extends Migration
     {
         Schema::create('subjects', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
-            $table->string('subject_code')->unique();
+            $table->string('name');
+            $table->string('subject_code')->nullable();
             $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });

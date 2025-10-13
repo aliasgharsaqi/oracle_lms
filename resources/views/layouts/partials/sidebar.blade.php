@@ -6,18 +6,24 @@
     <div class="sidebar-brand-container d-flex justify-content-between align-items-center">
         <a href="/" class="d-flex align-items-center text-white text-decoration-none">
             <div class="sidebar-brand-icon bg-white rounded-circle d-flex align-items-center justify-content-center">
+                @if (Auth::user()->school && Auth::user()->school->logo)
+                <img src="{{ asset('storage/' . Auth::user()->school->logo) }}" alt="{{ Auth::user()->school->name }} Logo" style="max-width: 70px; max-height: 90px;">
+                @else
                 <img src="{{ asset('images/logo.png') }}" alt="Logo" style="max-width: 70px; max-height: 90px;">
+                @endif
             </div>
-            <span class="fs-4 fw-bold ms-3 d-none d-lg-inline">Neshat us Sania</span>
+            @if (Auth::user()->school)
+            <span class="fs-4 fw-bold ms-3 d-none d-lg-inline">{{ Auth::user()->school->name }}</span>
+            @else
+            <span class="fs-4 fw-bold ms-3 d-none d-lg-inline">Oracles Force</span>
+            @endif
         </a>
-        <!-- Close Button (Mobile Only) -->
         <button class="btn text-white d-lg-none" id="closeSidebarBtn">
             <i class="bi bi-x-lg fs-4"></i>
         </button>
     </div>
     <hr>
-
-
+    
     <!-- Menu Items -->
     <ul class="nav nav-pills flex-column mb-auto mt-4">
 
@@ -32,8 +38,10 @@
 
         @role('Super Admin')
         <li class="nav-item {{ request()->is('admin/schools*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('admin.schools.index') }}">
-                <i class="bi bi-people-fill"></i>
+            <a href="{{ route('admin.schools.index') }}"
+                class="nav-link d-flex align-items-center {{ request()->is('admin/schools*') ? 'active' : 'text-white' }}"
+                style="gap: 8px; padding: 2px 12px;">
+                <i class="bi bi-bank"></i>
                 <span>Manage Schools</span>
             </a>
         </li>

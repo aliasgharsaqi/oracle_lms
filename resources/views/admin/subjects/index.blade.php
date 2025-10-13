@@ -6,20 +6,18 @@
 @section('content')
 <div class="grid grid-cols-1">
     <div class="bg-white shadow-lg rounded-2xl overflow-hidden">
-        <!-- Card Header -->
         <div class="custom-card-header flex flex-wrap justify-between items-center gap-2 px-4 py-3 border-b">
             <h4 class="text-lg font-bold text-primary-custom flex items-center gap-2">
                 <i class="bi bi-journal-bookmark-fill"></i> Subject List
             </h4>
             @can('Add Subject')
             <a href="{{ route('subjects.create') }}"
-               class="btn btn-gradient-primary inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white">
+                class="btn btn-gradient-primary inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white">
                 <i class="bi bi-plus-circle"></i> Add New Subject
             </a>
             @endcan
         </div>
 
-        <!-- Card Body -->
         <div class="p-0">
             @if (session('success'))
             <div class="mx-4 my-3 bg-green-100 text-green-800 px-4 py-3 rounded-lg flex items-center justify-between shadow-sm"
@@ -34,12 +32,14 @@
             @endif
 
             <div class="overflow-x-auto">
-                <table class="min-w-full table-auto text-sm text-left">
+                <table class="min-w-full table-auto text-sm text-left" id="subjectsTable">
                     <thead class="bg-gray-100 text-gray-700 text-nowrap">
                         <tr>
                             <th class="px-4 py-3">#</th>
                             <th class="px-4 py-3">Subject Name</th>
                             <th class="px-4 py-3">Code</th>
+                            <th class="px-4 py-3">Assigned Class</th>
+                            <th class="px-4 py-3">Type</th>
                             <th class="px-4 py-3">Status</th>
                             <th class="px-4 py-3 text-center">Actions</th>
                         </tr>
@@ -49,7 +49,19 @@
                         <tr class="border-b hover:bg-gray-50">
                             <td class="px-4 py-3">{{ $key + 1 }}</td>
                             <td class="px-4 py-3 font-semibold max-w-[200px] truncate">{{ $subject->name }}</td>
-                            <td class="px-4 py-3">{{ $subject->subject_code }}</td>
+                            <td class="px-4 py-3">{{ $subject->subject_code ?? 'N/A' }}</td>
+                            <td class="px-4 py-3">
+                                @if ($subject->schoolClass)
+                                <span class="badge bg-info text-dark">{{ $subject->schoolClass->name }}</span>
+                                @else
+                                <span class="badge bg-secondary">Not Assigned</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="badge bg-{{ $subject->type == 'core' ? 'primary' : 'warning text-dark' }}">
+                                    {{ ucfirst($subject->type) }}
+                                </span>
+                            </td>
                             <td class="px-4 py-3">
                                 @can('Manage Subject Status')
                                 <form action="{{ route('subjects.toggleStatus', $subject->id) }}" method="POST" class="inline-block">
@@ -89,7 +101,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="text-center text-gray-500 py-6">
+                            <td colspan="7" class="text-center text-gray-500 py-6">
                                 <i class="bi bi-emoji-frown text-lg"></i> No subjects found.
                             </td>
                         </tr>
@@ -105,6 +117,7 @@
 
 @push('scripts')
 <script>
+    // Note: Ensure you have jQuery and DataTables included in your project for this to work.
     $(document).ready(function() {
         $('#subjectsTable').DataTable({
             dom: 'Bfrtip',
@@ -117,10 +130,9 @@
             info: true,
             responsive: true,
             "columnDefs": [{
-                    "orderable": false,
-                    "targets": [3, 4]
-                } // Disable sorting on Status and Actions columns
-            ]
+                "orderable": false,
+                "targets": [5, 6] // Disable sorting on Status and Actions columns
+            }]
         });
     });
 </script>
