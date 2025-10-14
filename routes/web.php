@@ -26,7 +26,7 @@ Route::middleware('guest')->group(function () {
 
 // Apply both 'auth' and the new 'is_admin' middleware
 Route::middleware(['auth', 'is_admin'])->group(function () {
-    Route::match(['post','get'],'logout', [LoginController::class, 'destroy'])->name('logout');
+    Route::match(['post', 'get'], 'logout', [LoginController::class, 'destroy'])->name('logout');
 
     // Admin Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -102,6 +102,7 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::get('/fees/payments', [FeePaymentController::class, 'index'])->name('fees.payments.index');
     Route::post('/fees/payments', [FeePaymentController::class, 'storePayment'])->name('fees.payments.store');
     Route::get('/fees/receipt/{voucher}', [FeePaymentController::class, 'showReceipt'])->name('fees.receipt');
+    Route::get('/fees/student-ledger/{student}/{year}', [FeePaymentController::class, 'getStudentLedger'])->name('fees.student.ledger');
 
     Route::get('/pending-fees', [FeeReportController::class, 'pendingFees'])->name('reports.pendingFees');
     Route::get('/paid-fees', [FeeReportController::class, 'paidFees'])->name('reports.paidFees');

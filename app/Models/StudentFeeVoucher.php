@@ -11,14 +11,34 @@ class StudentFeeVoucher extends Model
 
     protected $fillable = [
         'student_id',
+        'school_id',
         'voucher_month',
-        'amount_due',
-        'late_fee_fine',
         'due_date',
         'status',
-        'paid_at',
+        // Fee Breakdown (What is due)
+        'amount_due',
+        'tuition_fee',
+        'admission_fee',
+        'examination_fee',
+        'other_fees',
+        'arrears',
+        // Payment Breakdown (What was paid)
         'amount_paid',
+        'paid_tuition',
+        'paid_admission',
+        'paid_examination',
+        'paid_other',
+        'paid_arrears',
+        // Payment Meta
         'payment_method',
+        'paid_at',
+        'notes',
+    ];
+
+    protected $casts = [
+        'paid_at' => 'datetime',
+        'voucher_month' => 'date',
+        'due_date' => 'date',
     ];
 
     public function student()
@@ -26,3 +46,4 @@ class StudentFeeVoucher extends Model
         return $this->belongsTo(Student::class);
     }
 }
+

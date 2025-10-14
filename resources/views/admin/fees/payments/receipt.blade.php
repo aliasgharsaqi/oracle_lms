@@ -1,72 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fee Receipt - {{ $voucher->student->user->name }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        body { background-color: #eee; }
-        .receipt-container { max-width: 800px; margin: 40px auto; background: #fff; border: 1px solid #ddd; }
-        .receipt-header { background: #343a40; color: #fff; padding: 20px; text-align: center; }
-        .receipt-header h2 { margin: 0; font-size: 2rem; }
-        .receipt-body { padding: 30px; }
-        .receipt-footer { text-align: center; padding: 20px; font-size: 0.8em; color: #777; }
+        body {
+            background-color: #f0f2ff;
+            font-family: sans-serif;
+        }
+
+        .receipt-container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, .1);
+            border-radius: .5rem;
+        }
+
+        .receipt-header {
+            background: #4a5568;
+            color: #fff;
+            padding: 2rem;
+            border-top-left-radius: .5rem;
+            border-top-right-radius: .5rem;
+        }
+
+        .receipt-header h2 {
+            margin: 0;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .receipt-body {
+            padding: 2.5rem;
+        }
+
+        .receipt-footer {
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.9em;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .school-logo {
+            max-height: 70px;
+            margin-bottom: 1rem;
+        }
+
+        .table thead th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+
+        .total-row td,
+        .total-row th {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
         @media print {
-            body { background-color: #fff; }
-            .receipt-container { margin: 0; border: none; }
-            .no-print { display: none; }
+            body {
+                background-color: #fff;
+            }
+
+            .receipt-container {
+                margin: 0;
+                border: none;
+                box-shadow: none;
+            }
+
+            .no-print {
+                display: none !important;
+            }
         }
     </style>
 </head>
+
 <body>
+    <div class="container no-print my-4">
+        <div class="d-flex justify-content-end gap-2">
+            <a href="{{ url()->previous() }}" class="btn btn-secondary rounded-pill px-4"><i class="bi bi-arrow-left"></i> Back</a>
+            <button class="btn btn-primary rounded-pill px-4" onclick="window.print()"><i class="bi bi-printer-fill"></i> Print Receipt</button>
+        </div>
+    </div>
+
     <div class="receipt-container">
-        <div class="receipt-header">
-            <h2>FEE RECEIPT</h2>
-            <p>School Management System</p>
+        <div class="receipt-header text-center">
+            @if($voucher->student->user->school->logo)
+            <img src="{{ asset('storage/' . $voucher->student->user->school->logo) }}" alt="School Logo" class="school-logo">
+            @endif
+            <h2>Fee Receipt</h2>
+            <p class="mb-0 fs-5">{{ $voucher->student->user->school->name ?? 'School Management System' }}</p>
         </div>
         <div class="receipt-body">
             <div class="row mb-4">
-                <div class="col-6">
-                    <strong>Receipt #:</strong> {{ str_pad($voucher->id, 6, '0', STR_PAD_LEFT) }}<br>
-                    <strong>Payment Date:</strong> {{ \Carbon\Carbon::parse($voucher->paid_at)->format('M d, Y') }}
+                <div class="col-sm-6">
+                    <h5>Billed To:</h5>
+                    <p class="mb-0"><strong>{{ $voucher->student->user->name }}</strong></p>
+                    <p class="mb-0">Class: {{ $voucher->student->schoolClass->name }}</p>
+                    <p class="mb-0">Student ID: {{ str_pad($voucher->student->id, 6, '0', STR_PAD_LEFT) }}</p>
                 </div>
-                <div class="col-6 text-end">
-                    <strong>Student Name:</strong> {{ $voucher->student->user->name }}<br>
-                    <strong>Class:</strong> {{ $voucher->student->schoolClass->name }}
+                <div class="col-sm-6 text-sm-end mt-3 mt-sm-0">
+                    <h5>Receipt Details:</h5>
+                    <p class="mb-0"><strong>Receipt #:</strong> R-{{ str_pad($voucher->id, 6, '0', STR_PAD_LEFT) }}</p>
+                    <p class="mb-0"><strong>Payment Date:</strong> {{ $voucher->paid_at->format('M d, Y, h:i A') }}</p>
+                    <p class="mb-0"><strong>Fee Month:</strong> {{ $voucher->voucher_month->format('F Y') }}</p>
                 </div>
             </div>
+
             <table class="table table-bordered">
                 <thead class="table-light">
                     <tr>
                         <th>Description</th>
-                        <th class="text-end">Amount</th>
+                        <th class="text-end">Amount Due (PKR)</th>
+                        <th class="text-end">Amount Paid (PKR)</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Tuition Fee for {{ \Carbon\Carbon::parse($voucher->voucher_month)->format('F Y') }}</td>
-                        <td class="text-end">PKR{{ number_format($voucher->amount_due, 2) }}</td>
-                    </tr>
+                    @if($voucher->tuition_fee > 0 || $voucher->paid_tuition > 0)<tr>
+                        <td>Tuition Fee</td>
+                        <td class="text-end">{{ number_format($voucher->tuition_fee, 2) }}</td>
+                        <td class="text-end">{{ number_format($voucher->paid_tuition, 2) }}</td>
+                    </tr>@endif
+                    @if($voucher->admission_fee > 0 || $voucher->paid_admission > 0)<tr>
+                        <td>Admission Fee</td>
+                        <td class="text-end">{{ number_format($voucher->admission_fee, 2) }}</td>
+                        <td class="text-end">{{ number_format($voucher->paid_admission, 2) }}</td>
+                    </tr>@endif
+                    @if($voucher->examination_fee > 0 || $voucher->paid_examination > 0)<tr>
+                        <td>Examination Fee</td>
+                        <td class="text-end">{{ number_format($voucher->examination_fee, 2) }}</td>
+                        <td class="text-end">{{ number_format($voucher->paid_examination, 2) }}</td>
+                    </tr>@endif
+                    @if($voucher->other_fees > 0 || $voucher->paid_other > 0)<tr>
+                        <td>Other Charges</td>
+                        <td class="text-end">{{ number_format($voucher->other_fees, 2) }}</td>
+                        <td class="text-end">{{ number_format($voucher->paid_other, 2) }}</td>
+                    </tr>@endif
+                    @if($voucher->arrears > 0 || $voucher->paid_arrears > 0)<tr>
+                        <td class="text-danger">Previous Dues (Arrears)</td>
+                        <td class="text-end text-danger">{{ number_format($voucher->arrears, 2) }}</td>
+                        <td class="text-end">{{ number_format($voucher->paid_arrears, 2) }}</td>
+                    </tr>@endif
                 </tbody>
                 <tfoot class="fw-bold">
-                    <tr>
-                        <td class="text-end">Total Amount Paid:</td>
-                        <td class="text-end">${{ number_format($voucher->amount_paid, 2) }}</td>
+                    <tr class="total-row table-secondary">
+                        <td class="text-end" colspan="2">Total Amount Due:</td>
+                        <td class="text-end">PKR {{ number_format($voucher->amount_due, 2) }}</td>
                     </tr>
+                    <tr class="total-row table-success">
+                        <td class="text-end" colspan="2">Total Amount Paid:</td>
+                        <td class="text-end">PKR {{ number_format($voucher->amount_paid, 2) }}</td>
+                    </tr>
+                    @php $balance = $voucher->amount_due - $voucher->amount_paid; @endphp
+                    @if($balance > 0.01)
+                    <tr class="total-row table-warning">
+                        <td class="text-end" colspan="2">Balance Carried Forward:</td>
+                        <td class="text-end">PKR {{ number_format($balance, 2) }}</td>
+                    </tr>
+                    @endif
                 </tfoot>
             </table>
+
             <div class="row mt-4">
                 <div class="col-12">
-                    <p><strong>Payment Method:</strong> {{ $voucher->payment_method }}</p>
-                    <p class="text-success fw-bold">Status: PAID</p>
+                    <p class="mb-1"><strong>Payment Method:</strong> {{ $voucher->payment_method }}</p>
+                    <p class="mb-1"><strong>Status:</strong> <span class="fw-bold text-success">{{ strtoupper($voucher->status) }}</span></p>
+                    @if($voucher->notes) <p class="mb-1"><strong>Notes:</strong> {{ $voucher->notes }}</p> @endif
                 </div>
             </div>
         </div>
         <div class="receipt-footer">
-            <p>Thank you for your payment!</p>
-            <button class="btn btn-primary no-print" onclick="window.print()">Print Receipt</button>
+            <p>Thank you for your prompt payment!</p>
         </div>
     </div>
 </body>
+
 </html>
