@@ -144,7 +144,7 @@
                 <span>Fee Management</span>
             </a>
 
-            <ul class="list-unstyled ps-3 dropdown-submenu" style="display: none;">
+            <ul class="list-unstyled ps-3 dropdown-submenu" style="display: {{ request()->routeIs(['fees.payments.*','fees.plans.*']) ? 'block' : 'none' }};">
                 @can('Manage Student Fees Plan')
                 <li>
                     <a href="{{ route('fees.plans.index') }}"
@@ -176,7 +176,7 @@
                 <span>Reports</span>
             </a>
 
-            <ul class="list-unstyled ps-3 dropdown-submenu" style="display: none;">
+            <ul class="list-unstyled ps-3 dropdown-submenu" style="display: {{ request()->routeIs(['reports.revenue_dashboard','reports.paid_fees','reports.pending_fees']) ? 'block' : 'none' }};">
                 {{-- I've mapped the new dashboard to your existing permission for viewing monthly reports --}}
                 @can('View Monthly Income Reports')
                 <li>
@@ -188,7 +188,6 @@
                 </li>
                 @endcan
 
-                {{-- Kept your original permission for paid reports --}}
                 @can('View Paid Student Reports')
                 <li>
                     <a href="{{ route('reports.paid_fees') }}"
@@ -199,7 +198,6 @@
                 </li>
                 @endcan
 
-                {{-- Kept your original permission for pending reports --}}
                 @can('View Pending Student Reports')
                 <li>
                     <a href="{{ route('reports.pending_fees') }}"
@@ -213,6 +211,7 @@
         </li>
         @endcan
         <!-- static routes -->
+        @role('Super Admin')
         <li>
             <a href="{{ route('teacher_diary') }}"
                 class="nav-link d-flex align-items-center text-white {{ request()->routeIs('teacher_diary') ? 'active' : '' }}"
@@ -237,7 +236,7 @@
                 Attendence
             </a>
         </li>
-
+        @endif
     </ul>
 
 

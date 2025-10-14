@@ -6,12 +6,17 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use App\Models\User;
 
 class ProfileController extends Controller
 {
+    /**
+     * Show the form for editing the user's profile.
+     */
     public function edit(): View
     {
         return view('admin.profile.edit', [
@@ -19,60 +24,64 @@ class ProfileController extends Controller
         ]);
     }
 
+    /**
+     * Update the user's profile information, password, social links, and profile image
+     * through a single, consolidated method.
+     */
     public function update(Request $request): RedirectResponse
     {
-        $user = \App\Models\User::find(Auth::id());
+        $user = Auth::user();
+        $section = $request->input('section');
+        $status_key = 'status';
+        $status_message = 'profile-updated';
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
-            'twitter_profile' => ['nullable', 'string', 'max:255'],
-            'facebook_profile' => ['nullable', 'string', 'max:255'],
-            'linkedin_profile' => ['nullable', 'string', 'max:255'],
-        ]);
+        switch ($section) {
+            case 'info':
+                $validated = $request->validate([
+                    'name' => ['required', 'string', 'max:255'],
+                    'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+                ]);
+                $user->update($validated);
+                $status_message = 'profile-info-updated';
+                break;
 
-        $user->name = $validated['name'];
-        $user->email = $validated['email'];
-        $user->twitter_profile = $validated['twitter_profile'] ?? null;
-        $user->facebook_profile = $validated['facebook_profile'] ?? null;
-        $user->linkedin_profile = $validated['linkedin_profile'] ?? null;
-        $user->save();
+            case 'social':
+                $validated = $request->validate([
+                    'twitter_profile' => ['nullable', 'url', 'max:255'],
+                    'facebook_profile' => ['nullable', 'url', 'max:255'],
+                    'linkedin_profile' => ['nullable', 'url', 'max:255'],
+                ]);
+                $user->update($validated);
+                $status_message = 'social-links-updated';
+                break;
 
-        return redirect()->route('profile.edit')->with('status', 'profile-updated');
-    }
+            case 'password':
+                $validated = $request->validate([
+                    'current_password' => ['required', 'current_password'],
+                    'password' => ['required', Password::defaults(), 'confirmed'],
+                ]);
+                $user->update(['password' => Hash::make($validated['password'])]);
+                $status_message = 'password-updated';
+                break;
 
-    public function updatePassword(Request $request): RedirectResponse
-    {
-        $validated = $request->validate([
-            'current_password' => ['required', 'current_password'],
-            'password' => ['required', Password::defaults(), 'confirmed'],
-        ]);
-
-        $request->user()->update([
-            'password' => Hash::make($validated['password']),
-        ]);
-
-        return redirect()->route('profile.edit')->with('status', 'password-updated');
-    }
-
-    public function updateProfileImage(Request $request): RedirectResponse
-    {
-        $request->validate([
-            'user_pic' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
-        ]);
-
-        $user = \App\Models\User::find(Auth::id());
-
-        if ($request->hasFile('user_pic')) {
-            $path = $request->file('user_pic')->store('profile_images', 'public');
+            case 'image':
+                $request->validate(['user_pic' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048']]);
+                if ($request->hasFile('user_pic')) {
+                    // Delete the old image if it exists to save space
+                    if ($user->user_pic) {
+                        Storage::disk('public')->delete($user->user_pic);
+                    }
+                    $path = $request->file('user_pic')->store('profile_images', 'public');
+                    $user->update(['user_pic' => $path]);
+                    $status_message = 'image-updated';
+                }
+                break;
             
-            // Optional: Delete old image
-            // if($user->user_pic) { Storage::disk('public')->delete($user->user_pic); }
-
-            $user->user_pic = $path;
-            $user->save();
+            default:
+                 return redirect()->route('profile.edit')->with('error', 'Invalid update section specified.');
         }
 
-        return redirect()->route('profile.edit')->with('status', 'image-updated');
+        return redirect()->route('profile.edit')->with($status_key, $status_message);
     }
 }
+

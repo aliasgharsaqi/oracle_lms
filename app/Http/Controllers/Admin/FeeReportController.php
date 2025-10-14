@@ -20,6 +20,7 @@ class FeeReportController extends Controller
     {
         $school_id = Auth::user()->school_id;
         $baseQuery = StudentFeeVoucher::where('school_id', $school_id);
+        $classes = SchoolClass::where('school_id', $school_id)->get();
 
         // --- Date Filtering Logic ---
         $filters = [
@@ -27,6 +28,7 @@ class FeeReportController extends Controller
             'month' => $request->input('month'),
             'start_date' => $request->input('start_date'),
             'end_date' => $request->input('end_date'),
+            'defaulter_class_id' => $request->input('defaulter_class_id'),
         ];
 
         $vouchersQuery = (clone $baseQuery)->with('student.user');
@@ -61,7 +63,6 @@ class FeeReportController extends Controller
 
 
         // --- Monthly Revenue Chart Data ---
-        // The chart should always show the full year's data for context.
         $chartYear = $filters['year'] ?? now()->year;
         $monthlyRevenue = DB::table('student_fee_vouchers')
             ->where('school_id', $school_id)
@@ -81,15 +82,19 @@ class FeeReportController extends Controller
                 ];
             });
 
-        // --- Defaulters List (3+ months due) ---
-        $defaulters = Student::where('school_id', $school_id)
+        // --- Defaulters List (3+ unpaid/partial vouchers from past due dates) ---
+        $defaultersQuery = Student::where('school_id', $school_id)
             ->with(['user', 'schoolClass'])
             ->whereHas('feeVouchers', function ($query) {
                 $query->whereIn('status', ['pending', 'partial'])
                       ->where('due_date', '<', Carbon::now());
-            }, '>=', 3)
-            ->get()
-            ->map(function($student) {
+            }, '>=', 3);
+            
+        if ($filters['defaulter_class_id']) {
+            $defaultersQuery->where('school_class_id', $filters['defaulter_class_id']);
+        }
+
+        $defaulters = $defaultersQuery->get()->map(function($student) {
                 $student->total_due = $student->feeVouchers->whereIn('status', ['pending', 'partial'])->sum(function($voucher) {
                     return $voucher->amount_due - $voucher->amount_paid;
                 });
@@ -104,8 +109,49 @@ class FeeReportController extends Controller
             'feeBreakdown',
             'monthlyRevenue',
             'defaulters',
-            'filters'
+            'filters',
+            'classes'
         ));
+    }
+
+    /**
+     * Get student ledger details for the report modal.
+     */
+    public function getStudentReportDetails(Student $student, $year)
+    {
+        // Ensure the student belongs to the admin's school to prevent unauthorized access
+        if ($student->school_id !== Auth::user()->school_id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $vouchers = StudentFeeVoucher::where('student_id', $student->id)
+            ->whereYear('voucher_month', $year)
+            ->get()->keyBy(fn($v) => Carbon::parse($v->voucher_month)->month);
+
+        $ledger = [];
+        $totalPayable = 0;
+        $totalPaid = 0;
+
+        for ($month = 1; $month <= 12; $month++) {
+            $voucher = $vouchers->get($month);
+            if ($voucher) {
+                $balance = $voucher->amount_due - ($voucher->amount_paid ?? 0);
+                $ledger[] = [
+                    'month' => Carbon::create()->month($month)->format('F'), 
+                    'amount_due' => $voucher->amount_due, 
+                    'amount_paid' => $voucher->amount_paid ?? 0, 
+                    'balance' => $balance, 
+                    'status' => $voucher->status, 
+                    'paid_on' => $voucher->paid_at ? Carbon::parse($voucher->paid_at)->format('d M, Y') : 'N/A'
+                ];
+                $totalPayable += $voucher->amount_due;
+                $totalPaid += $voucher->amount_paid ?? 0;
+            } else {
+                $ledger[] = [ 'month' => Carbon::create()->month($month)->format('F'), 'status' => 'not_generated'];
+            }
+        }
+        
+        return response()->json(['ledger' => $ledger, 'totals' => ['payable' => $totalPayable, 'paid' => $totalPaid, 'balance' => $totalPayable - $totalPaid]]);
     }
 
 
