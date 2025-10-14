@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens; // <-- Import this
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -21,8 +21,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'password',
-        'password',
+        'password', // Removed duplicate
         'school_id',
         'phone',
         'address',
@@ -48,7 +47,6 @@ class User extends Authenticatable
         'terms_accepted_at',
         'privacy_policy_accepted_at',
     ];
-
 
     /**
      * The attributes that should be hidden for serialization.
@@ -86,5 +84,4 @@ class User extends Authenticatable
     {
         return $this->belongsTo(School::class);
     }
-    
 }

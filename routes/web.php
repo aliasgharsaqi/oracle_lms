@@ -26,7 +26,7 @@ Route::middleware('guest')->group(function () {
 
 // Apply both 'auth' and the new 'is_admin' middleware
 Route::middleware(['auth', 'is_admin'])->group(function () {
-    Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
+    Route::match(['post','get'],'logout', [LoginController::class, 'destroy'])->name('logout');
 
     // Admin Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -86,7 +86,6 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::put('/schedules/{id}', [ScheduleController::class, 'update'])->name('schedules.update');
     Route::delete('/schedules/{id}', [ScheduleController::class, 'destroy'])->name('schedules.destroy');
     Route::get('/admin/get-subjects-by-class/{class_id}', [ScheduleController::class, 'getSubjectsByClass'])->name('admin.getSubjectsByClass');
-
 
     Route::get('/teachers', [TeacherController::class, 'index'])->name('teachers.index');
     Route::get('/teachers/create', [TeacherController::class, 'create'])->name('teachers.create');
