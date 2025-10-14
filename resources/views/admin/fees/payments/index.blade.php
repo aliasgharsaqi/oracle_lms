@@ -5,7 +5,6 @@
 
 @section('content')
 <div class="container-fluid">
-    <!-- Selection Card -->
     <div class="card shadow-lg border-0 rounded-4 mb-4">
         <div class="custom-card-header bg-primary text-white rounded-top-4"><h5 class="card-title mb-0 fw-bold"><i class="bi bi-filter-circle-fill me-2"></i>Select Class and Month</h5></div>
         <div class="card-body">
@@ -20,7 +19,6 @@
     </div>
 
     @if($selectedClass)
-    <!-- Results Card -->
     <div class="card shadow-lg border-0 rounded-4">
         <div class="card-header bg-light border-0 py-3"><h5 class="mb-0 fw-bold">Fee Status for {{ $selectedClass->name }} - {{ \Carbon\Carbon::parse($selectedMonth)->format('F Y') }}</h5></div>
         <div class="card-body p-0">
@@ -77,7 +75,6 @@
         </div>
     </div>
 
-    <!-- Modals -->
     @foreach($students as $student)
     @if(isset($student->voucher->id))
     <div class="modal fade" id="paymentModal-{{ $student->voucher->id }}" tabindex="-1">
@@ -112,7 +109,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer"><button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-gradient-primary rounded-pill px-4">Confirm & Print</button></div>
+                    <div class="modal-footer"><button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary rounded-pill px-4">Confirm & Print</button></div>
                 </form>
             </div>
         </div>
@@ -120,7 +117,6 @@
     @endif
     @endforeach
 
-    <!-- Student Ledger Modal -->
     <div class="modal fade" id="ledgerModal" tabindex="-1">
       <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow-lg">
@@ -176,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function () {
             ledgerTableBody.innerHTML = '<tr><td colspan="6" class="text-center p-5">Loading...</td></tr>';
             ledgerModal.show();
 
-            fetch(`/admin/fees/student-ledger/${studentId}/${year}`)
+            fetch(`/fees/student-ledger/${studentId}/${year}`)
                 .then(response => response.json())
                 .then(data => {
                     ledgerTableBody.innerHTML = '';
@@ -217,4 +213,3 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endpush
-
