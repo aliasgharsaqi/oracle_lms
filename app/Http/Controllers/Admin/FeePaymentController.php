@@ -44,9 +44,16 @@ class FeePaymentController extends Controller
                 $student->total_payable = $allVouchersForYear->sum('amount_due');
                 $student->total_paid = $allVouchersForYear->sum('amount_paid');
                 $student->total_remaining = $student->total_payable - $student->total_paid;
-                
-                // 4. Get the current month's voucher for the action buttons. This will now always be found if a plan exists.
-                $student->voucher = $allVouchersForYear->firstWhere('voucher_month', $voucherDate->format('Y-m-d'));
+
+                // 4. Get the current month's voucher for the action buttons.
+
+                // --- THIS IS THE FIX ---
+                // Compare the Carbon object from the voucher with the Carbon object of the selected date.
+                $student->voucher = $allVouchersForYear->first(function ($voucher) use ($voucherDate) {
+                    // Use isSameDay() to compare just the date part, ignoring time.
+                    return Carbon::parse($voucher->voucher_month)->isSameDay($voucherDate);
+                });
+   
                 if (!$student->voucher) {
                     $student->voucher = (object)['status' => 'no_plan'];
                 }
@@ -90,8 +97,11 @@ class FeePaymentController extends Controller
                     'amount_due' => $baseAmount + $arrears,
                     'due_date' => $voucherDate->copy()->day(10)->format('Y-m-d'),
                     'status' => 'pending',
-                    'tuition_fee' => $tuition_fee, 'admission_fee' => $admission_fee,
-                    'examination_fee' => $examination_fee, 'other_fees' => $other_fees, 'arrears' => $arrears,
+                    'tuition_fee' => $tuition_fee,
+                    'admission_fee' => $admission_fee,
+                    'examination_fee' => $examination_fee,
+                    'other_fees' => $other_fees,
+                    'arrears' => $arrears,
                 ])->save();
             }
         }
@@ -115,21 +125,23 @@ class FeePaymentController extends Controller
                 $totalPayable += $voucher->amount_due;
                 $totalPaid += $voucher->amount_paid ?? 0;
             } else {
-                $ledger[] = [ 'month' => Carbon::create()->month($month)->format('F'), 'status' => 'not_generated'];
+                $ledger[] = ['month' => Carbon::create()->month($month)->format('F'), 'status' => 'not_generated'];
             }
         }
-        
+
         return response()->json(['ledger' => $ledger, 'totals' => ['payable' => $totalPayable, 'paid' => $totalPaid, 'balance' => $totalPayable - $totalPaid]]);
     }
 
     public function storePayment(Request $request): RedirectResponse
     {
-        $validated = $request->validate([ 'voucher_id' => ['required', 'exists:student_fee_vouchers,id'], 'paid_tuition' => ['nullable', 'numeric', 'min:0'], 'paid_admission' => ['nullable', 'numeric', 'min:0'], 'paid_examination' => ['nullable', 'numeric', 'min:0'], 'paid_other' => ['nullable', 'numeric', 'min:0'], 'paid_arrears' => ['nullable', 'numeric', 'min:0'], 'payment_method' => ['required', 'string'], 'notes' => ['nullable', 'string'], ]);
+        $validated = $request->validate(['voucher_id' => ['required', 'exists:student_fee_vouchers,id'], 'paid_tuition' => ['nullable', 'numeric', 'min:0'], 'paid_admission' => ['nullable', 'numeric', 'min:0'], 'paid_examination' => ['nullable', 'numeric', 'min:0'], 'paid_other' => ['nullable', 'numeric', 'min:0'], 'paid_arrears' => ['nullable', 'numeric', 'min:0'], 'payment_method' => ['required', 'string'], 'notes' => ['nullable', 'string'],]);
         $voucher = StudentFeeVoucher::findOrFail($validated['voucher_id']);
-        if ($voucher->status !== 'pending') { return back()->with('error', 'This voucher has already been processed.'); }
+        if ($voucher->status !== 'pending') {
+            return back()->with('error', 'This voucher has already been processed.');
+        }
         $totalPaid = collect($validated)->only(['paid_tuition', 'paid_admission', 'paid_examination', 'paid_other', 'paid_arrears'])->sum();
         $status = (abs($totalPaid - $voucher->amount_due) < 0.01) ? 'paid' : 'partial';
-        $voucher->update(['amount_paid' => $totalPaid, 'status' => $status, 'paid_at' => Carbon::now(), 'paid_tuition' => $validated['paid_tuition'] ?? 0, 'paid_admission' => $validated['paid_admission'] ?? 0, 'paid_examination' => $validated['paid_examination'] ?? 0, 'paid_other' => $validated['paid_other'] ?? 0, 'paid_arrears' => $validated['paid_arrears'] ?? 0, 'payment_method' => $validated['payment_method'], 'notes' => $validated['notes'], ]);
+        $voucher->update(['amount_paid' => $totalPaid, 'status' => $status, 'paid_at' => Carbon::now(), 'paid_tuition' => $validated['paid_tuition'] ?? 0, 'paid_admission' => $validated['paid_admission'] ?? 0, 'paid_examination' => $validated['paid_examination'] ?? 0, 'paid_other' => $validated['paid_other'] ?? 0, 'paid_arrears' => $validated['paid_arrears'] ?? 0, 'payment_method' => $validated['payment_method'], 'notes' => $validated['notes'],]);
         return redirect()->route('fees.receipt', $voucher->id);
     }
 
@@ -139,7 +151,9 @@ class FeePaymentController extends Controller
         for ($i = 1; $i <= 3; $i++) {
             $monthToCheck = $currentVoucherDate->copy()->subMonths($i);
             $voucher = $student->feeVouchers()->whereYear('voucher_month', $monthToCheck->year)->whereMonth('voucher_month', $monthToCheck->month)->first();
-            if ($voucher && (round($voucher->amount_paid, 2) < round($voucher->amount_due, 2))) { $unpaidCount++; }
+            if ($voucher && (round($voucher->amount_paid, 2) < round($voucher->amount_due, 2))) {
+                $unpaidCount++;
+            }
         }
         return $unpaidCount >= 3;
     }
