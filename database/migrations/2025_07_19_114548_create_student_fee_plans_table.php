@@ -6,21 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    public function up()
     {
         Schema::create('student_fee_plans', function (Blueprint $table) {
             $table->id();
             $table->foreignId('student_id')->constrained()->onDelete('cascade');
-            $table->unsignedSmallInteger('year');
-            $table->unsignedTinyInteger('month'); // 1 for Jan, 2 for Feb, etc.
-            $table->decimal('amount', 10, 2);
+            $table->foreignId('school_id')->constrained()->onDelete('cascade');
+            $table->year('year');
+            $table->decimal('admission_fee', 10, 2)->default(0);
+            $table->decimal('examination_fee', 10, 2)->default(0);
+            $table->decimal('other_fees', 10, 2)->default(0);
+            $table->decimal('total_annual_fees', 10, 2)->default(0); // Sum of the above
             $table->timestamps();
-
-            $table->unique(['student_id', 'year', 'month']);
+            
+            // Ensure a student has only one plan per year
+            $table->unique(['student_id', 'year']);
         });
     }
 
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('student_fee_plans');
     }

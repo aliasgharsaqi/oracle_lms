@@ -52,16 +52,18 @@
                         <tr class="border-b hover:bg-gray-50">
                             {{-- Column 1: Photo --}}
                             <td class="px-4 py-3">
+                                @if($teacher->user->user_pic ?? '')
                                 <img src="{{ asset('storage/' . $teacher->user->user_pic) }}"
                                     alt="{{ $teacher->user->name }}"
                                     class="rounded-full shadow-sm w-11 h-11 object-cover">
+                                @endif
                             </td>
                             {{-- Column 2: Name --}}
-                            <td class="px-4 py-3 font-semibold max-w-[160px] truncate">{{ $teacher->user->name }}</td>
+                            <td class="px-4 py-3 font-semibold max-w-[160px] truncate">{{ $teacher->user->name ?? '' }}</td>
                             {{-- Column 3: Email --}}
-                            <td class="px-4 py-3 max-w-[200px] truncate">{{ $teacher->user->email }}</td>
+                            <td class="px-4 py-3 max-w-[200px] truncate">{{ $teacher->user->email ?? '' }}</td>
                             {{-- Column 4: Phone --}}
-                            <td class="px-4 py-3">{{ $teacher->user->phone }}</td>
+                            <td class="px-4 py-3">{{ $teacher->user->phone ?? '' }}</td>
                             {{-- Column 5: Education --}}
                             <td class="px-4 py-3">{{ $teacher->education }}</td>
                             {{-- Column 6: Actions --}}

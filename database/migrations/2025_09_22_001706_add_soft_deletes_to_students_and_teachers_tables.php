@@ -15,12 +15,19 @@ return new class extends Migration
     {
         // Add the 'deleted_at' column to the students table
         Schema::table('students', function (Blueprint $table) {
-            $table->softDeletes();
+            if (!Schema::hasColumn('students', 'deleted_at')) {
+                Schema::table('students', function (Blueprint $table) {
+                    $table->softDeletes();
+                });
+            }
         });
 
-        // Add the 'deleted_at' column to the teachers table
         Schema::table('teachers', function (Blueprint $table) {
-            $table->softDeletes();
+            if (!Schema::hasColumn('teachers', 'deleted_at')) {
+                Schema::table('teachers', function (Blueprint $table) {
+                    $table->softDeletes();
+                });
+            }
         });
     }
 
@@ -31,13 +38,21 @@ return new class extends Migration
      */
     public function down()
     {
+
         Schema::table('students', function (Blueprint $table) {
-            $table->dropSoftDeletes();
+            if (Schema::hasColumn('students', 'deleted_at')) {
+                Schema::table('students', function (Blueprint $table) {
+                    $table->dropSoftDeletes();
+                });
+            }
         });
 
         Schema::table('teachers', function (Blueprint $table) {
-            $table->dropSoftDeletes();
+            if (Schema::hasColumn('teachers', 'deleted_at')) {
+                Schema::table('teachers', function (Blueprint $table) {
+                    $table->dropSoftDeletes();
+                });
+            }
         });
     }
 };
-
