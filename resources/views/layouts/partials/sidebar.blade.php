@@ -23,7 +23,7 @@
         </button>
     </div>
     <hr>
-    
+
     <!-- Menu Items -->
     <ul class="nav nav-pills flex-column mb-auto mt-4">
 
@@ -177,42 +177,35 @@
             </a>
 
             <ul class="list-unstyled ps-3 dropdown-submenu" style="display: none;">
-                @can('View Paid Student Reports')
-                <li>
-                    <a href="{{ route('reports.paidFees') }}"
-                        class="nav-link d-flex align-items-center text-white {{ request()->routeIs('reports.paidFees') ? 'active' : '' }}"
-                        style="gap: 6px; padding: 2px 12px;">
-                        Paid Students
-                    </a>
-                </li>
-                @endcan
-
-                @can('View Pending Student Reports')
-                <li>
-                    <a href="{{ route('reports.pendingFees') }}"
-                        class="nav-link d-flex align-items-center text-white {{ request()->routeIs('reports.pendingFees') ? 'active' : '' }}"
-                        style="gap: 6px; padding: 2px 12px;">
-                        Pending Students
-                    </a>
-                </li>
-                @endcan
-
+                {{-- I've mapped the new dashboard to your existing permission for viewing monthly reports --}}
                 @can('View Monthly Income Reports')
                 <li>
-                    <a href="{{ route('reports.monthlyRevenue') }}"
-                        class="nav-link d-flex align-items-center text-white {{ request()->routeIs('reports.monthlyRevenue') ? 'active' : '' }}"
+                    <a href="{{ route('reports.revenue_dashboard') }}"
+                        class="nav-link d-flex align-items-center text-white {{ request()->routeIs('reports.revenue_dashboard') ? 'active' : '' }}"
                         style="gap: 6px; padding: 2px 12px;">
-                        Monthly Revenue
+                        Revenue Dashboard
                     </a>
                 </li>
                 @endcan
 
-                @can('View Total Income Reports')
+                {{-- Kept your original permission for paid reports --}}
+                @can('View Paid Student Reports')
                 <li>
-                    <a href="{{ route('reports.totalRevenue') }}"
-                        class="nav-link d-flex align-items-center text-white {{ request()->routeIs('reports.totalRevenue') ? 'active' : '' }}"
+                    <a href="{{ route('reports.paid_fees') }}"
+                        class="nav-link d-flex align-items-center text-white {{ request()->routeIs('reports.paid_fees') ? 'active' : '' }}"
                         style="gap: 6px; padding: 2px 12px;">
-                        Total Income
+                        Paid Reports
+                    </a>
+                </li>
+                @endcan
+
+                {{-- Kept your original permission for pending reports --}}
+                @can('View Pending Student Reports')
+                <li>
+                    <a href="{{ route('reports.pending_fees') }}"
+                        class="nav-link d-flex align-items-center text-white {{ request()->routeIs('reports.pending_fees') ? 'active' : '' }}"
+                        style="gap: 6px; padding: 2px 12px;">
+                        Pending Reports
                     </a>
                 </li>
                 @endcan

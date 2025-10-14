@@ -104,12 +104,11 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::get('/fees/receipt/{voucher}', [FeePaymentController::class, 'showReceipt'])->name('fees.receipt');
     Route::get('/fees/student-ledger/{student}/{year}', [FeePaymentController::class, 'getStudentLedger'])->name('fees.student.ledger');
 
-    Route::get('/pending-fees', [FeeReportController::class, 'pendingFees'])->name('reports.pendingFees');
-    Route::get('/paid-fees', [FeeReportController::class, 'paidFees'])->name('reports.paidFees');
-    Route::get('/monthly-revenue', [FeeReportController::class, 'monthlyRevenue'])->name('reports.monthlyRevenue');
-    Route::get('/total-revenue', [FeeReportController::class, 'totalRevenue'])->name('reports.totalRevenue');
-    Route::get('/revenue-dashboard', [FeeReportController::class, 'revenueDashboard'])
-        ->name('reports.revenueDashboard');
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('revenue-dashboard', [FeeReportController::class, 'revenueDashboard'])->name('revenue_dashboard');
+        Route::get('pending-fees', [FeeReportController::class, 'pendingFees'])->name('pending_fees');
+        Route::get('paid-fees', [FeeReportController::class, 'paidFees'])->name('paid_fees');
+    });
 
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('roles', RoleController::class)->except(['show']);
