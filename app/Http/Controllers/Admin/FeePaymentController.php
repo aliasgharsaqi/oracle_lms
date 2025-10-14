@@ -32,7 +32,6 @@ class FeePaymentController extends Controller
             $year = $voucherDate->year;
 
             foreach ($studentsInClass as $student) {
-                // --- THIS IS THE FIX ---
                 // 1. Ensure the voucher for the selected month exists or is created first.
                 $this->generateVoucherForMonth($student, $voucherDate);
 
@@ -46,9 +45,9 @@ class FeePaymentController extends Controller
                 $student->total_paid = $allVouchersForYear->sum('amount_paid');
                 $student->total_remaining = $student->total_payable - $student->total_paid;
                 
-                // 4. Get the current month's voucher for the action buttons. This will now always be found.
+                // 4. Get the current month's voucher for the action buttons. This will now always be found if a plan exists.
                 $student->voucher = $allVouchersForYear->firstWhere('voucher_month', $voucherDate->format('Y-m-d'));
-                 if (!$student->voucher) {
+                if (!$student->voucher) {
                     $student->voucher = (object)['status' => 'no_plan'];
                 }
 
@@ -65,6 +64,7 @@ class FeePaymentController extends Controller
         $month = $voucherDate->month;
 
         $feePlan = $student->feePlans()->where('year', $year)->first();
+        // This is the crucial check: we need both the annual plan and the specific monthly fee record.
         $monthlyTuition = $feePlan ? $feePlan->monthlyTuitionFees()->where('month', $month)->first() : null;
 
         if ($feePlan && $monthlyTuition) {
@@ -83,6 +83,7 @@ class FeePaymentController extends Controller
                 ['student_id' => $student->id, 'voucher_month' => $voucherDate->format('Y-m-d')]
             );
 
+            // Only create/update if the voucher is new or still pending.
             if (!$voucher->exists || $voucher->status == 'pending') {
                 $voucher->fill([
                     'school_id' => $student->school_id,
@@ -100,7 +101,7 @@ class FeePaymentController extends Controller
     {
         $vouchers = StudentFeeVoucher::where('student_id', $student->id)
             ->whereYear('voucher_month', $year)
-            ->get()->keyBy(fn($v) => $v->voucher_month->month);
+            ->get()->keyBy(fn($v) => Carbon::parse($v->voucher_month)->month);
 
         $ledger = [];
         $totalPayable = 0;
@@ -110,11 +111,11 @@ class FeePaymentController extends Controller
             $voucher = $vouchers->get($month);
             if ($voucher) {
                 $balance = $voucher->amount_due - ($voucher->amount_paid ?? 0);
-                $ledger[] = ['month' => Carbon::create()->month($month)->format('F'), 'amount_due' => $voucher->amount_due, 'amount_paid' => $voucher->amount_paid ?? 0, 'balance' => $balance, 'status' => $voucher->status, 'paid_on' => $voucher->paid_at ? $voucher->paid_at->format('d M, Y') : 'N/A'];
+                $ledger[] = ['month' => Carbon::create()->month($month)->format('F'), 'amount_due' => $voucher->amount_due, 'amount_paid' => $voucher->amount_paid ?? 0, 'balance' => $balance, 'status' => $voucher->status, 'paid_on' => $voucher->paid_at ? Carbon::parse($voucher->paid_at)->format('d M, Y') : 'N/A'];
                 $totalPayable += $voucher->amount_due;
                 $totalPaid += $voucher->amount_paid ?? 0;
             } else {
-                 $ledger[] = [ 'month' => Carbon::create()->month($month)->format('F'), 'status' => 'not_generated'];
+                $ledger[] = [ 'month' => Carbon::create()->month($month)->format('F'), 'status' => 'not_generated'];
             }
         }
         
@@ -149,4 +150,3 @@ class FeePaymentController extends Controller
         return view('admin.fees.payments.receipt', compact('voucher'));
     }
 }
-
