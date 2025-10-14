@@ -28,7 +28,7 @@
     <ul class="nav nav-pills flex-column mb-auto mt-4">
 
         <li class="nav-item">
-            <a href="{{ Auth::user()->hasRole('Admin') ? route('dashboard') : route('user.dashboard') }}"
+            <a href="{{  route('dashboard') }}"
                 class="nav-link d-flex align-items-center {{ (request()->routeIs('dashboard') || request()->routeIs('user.dashboard')) ? 'active' : 'text-white' }}"
                 style="gap: 8px; padding: 2px 12px;">
                 <i class="bi bi-speedometer2"></i>
