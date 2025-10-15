@@ -77,7 +77,7 @@
         </div>
         @if(Auth::user()->hasRole('Super Admin'))
         <div class="col">
-            <a href="{{ route('schools.index') }}" class="text-decoration-none">
+            <a href="{{ route('admin.schools.index') }}" class="text-decoration-none">
                 <div class="card shadow-sm border-0 rounded-4 h-100 bg-dark text-white hover-lift">
                     <div class="card-body p-4">
                         <h6 class="card-title text-uppercase mb-2"><i class="bi bi-building me-2"></i>Total Schools</h6>

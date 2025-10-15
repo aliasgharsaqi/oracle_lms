@@ -47,72 +47,6 @@
         </li>
         @endrole
 
-        @can('Manage User')
-        <li>
-            <a href="{{ route('users.index') }}"
-                class="nav-link d-flex align-items-center {{ request()->routeIs('users.*') ? 'active' : 'text-white' }}"
-                style="gap: 8px; padding: 2px 12px;">
-                <i class="bi bi-people-fill"></i>
-                <span>Users</span>
-            </a>
-        </li>
-        @endcan
-
-        @can('Manage Roles')
-        <li>
-            <a href="{{ route('admin.roles.index') }}"
-                class="nav-link d-flex align-items-center {{ request()->routeIs('admin.*') ? 'active' : 'text-white' }}"
-                style="gap: 8px; padding: 2px 12px;">
-                <i class="bi bi-shield-lock-fill"></i>
-                <span>Roles & Permissions</span>
-            </a>
-        </li>
-        @endcan
-
-        @can('Manage Classes')
-        <li>
-            <a href="{{ route('classes.index') }}"
-                class="nav-link d-flex align-items-center {{ request()->routeIs('classes.*') ? 'active' : 'text-white' }}"
-                style="gap: 8px; padding: 2px 12px;">
-                <i class="bi bi-person-workspace"></i>
-                <span>Classes</span>
-            </a>
-        </li>
-        @endcan
-
-        @can('Manage Teachers')
-        <li>
-            <a href="{{ route('teachers.index') }}"
-                class="nav-link d-flex align-items-center {{ request()->routeIs('teachers.*') ? 'active' : 'text-white' }}"
-                style="gap: 8px; padding: 2px 12px;">
-                <i class="bi bi-person-video3"></i>
-                <span>Teachers</span>
-            </a>
-        </li>
-        @endcan
-
-        @can('Manage Subject')
-        <li>
-            <a href="{{ route('subjects.index') }}"
-                class="nav-link d-flex align-items-center {{ request()->routeIs('subjects.*') ? 'active' : 'text-white' }}"
-                style="gap: 8px; padding: 2px 12px;">
-                <i class="bi bi-journal-bookmark-fill"></i>
-                <span>Subjects</span>
-            </a>
-        </li>
-        @endcan
-
-        @can('Manage Schedules')
-        <li>
-            <a href="{{ route('schedules.index') }}"
-                class="nav-link d-flex align-items-center {{ request()->routeIs('schedules.*') ? 'active' : 'text-white' }}"
-                style="gap: 8px; padding: 2px 12px;">
-                <i class="bi bi-calendar3"></i>
-                <span>Schedules</span>
-            </a>
-        </li>
-        @endcan
-
         @can('Manage Admission')
         <li>
             <a href="{{ route('students.index') }}"
@@ -123,19 +57,7 @@
             </a>
         </li>
         @endcan
-
-        @can('Manage Marks')
-        <li>
-            <a href="{{ route('marks.index') }}"
-                class="nav-link d-flex align-items-center {{ request()->routeIs('marks.*') ? 'active' : 'text-white' }}"
-                style="gap: 8px; padding: 2px 12px;">
-                <i class="bi bi-card-checklist"></i>
-                <span>Marks</span>
-            </a>
-        </li>
-        @endcan
-
-
+        
         @can('Manage Fees')
         <li class="nav-item">
             <a href="javascript:void(0);" class="nav-link d-flex align-items-center text-white toggle-dropdown"
@@ -210,6 +132,84 @@
             </ul>
         </li>
         @endcan
+
+        @can('Manage User')
+        <li>
+            <a href="{{ route('users.index') }}"
+                class="nav-link d-flex align-items-center {{ request()->routeIs('users.*') ? 'active' : 'text-white' }}"
+                style="gap: 8px; padding: 2px 12px;">
+                <i class="bi bi-people-fill"></i>
+                <span>Users</span>
+            </a>
+        </li>
+        @endcan
+
+        @can('Manage Roles')
+        <li>
+            <a href="{{ route('admin.roles.index') }}"
+                class="nav-link d-flex align-items-center {{ request()->routeIs('admin.*') ? 'active' : 'text-white' }}"
+                style="gap: 8px; padding: 2px 12px;">
+                <i class="bi bi-shield-lock-fill"></i>
+                <span>Roles & Permissions</span>
+            </a>
+        </li>
+        @endcan
+
+        @can('Manage Classes')
+        <li>
+            <a href="{{ route('classes.index') }}"
+                class="nav-link d-flex align-items-center {{ request()->routeIs('classes.*') ? 'active' : 'text-white' }}"
+                style="gap: 8px; padding: 2px 12px;">
+                <i class="bi bi-person-workspace"></i>
+                <span>Classes</span>
+            </a>
+        </li>
+        @endcan
+
+        @can('Manage Subject')
+        <li>
+            <a href="{{ route('subjects.index') }}"
+                class="nav-link d-flex align-items-center {{ request()->routeIs('subjects.*') ? 'active' : 'text-white' }}"
+                style="gap: 8px; padding: 2px 12px;">
+                <i class="bi bi-journal-bookmark-fill"></i>
+                <span>Subjects</span>
+            </a>
+        </li>
+        @endcan
+
+        @can('Manage Teachers')
+        <li>
+            <a href="{{ route('teachers.index') }}"
+                class="nav-link d-flex align-items-center {{ request()->routeIs('teachers.*') ? 'active' : 'text-white' }}"
+                style="gap: 8px; padding: 2px 12px;">
+                <i class="bi bi-person-video3"></i>
+                <span>Teachers</span>
+            </a>
+        </li>
+        @endcan
+
+        @can('Manage Schedules')
+        <li>
+            <a href="{{ route('schedules.index') }}"
+                class="nav-link d-flex align-items-center {{ request()->routeIs('schedules.*') ? 'active' : 'text-white' }}"
+                style="gap: 8px; padding: 2px 12px;">
+                <i class="bi bi-calendar3"></i>
+                <span>Schedules</span>
+            </a>
+        </li>
+        @endcan
+
+        @can('Manage Marks')
+        <li>
+            <a href="{{ route('marks.index') }}"
+                class="nav-link d-flex align-items-center {{ request()->routeIs('marks.*') ? 'active' : 'text-white' }}"
+                style="gap: 8px; padding: 2px 12px;">
+                <i class="bi bi-card-checklist"></i>
+                <span>Marks</span>
+            </a>
+        </li>
+        @endcan
+
         <!-- static routes -->
         @role('Super Admin')
         <li>

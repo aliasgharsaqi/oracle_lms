@@ -17,7 +17,7 @@ class SchoolSeeder extends Seeder // This was the line with the error, now corre
     {
         // Step 1: Create the default school
         $school = School::firstOrCreate(
-            ['email' => 'contact@oraclesacademy.com'],
+            ['email' => 'oraclesacademy@example.com'],
             [
                 'name' => 'Oracles Academy',
                 'decription' => 'The first and primary institute using this platform.',
@@ -30,7 +30,7 @@ class SchoolSeeder extends Seeder // This was the line with the error, now corre
         );
 
         // Step 2: Find the default School Admin user
-        $schoolAdmin = User::where('email', 'admin@example.com')->first();
+        $schoolAdmin = User::where('email', 'oraclesacademy@example.com')->first();
 
         // Step 3: Assign the school to the School Admin
         if ($school && $schoolAdmin) {
