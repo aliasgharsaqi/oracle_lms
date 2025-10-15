@@ -35,24 +35,46 @@ class FeePaymentController extends Controller
                 // 1. Ensure the voucher for the selected month exists or is created first.
                 $this->generateVoucherForMonth($student, $voucherDate);
 
-                // 2. Now that we're sure all vouchers are present, fetch a FRESH collection for the year.
-                $allVouchersForYear = $student->feeVouchers()
-                    ->whereYear('voucher_month', $year)
-                    ->get();
+               // ... inside the index method, within the foreach loop ...
 
-                // 3. Calculate year-to-date totals based on the fresh, up-to-date data.
-                $student->total_payable = $allVouchersForYear->sum('amount_due');
+                $allVouchersForYear = $student->feeVouchers()
+                ->whereYear('voucher_month', $year)
+                ->get();
+
+                // 3. --- THIS IS THE FIX ---
+                // Correctly calculate year-to-date totals to avoid double-counting arrears.
+
+                // a. Find any outstanding balance from the end of the previous year.
+                $lastVoucherOfPreviousYear = $student->feeVouchers()
+                    ->whereYear('voucher_month', $year - 1)
+                    ->orderBy('voucher_month', 'desc')
+                    ->first();
+                
+                $openingArrears = 0;
+                if ($lastVoucherOfPreviousYear) {
+                    $balance = $lastVoucherOfPreviousYear->amount_due - ($lastVoucherOfPreviousYear->amount_paid ?? 0);
+                    $openingArrears = max(0, $balance); // Carry forward only positive balances
+                }
+
+                // b. Sum only the new charges (base fees) for the current year.
+                // This avoids summing the 'arrears' column which causes the miscalculation.
+                $totalBaseFeesForYear = $allVouchersForYear->sum('tuition_fee') +
+                                        $allVouchersForYear->sum('admission_fee') +
+                                        $allVouchersForYear->sum('examination_fee') +
+                                        $allVouchersForYear->sum('other_fees');
+
+                // c. The total payable is the opening balance plus all new charges for the year.
+                $student->total_payable = $openingArrears + $totalBaseFeesForYear;
                 $student->total_paid = $allVouchersForYear->sum('amount_paid');
                 $student->total_remaining = $student->total_payable - $student->total_paid;
 
-                // 4. Get the current month's voucher for the action buttons.
 
-                // --- THIS IS THE FIX ---
-                // Compare the Carbon object from the voucher with the Carbon object of the selected date.
+
                 $student->voucher = $allVouchersForYear->first(function ($voucher) use ($voucherDate) {
-                    // Use isSameDay() to compare just the date part, ignoring time.
-                    return Carbon::parse($voucher->voucher_month)->isSameDay($voucherDate);
+                return Carbon::parse($voucher->voucher_month)->isSameDay($voucherDate);
                 });
+
+// ... rest of the method ...
    
                 if (!$student->voucher) {
                     $student->voucher = (object)['status' => 'no_plan'];
@@ -70,8 +92,16 @@ class FeePaymentController extends Controller
         $year = $voucherDate->year;
         $month = $voucherDate->month;
 
-        $feePlan = $student->feePlans()->where('year', $year)->first();
-        // This is the crucial check: we need both the annual plan and the specific monthly fee record.
+        $feePlan = $student->feePlans()->where('year', '>=', $year)->first();
+        
+        // --- YEH FIX #1 HAI (Arrears ko theek karne ke liye) ---
+        // Pehle, pichle mahine ka voucher update karein taake arrears sahi se aage aayein.
+        // Is se ek cascading update hoga.
+        if ($feePlan && $voucherDate->gt($student->created_at) && $month > 1) { 
+            $this->generateVoucherForMonth($student, $voucherDate->copy()->subMonth());
+        }
+
+        // Ab, maujooda mahine ka voucher banayein
         $monthlyTuition = $feePlan ? $feePlan->monthlyTuitionFees()->where('month', $month)->first() : null;
 
         if ($feePlan && $monthlyTuition) {
@@ -79,10 +109,14 @@ class FeePaymentController extends Controller
             $admission_fee = ($month == 1) ? $feePlan->admission_fee : 0;
             $examination_fee = in_array($month, [3, 9]) ? $feePlan->examination_fee : 0;
             $other_fees = ($month == 1) ? $feePlan->other_fees : 0;
-
+            
+            // Yeh arrears ab sahi calculate honge kyunki pichla voucher abhi abhi update hua hai.
             $previousVoucher = $student->feeVouchers()->where('voucher_month', $voucherDate->copy()->subMonth()->format('Y-m-d'))->first();
-            $arrears = $previousVoucher ? ($previousVoucher->amount_due - ($previousVoucher->amount_paid ?? 0)) : 0;
-            $arrears = max(0, $arrears);
+            $arrears = 0;
+            if ($previousVoucher) {
+                $balance = $previousVoucher->amount_due - ($previousVoucher->amount_paid ?? 0);
+                $arrears = max(0, $balance);
+            }
 
             $baseAmount = $tuition_fee + $admission_fee + $examination_fee + $other_fees;
 
@@ -90,7 +124,7 @@ class FeePaymentController extends Controller
                 ['student_id' => $student->id, 'voucher_month' => $voucherDate->format('Y-m-d')]
             );
 
-            // Only create/update if the voucher is new or still pending.
+            // Sirf naye ya 'pending' voucher ko update karein.
             if (!$voucher->exists || $voucher->status == 'pending') {
                 $voucher->fill([
                     'school_id' => $student->school_id,
@@ -109,27 +143,59 @@ class FeePaymentController extends Controller
 
     public function getStudentLedger(Student $student, $year)
     {
+        // Pehle, yeh yaqeeni banayein ke saal ke saare vouchers up-to-date hain.
+        $todayInSelectedYear = Carbon::create($year)->isSameYear(now()) ? now() : Carbon::create($year)->endOfYear();
+        $this->generateVoucherForMonth($student, $todayInSelectedYear);
+        
         $vouchers = StudentFeeVoucher::where('student_id', $student->id)
             ->whereYear('voucher_month', $year)
             ->get()->keyBy(fn($v) => Carbon::parse($v->voucher_month)->month);
 
-        $ledger = [];
-        $totalPayable = 0;
-        $totalPaid = 0;
+        // --- YEH FIX #2 HAI (Ledger ke total ko theek karne ke liye) ---
+        
+        // a. Pichle saal ka bacha hua balance maloom karein.
+        $lastVoucherOfPreviousYear = $student->feeVouchers()
+            ->whereYear('voucher_month', $year - 1)
+            ->orderBy('voucher_month', 'desc')
+            ->first();
+        
+        $openingArrears = 0;
+        if ($lastVoucherOfPreviousYear) {
+            $balance = $lastVoucherOfPreviousYear->amount_due - ($lastVoucherOfPreviousYear->amount_paid ?? 0);
+            $openingArrears = max(0, $balance);
+        }
 
+        // b. Sirf is saal ke naye charges (base fees) ko jama karein.
+        $totalBaseFeesForYear = $vouchers->sum('tuition_fee') +
+                                $vouchers->sum('admission_fee') +
+                                $vouchers->sum('examination_fee') +
+                                $vouchers->sum('other_fees');
+
+        // c. Sahi total payable = pichla balance + is saal ke naye charges.
+        $totalPayable = $openingArrears + $totalBaseFeesForYear;
+        $totalPaid = $vouchers->sum('amount_paid');
+        $totalBalance = $totalPayable - $totalPaid;
+
+
+        // Ab mahinay ki ledger list banayein
+        $ledger = [];
         for ($month = 1; $month <= 12; $month++) {
             $voucher = $vouchers->get($month);
             if ($voucher) {
                 $balance = $voucher->amount_due - ($voucher->amount_paid ?? 0);
                 $ledger[] = ['month' => Carbon::create()->month($month)->format('F'), 'amount_due' => $voucher->amount_due, 'amount_paid' => $voucher->amount_paid ?? 0, 'balance' => $balance, 'status' => $voucher->status, 'paid_on' => $voucher->paid_at ? Carbon::parse($voucher->paid_at)->format('d M, Y') : 'N/A'];
-                $totalPayable += $voucher->amount_due;
-                $totalPaid += $voucher->amount_paid ?? 0;
             } else {
-                $ledger[] = ['month' => Carbon::create()->month($month)->format('F'), 'status' => 'not_generated'];
+                if (Carbon::create($year, $month, 1)->isPast()) {
+                    $ledger[] = ['month' => Carbon::create()->month($month)->format('F'), 'status' => 'not_generated'];
+                }
             }
         }
 
-        return response()->json(['ledger' => $ledger, 'totals' => ['payable' => $totalPayable, 'paid' => $totalPaid, 'balance' => $totalPayable - $totalPaid]]);
+        // Sahi totals ke saath JSON response bhejein.
+        return response()->json([
+            'ledger' => $ledger,
+            'totals' => ['payable' => $totalPayable, 'paid' => $totalPaid, 'balance' => $totalBalance]
+        ]);
     }
 
     public function storePayment(Request $request): RedirectResponse
