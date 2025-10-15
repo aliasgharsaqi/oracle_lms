@@ -28,7 +28,7 @@
     <ul class="nav nav-pills flex-column mb-auto mt-4">
 
         <li class="nav-item">
-            <a href="{{ Auth::user()->hasRole('Admin') ? route('dashboard') : route('user.dashboard') }}"
+            <a href="{{  route('dashboard') }}"
                 class="nav-link d-flex align-items-center {{ (request()->routeIs('dashboard') || request()->routeIs('user.dashboard')) ? 'active' : 'text-white' }}"
                 style="gap: 8px; padding: 2px 12px;">
                 <i class="bi bi-speedometer2"></i>
@@ -46,6 +46,92 @@
             </a>
         </li>
         @endrole
+
+        @can('Manage Admission')
+        <li>
+            <a href="{{ route('students.index') }}"
+                class="nav-link d-flex align-items-center {{ request()->routeIs('students.*') ? 'active' : 'text-white' }}"
+                style="gap: 8px; padding: 2px 12px;">
+                <i class="bi bi-person-check-fill"></i>
+                <span>Admissions</span>
+            </a>
+        </li>
+        @endcan
+        
+        @can('Manage Fees')
+        <li class="nav-item">
+            <a href="javascript:void(0);" class="nav-link d-flex align-items-center text-white toggle-dropdown"
+                style="gap: 8px; padding: 2px 12px;">
+                <i class="bi bi-cash-coin"></i>
+                <span>Fee Management</span>
+            </a>
+
+            <ul class="list-unstyled ps-3 dropdown-submenu" style="display: {{ request()->routeIs(['fees.payments.*','fees.plans.*']) ? 'block' : 'none' }};">
+                @can('Manage Student Fees Plan')
+                <li>
+                    <a href="{{ route('fees.plans.index') }}"
+                        class="nav-link d-flex align-items-center text-white {{ request()->routeIs('fees.plans.*') ? 'active' : '' }}"
+                        style="gap: 6px; padding: 2px 12px;">
+                        Student Fee Plans
+                    </a>
+                </li>
+                @endcan
+
+                @can('Manage Collection of Fees')
+                <li>
+                    <a href="{{ route('fees.payments.index') }}"
+                        class="nav-link d-flex align-items-center text-white {{ request()->routeIs('fees.payments.*') ? 'active' : '' }}"
+                        style="gap: 6px; padding: 2px 12px;">
+                        Collect Fees
+                    </a>
+                </li>
+                @endcan
+            </ul>
+        </li>
+        @endcan
+
+        @can('Manage Reports')
+        <li class="nav-item">
+            <a href="javascript:void(0);" class="nav-link d-flex align-items-center text-white toggle-dropdown"
+                style="gap: 8px; padding: 2px 12px;">
+                <i class="bi bi-bar-chart-line"></i>
+                <span>Reports</span>
+            </a>
+
+            <ul class="list-unstyled ps-3 dropdown-submenu" style="display: {{ request()->routeIs(['reports.revenue_dashboard','reports.paid_fees','reports.pending_fees']) ? 'block' : 'none' }};">
+                {{-- I've mapped the new dashboard to your existing permission for viewing monthly reports --}}
+                @can('View Monthly Income Reports')
+                <li>
+                    <a href="{{ route('reports.revenue_dashboard') }}"
+                        class="nav-link d-flex align-items-center text-white {{ request()->routeIs('reports.revenue_dashboard') ? 'active' : '' }}"
+                        style="gap: 6px; padding: 2px 12px;">
+                        Revenue Dashboard
+                    </a>
+                </li>
+                @endcan
+
+                @can('View Paid Student Reports')
+                <li>
+                    <a href="{{ route('reports.paid_fees') }}"
+                        class="nav-link d-flex align-items-center text-white {{ request()->routeIs('reports.paid_fees') ? 'active' : '' }}"
+                        style="gap: 6px; padding: 2px 12px;">
+                        Paid Reports
+                    </a>
+                </li>
+                @endcan
+
+                @can('View Pending Student Reports')
+                <li>
+                    <a href="{{ route('reports.pending_fees') }}"
+                        class="nav-link d-flex align-items-center text-white {{ request()->routeIs('reports.pending_fees') ? 'active' : '' }}"
+                        style="gap: 6px; padding: 2px 12px;">
+                        Pending Reports
+                    </a>
+                </li>
+                @endcan
+            </ul>
+        </li>
+        @endcan
 
         @can('Manage User')
         <li>
@@ -80,17 +166,6 @@
         </li>
         @endcan
 
-        @can('Manage Teachers')
-        <li>
-            <a href="{{ route('teachers.index') }}"
-                class="nav-link d-flex align-items-center {{ request()->routeIs('teachers.*') ? 'active' : 'text-white' }}"
-                style="gap: 8px; padding: 2px 12px;">
-                <i class="bi bi-person-video3"></i>
-                <span>Teachers</span>
-            </a>
-        </li>
-        @endcan
-
         @can('Manage Subject')
         <li>
             <a href="{{ route('subjects.index') }}"
@@ -98,6 +173,17 @@
                 style="gap: 8px; padding: 2px 12px;">
                 <i class="bi bi-journal-bookmark-fill"></i>
                 <span>Subjects</span>
+            </a>
+        </li>
+        @endcan
+
+        @can('Manage Teachers')
+        <li>
+            <a href="{{ route('teachers.index') }}"
+                class="nav-link d-flex align-items-center {{ request()->routeIs('teachers.*') ? 'active' : 'text-white' }}"
+                style="gap: 8px; padding: 2px 12px;">
+                <i class="bi bi-person-video3"></i>
+                <span>Teachers</span>
             </a>
         </li>
         @endcan
@@ -113,17 +199,6 @@
         </li>
         @endcan
 
-        @can('Manage Admission')
-        <li>
-            <a href="{{ route('students.index') }}"
-                class="nav-link d-flex align-items-center {{ request()->routeIs('students.*') ? 'active' : 'text-white' }}"
-                style="gap: 8px; padding: 2px 12px;">
-                <i class="bi bi-person-check-fill"></i>
-                <span>Admissions</span>
-            </a>
-        </li>
-        @endcan
-
         @can('Manage Marks')
         <li>
             <a href="{{ route('marks.index') }}"
@@ -135,84 +210,8 @@
         </li>
         @endcan
 
-
-        @can('Manage Fees')
-        <li class="nav-item">
-            <a href="javascript:void(0);" class="nav-link d-flex align-items-center text-white toggle-dropdown"
-                style="gap: 8px; padding: 2px 12px;">
-                <i class="bi bi-cash-coin"></i>
-                <span>Fee Management</span>
-            </a>
-
-            <ul class="list-unstyled ps-3 dropdown-submenu" style="display: none;">
-                @can('Manage Student Fees Plan')
-                <li>
-                    <a href="{{ route('fees.plans.index') }}"
-                        class="nav-link d-flex align-items-center text-white {{ request()->routeIs('fees.plans.*') ? 'active' : '' }}"
-                        style="gap: 6px; padding: 2px 12px;">
-                        Student Fee Plans
-                    </a>
-                </li>
-                @endcan
-
-                @can('Manage Collection of Fees')
-                <li>
-                    <a href="{{ route('fees.payments.index') }}"
-                        class="nav-link d-flex align-items-center text-white {{ request()->routeIs('fees.payments.*') ? 'active' : '' }}"
-                        style="gap: 6px; padding: 2px 12px;">
-                        Collect Fees
-                    </a>
-                </li>
-                @endcan
-            </ul>
-        </li>
-        @endcan
-
-        @can('Manage Reports')
-        <li class="nav-item">
-            <a href="javascript:void(0);" class="nav-link d-flex align-items-center text-white toggle-dropdown"
-                style="gap: 8px; padding: 2px 12px;">
-                <i class="bi bi-bar-chart-line"></i>
-                <span>Reports</span>
-            </a>
-
-            <ul class="list-unstyled ps-3 dropdown-submenu" style="display: none;">
-                {{-- I've mapped the new dashboard to your existing permission for viewing monthly reports --}}
-                @can('View Monthly Income Reports')
-                <li>
-                    <a href="{{ route('reports.revenue_dashboard') }}"
-                        class="nav-link d-flex align-items-center text-white {{ request()->routeIs('reports.revenue_dashboard') ? 'active' : '' }}"
-                        style="gap: 6px; padding: 2px 12px;">
-                        Revenue Dashboard
-                    </a>
-                </li>
-                @endcan
-
-                {{-- Kept your original permission for paid reports --}}
-                @can('View Paid Student Reports')
-                <li>
-                    <a href="{{ route('reports.paid_fees') }}"
-                        class="nav-link d-flex align-items-center text-white {{ request()->routeIs('reports.paid_fees') ? 'active' : '' }}"
-                        style="gap: 6px; padding: 2px 12px;">
-                        Paid Reports
-                    </a>
-                </li>
-                @endcan
-
-                {{-- Kept your original permission for pending reports --}}
-                @can('View Pending Student Reports')
-                <li>
-                    <a href="{{ route('reports.pending_fees') }}"
-                        class="nav-link d-flex align-items-center text-white {{ request()->routeIs('reports.pending_fees') ? 'active' : '' }}"
-                        style="gap: 6px; padding: 2px 12px;">
-                        Pending Reports
-                    </a>
-                </li>
-                @endcan
-            </ul>
-        </li>
-        @endcan
         <!-- static routes -->
+        @role('Super Admin')
         <li>
             <a href="{{ route('teacher_diary') }}"
                 class="nav-link d-flex align-items-center text-white {{ request()->routeIs('teacher_diary') ? 'active' : '' }}"
@@ -237,7 +236,7 @@
                 Attendence
             </a>
         </li>
-
+        @endif
     </ul>
 
 

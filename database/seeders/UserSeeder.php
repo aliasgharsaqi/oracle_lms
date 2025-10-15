@@ -28,9 +28,9 @@ class UserSeeder extends Seeder
         // Create the default School Admin user.
         // The SchoolSeeder will assign a school_id to this user.
         User::firstOrCreate(
-            ['email' => 'admin@example.com'],
+            ['email' => 'oraclesacademy@example.com'],
             [
-                'name' => 'School Admin',
+                'name' => 'Oracle Admin',
                 'password' => Hash::make('password'),
                 'status' => 1,
             ]

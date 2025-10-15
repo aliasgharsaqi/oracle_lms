@@ -73,7 +73,7 @@ class RolePermissionSeeder extends Seeder
         // School Admin Role (Previously 'Admin') - Gets all permissions EXCEPT managing schools and roles
         $schoolAdminRole = Role::firstOrCreate(['name' => 'School Admin', 'guard_name' => 'web']);
         $schoolAdminPermissions = Permission::where('name', '!=', 'Manage Schools')
-            ->where('name', '!=', 'Manage Roles')
+            ->where('name', '!=', 'Manage Roles')->where('name', '!=', 'Manage User')
             ->get();
         $schoolAdminRole->syncPermissions($schoolAdminPermissions);
 
@@ -85,13 +85,17 @@ class RolePermissionSeeder extends Seeder
         $staffRole = Role::firstOrCreate(['name' => 'Staff', 'guard_name' => 'web']);
         $staffRole->givePermissionTo('View Dashboard');
 
+        $studentRole = Role::firstOrCreate(['name' => 'Student', 'guard_name' => 'web']);
+        $studentRole->givePermissionTo('View Dashboard');
+
+
         // Assign Roles to Users by Email (More reliable than ID)
         $superAdminUser = User::where('email', 'superadmin@example.com')->first();
         if ($superAdminUser) {
             $superAdminUser->syncRoles($superAdminRole);
         }
 
-        $adminUser = User::where('email', 'admin@example.com')->first();
+        $adminUser = User::where('email', 'oraclesacademy@example.com')->first();
         if ($adminUser) {
             $adminUser->syncRoles($schoolAdminRole);
         }
