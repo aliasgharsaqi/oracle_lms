@@ -1,177 +1,122 @@
 @extends('layouts.admin')
 
-@section('title', 'Marks Collection')
-@section('page-title', 'Enter Student Marks')
+@section('title', 'Student Marks Management')
+@section('page-title', 'Enter & Update Student Marks')
 
 @section('content')
-@php
-    // --- Static data ---
-    $classes = [
-        (object)['id' => 1, 'name' => 'Grade 10'],
-        (object)['id' => 2, 'name' => 'Grade 11'],
-        (object)['id' => 3, 'name' => 'Grade 12'],
-    ];
 
-    $allSubjects = [
-        1 => [(object)['id' => 101, 'name' => 'Mathematics'], (object)['id' => 102, 'name' => 'Physics']],
-        2 => [(object)['id' => 201, 'name' => 'Chemistry'], (object)['id' => 202, 'name' => 'Biology']],
-        3 => [(object)['id' => 301, 'name' => 'Computer Science'], (object)['id' => 302, 'name' => 'Economics']],
-    ];
+<!-- 1. Filters Card -->
+<div class="bg-white shadow-lg rounded-2xl overflow-hidden mb-6">
+    <div class="px-4 py-3 border-b bg-gradient-to-r from-blue-500 to-blue-600">
+        <h4 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="bi bi-funnel-fill"></i> Select Criteria to Load Students
+        </h4>
+    </div>
 
-    $studentsData = [
-        (object)['id' => 1, 'name' => 'John Doe', 'pivot' => (object)['total_marks' => 100, 'obtained_marks' => 85]],
-        (object)['id' => 2, 'name' => 'Jane Smith', 'pivot' => (object)['total_marks' => 100, 'obtained_marks' => 92]],
-        (object)['id' => 3, 'name' => 'Peter Jones', 'pivot' => (object)['total_marks' => 100, 'obtained_marks' => 78]],
-    ];
+    <div class="p-4">
+        <form id="filter-form" method="GET" action="{{ route('marks.index') }}">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Semester -->
+                <div>
+                    <label for="semester_id" class="block text-sm font-semibold mb-1 text-gray-700">Semester</label>
+                    <select id="semester_id" name="semester_id" required class="w-full rounded-lg border border-gray-300 shadow-sm px-3 py-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        <option value="">Select Semester</option>
+                        @foreach($semesters as $semester)
+                            <option value="{{ $semester->id }}" {{ $selectedSemesterId == $semester->id ? 'selected' : '' }}>
+                                {{ $semester->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
 
-    $selectedClassId   = request()->input('class_id');
-    $selectedSubjectId = request()->input('subject_id');
-
-    $selectedClass   = null;
-    $subjects        = [];
-    $selectedSubject = null;
-    $students        = [];
-
-    if ($selectedClassId) {
-        $selectedClass = collect($classes)->firstWhere('id', $selectedClassId);
-        $subjects      = $allSubjects[$selectedClassId] ?? [];
-        if ($selectedSubjectId) {
-            $selectedSubject = collect($subjects)->firstWhere('id', $selectedSubjectId);
-            $students = collect($studentsData);
-        }
-    }
-@endphp
-
-<!-- Selection Card -->
-<div class="grid grid-cols-1">
-    <div class="bg-white shadow-lg rounded-2xl overflow-hidden mb-6">
-        <!-- Card Header -->
-        <div class="px-4 py-3 border-b bg-gradient-to-r from-blue-500 to-blue-600">
-            <h4 class="text-lg font-bold text-white flex items-center gap-2">
-                <i class="bi bi-funnel-fill"></i> Select Class & Subject
-            </h4>
-        </div>
-
-        <!-- Card Body -->
-        <div class="p-4">
-            <form>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <!-- Semester Dropdown -->
-                    <div>
-                        <label for="semester" class="block text-sm font-semibold mb-1">Semester</label>
-                        <select id="semester" name="semester"
-                            class="w-full rounded-lg border border-blue-500 shadow-sm px-3 py-2 focus:ring focus:ring-blue-300">
-                            <option value="">Select Semester</option>
-                            <option value="1">Semester 1</option>
-                            <option value="2">Semester 2</option>
-                            <option value="3">Semester 3</option>
-                            <option value="4">Semester 4</option>
-                        </select>
-                    </div>
-
-                    <!-- Class Dropdown -->
-                    <div>
-                        <label for="class_id" class="block text-sm font-semibold mb-1">Class</label>
-                        <select id="class_id" name="class_id" required
-                            class="w-full rounded-lg border border-blue-500 shadow-sm px-3 py-2 focus:ring focus:ring-blue-300">
-                            <option value="">Select a class</option>
-                            @foreach($classes as $class)
-                            <option value="{{ $class->id }}" {{ $selectedClass && $selectedClass->id == $class->id ? 'selected' : '' }}>
+                <!-- Class -->
+                <div>
+                    <label for="class_id" class="block text-sm font-semibold mb-1 text-gray-700">Class</label>
+                    <select id="class_id" name="class_id" required class="w-full rounded-lg border border-gray-300 shadow-sm px-3 py-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        <option value="">Select a Class</option>
+                        @foreach($classes as $class)
+                            <option value="{{ $class->id }}" {{ $selectedClassId == $class->id ? 'selected' : '' }}>
                                 {{ $class->name }}
                             </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- Subject Dropdown -->
-                    <div>
-                        <label for="subject_id" class="block text-sm font-semibold mb-1">Subject</label>
-                        <select id="subject_id" name="subject_id" required
-                            class="w-full rounded-lg border border-blue-500 shadow-sm px-3 py-2 focus:ring focus:ring-blue-300">
-                            <option value="">Select a subject</option>
-                            @if($subjects)
-                                @foreach($subjects as $subject)
-                                <option value="{{ $subject->id }}" {{ $selectedSubject && $selectedSubject->id == $subject->id ? 'selected' : '' }}>
-                                    {{ $subject->name }}
-                                </option>
-                                @endforeach
-                            @endif
-                        </select>
-                    </div>
-
-                    <!-- Button -->
-                    <div class="flex items-end">
-                        <button type="submit"
-                            class="w-full btn btn-gradient-primary font-bold py-2 px-4 rounded-lg shadow">
-                            <i class="bi bi-search me-1"></i> Load Students
-                        </button>
-                    </div>
+                        @endforeach
+                    </select>
                 </div>
-            </form>
-        </div>
+
+                <!-- Subject -->
+                <div>
+                    <label for="subject_id" class="block text-sm font-semibold mb-1 text-gray-700">Subject</label>
+                    <select id="subject_id" name="subject_id" required class="w-full rounded-lg border border-gray-300 shadow-sm px-3 py-2 focus:ring-blue-500 focus:border-blue-500 transition" disabled>
+                        <option value="">Select a Subject</option>
+                        @foreach($subjects as $subject)
+                            <option value="{{ $subject->id }}" {{ $selectedSubjectId == $subject->id ? 'selected' : '' }}>
+                                {{ $subject->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Button -->
+                <div class="flex items-end">
+                    <button type="submit" class="w-full text-white bg-blue-600 hover:bg-blue-700 font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                        <i class="bi bi-search me-1"></i> Load Students
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 
-@if(isset($students) && $selectedClass && $selectedSubject)
-<div class="grid grid-cols-1">
-    <div class="bg-white shadow-lg rounded-2xl overflow-hidden">
-        <!-- Card Header -->
-        <div class="px-4 py-3 border-b bg-gradient-to-r from-gray-600 to-gray-800">
-            <h4 class="text-lg font-bold text-white flex items-center gap-2">
-                <i class="bi bi-people-fill"></i> Marks for {{ $selectedSubject->name }} - {{ $selectedClass->name }}
-            </h4>
-        </div>
-
-        <!-- Card Body -->
-        <div class="p-0">
-            @if($students->isEmpty())
-            <div class="p-6 text-center text-blue-600">
-                <i class="bi bi-info-circle me-2"></i> No students enrolled in this class.
-            </div>
-            @else
-            <div class="overflow-x-auto">
-                <table class="min-w-full table-auto text-sm text-center">
-                    <thead class="bg-gray-100 text-gray-700 text-nowrap">
-                        <tr>
-                            <th class="px-4 py-3"><i class="bi bi-person"></i> Student</th>
-                            <th class="px-4 py-3"><i class="bi bi-journal-bookmark"></i> Subject</th>
-                            <th class="px-4 py-3"><i class="bi bi-123"></i> Total Marks</th>
-                            <th class="px-4 py-3"><i class="bi bi-pencil"></i> Obtained Marks</th>
-                            <th class="px-4 py-3"><i class="bi bi-gear"></i> Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($students as $student)
-                        <form>
-                            @csrf
-                            <input type="hidden" name="student_id" value="{{ $student->id }}">
-                            <input type="hidden" name="subject_id" value="{{ $selectedSubject->id }}">
-                            <tr class="border-b hover:bg-gray-50">
-                                <td class="px-4 py-3 font-semibold text-blue-600">{{ $student->name }}</td>
-                                <td class="px-4 py-3">{{ $selectedSubject->name }}</td>
-                                <td class="px-4 py-3">
-                                    <span class="badge badge-gradient-info text-black px-3 py-1">400</span>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <input type="number" name="obtained_marks"
-                                        class="w-full rounded-lg border border-green-500 text-center font-semibold shadow-sm px-2 py-1"
-                                        value="{{ $student->pivot->obtained_marks ?? '' }}" required>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <button type="submit"
-                                        class="btn btn-sm btn-gradient-success rounded-lg px-3 py-1">
-                                        <i class="bi bi-check-circle me-1"></i> Save
-                                    </button>
-                                </td>
-                            </tr>
-                        </form>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-            @endif
-        </div>
+<!-- 2. Marks Entry Table -->
+@if($students->isNotEmpty())
+<div class="bg-white shadow-lg rounded-2xl overflow-hidden">
+    <div class="px-4 py-3 border-b bg-gradient-to-r from-gray-700 to-gray-800">
+        <h4 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="bi bi-pencil-square"></i> Entering Marks for: {{ $subjects->find($selectedSubjectId)->name ?? '' }} - {{ $classes->find($selectedClassId)->name ?? '' }}
+        </h4>
     </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full table-auto text-sm text-center">
+            <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
+                <tr>
+                    <th class="px-4 py-3 font-semibold"><i class="bi bi-person-badge"></i> Student Name</th>
+                    <th class="px-4 py-3 font-semibold"><i class="bi bi-card-heading"></i> Total Marks</th>
+                    <th class="px-4 py-3 font-semibold"><i class="bi bi-check2-circle"></i> Obtained Marks</th>
+                    <th class="px-4 py-3 font-semibold"><i class="bi bi-gear-fill"></i> Action</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-700">
+                @foreach($students as $student)
+                @php
+                    $mark = $student->marks->where('subject_id', $selectedSubjectId)->where('semester_id', $selectedSemesterId)->first();
+                @endphp
+                <tr class="border-b hover:bg-gray-50 transition marks-row">
+                    <td class="px-4 py-2 font-medium text-gray-900">{{ $student->user->name }}</td>
+                    
+                    <td class="px-4 py-2">
+                        <input type="hidden" name="student_id" value="{{ $student->id }}">
+                        <input type="number" name="total_marks" class="w-24 rounded-md border-gray-300 text-center font-semibold shadow-sm focus:ring-indigo-500 focus:border-indigo-500" value="{{ $mark->total_marks ?? 100 }}" required>
+                    </td>
+
+                    <td class="px-4 py-2">
+                        <input type="number" name="obtained_marks" class="w-24 rounded-md border-gray-300 text-center font-semibold shadow-sm focus:ring-indigo-500 focus:border-indigo-500" value="{{ $mark->obtained_marks ?? '' }}" required>
+                    </td>
+
+                    <td class="px-4 py-2">
+                        <button type="button" class="save-btn text-white bg-green-500 hover:bg-green-600 font-bold py-1 px-3 rounded-md shadow-sm transition-all duration-300 ease-in-out">
+                            <i class="bi bi-save"></i> Save
+                        </button>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+@elseif(request()->has('class_id'))
+<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-lg shadow-md" role="alert">
+    <p class="font-bold"><i class="bi bi-exclamation-triangle-fill"></i> No Students Found</p>
+    <p>There are no students enrolled in the selected class. Please check your filter criteria or enroll students.</p>
 </div>
 @endif
 
@@ -179,28 +124,104 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const classSelect   = document.getElementById('class_id');
-        const subjectSelect = document.getElementById('subject_id');
+document.addEventListener('DOMContentLoaded', function () {
+    const classSelect = document.getElementById('class_id');
+    const subjectSelect = document.getElementById('subject_id');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-        const staticSubjects = {
-            1: [{ id: 101, name: 'Mathematics' }, { id: 102, name: 'Physics' }],
-            2: [{ id: 201, name: 'Chemistry' }, { id: 202, name: 'Biology' }],
-            3: [{ id: 301, name: 'Computer Science' }, { id: 302, name: 'Economics' }]
-        };
+    const fetchSubjects = () => {
+        const classId = classSelect.value;
+        subjectSelect.innerHTML = '<option value="">Loading...</option>';
+        subjectSelect.disabled = true;
 
-        classSelect.addEventListener('change', function () {
-            const classId = this.value;
-            subjectSelect.innerHTML = '<option value="">Select a subject</option>';
-            if (classId && staticSubjects[classId]) {
-                staticSubjects[classId].forEach(subject => {
-                    const option = document.createElement('option');
-                    option.value = subject.id;
-                    option.textContent = subject.name;
+        if (!classId) {
+            subjectSelect.innerHTML = '<option value="">Select Class First</option>';
+            return;
+        }
+
+        fetch(`{{ route('marks.getSubjects', ['class_id' => 'CLASS_ID']) }}`.replace('CLASS_ID', classId))
+            .then(response => response.json())
+            .then(data => {
+                subjectSelect.innerHTML = '<option value="">Select a Subject</option>';
+                data.forEach(subject => {
+                    const option = new Option(subject.name, subject.id);
+                    if (subject.id == '{{ $selectedSubjectId ?? '' }}') {
+                        option.selected = true;
+                    }
                     subjectSelect.appendChild(option);
                 });
-            }
+                subjectSelect.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error fetching subjects:', error);
+                subjectSelect.innerHTML = '<option value="">Could not load subjects</option>';
+            });
+    };
+
+    if (classSelect.value) {
+        fetchSubjects();
+    }
+    
+    classSelect.addEventListener('change', fetchSubjects);
+
+    document.querySelectorAll('.save-btn').forEach(button => {
+        button.addEventListener('click', function (event) {
+            event.preventDefault();
+            
+            const saveButton = this;
+            const originalButtonContent = saveButton.innerHTML;
+            const row = saveButton.closest('tr.marks-row');
+
+            saveButton.innerHTML = '<i class="bi bi-arrow-repeat animate-spin"></i> Saving...';
+            saveButton.disabled = true;
+
+            const formData = new FormData();
+            formData.append('student_id', row.querySelector('input[name="student_id"]').value);
+            formData.append('total_marks', row.querySelector('input[name="total_marks"]').value);
+            formData.append('obtained_marks', row.querySelector('input[name="obtained_marks"]').value);
+            formData.append('semester_id', document.getElementById('semester_id').value);
+            formData.append('subject_id', document.getElementById('subject_id').value);
+            
+            fetch("{{ route('marks.store') }}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.message || 'Server error') });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if(data.success) {
+                    saveButton.innerHTML = '<i class="bi bi-check-circle-fill"></i> Saved!';
+                    saveButton.classList.remove('bg-green-500', 'hover:bg-green-600');
+                    saveButton.classList.add('bg-indigo-500');
+                } else {
+                    throw new Error(data.message || 'Validation failed.');
+                }
+            })
+            .catch(error => {
+                console.error('Error saving marks:', error);
+                saveButton.innerHTML = `<i class="bi bi-exclamation-triangle"></i> Error`;
+                saveButton.classList.remove('bg-green-500', 'hover:bg-green-600');
+                saveButton.classList.add('bg-red-500');
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    saveButton.innerHTML = originalButtonContent;
+                    saveButton.classList.remove('bg-indigo-500', 'bg-red-500');
+                    saveButton.classList.add('bg-green-500', 'hover:bg-green-600');
+                    saveButton.disabled = false;
+                }, 2000);
+            });
         });
     });
+});
 </script>
 @endpush
+

@@ -1,21 +1,21 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ClassController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FeePaymentController;
-use App\Http\Controllers\Admin\FeeStructureController;
+use App\Http\Controllers\Admin\FeeReportController;
+use App\Http\Controllers\Admin\MarksController;
 use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\ScheduleController;
+use App\Http\Controllers\Admin\SchoolController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\StudentFeePlanController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\TeacherController;
-use App\Http\Controllers\Admin\FeeReportController;
-use App\Http\Controllers\Admin\RoleController;
-use App\Http\Controllers\Admin\SchoolController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Auth\LoginController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LoginController::class, 'create'])->middleware('guest');
 
@@ -34,7 +34,6 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     // Teacher Dashboard
     Route::get('/teacher/dashboard', [DashboardController::class, 'teacherDashboard'])->name('user.dashboard');
 
-
     // User Management Routes
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
@@ -52,7 +51,6 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::put('/classes/update/{id}', [ClassController::class, 'update'])->name('classes.update');
     Route::post('/classes', [ClassController::class, 'store'])->name('classes.store');
     Route::delete('/classes/delete/{id}', [ClassController::class, 'destroy'])->name('classes.destroy');
-
 
     // Profile Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -76,7 +74,6 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::delete('/subjects/{subject}', [SubjectController::class, 'destroy'])->name('subjects.destroy');
     Route::patch('/subjects/{subject}/toggle-status', [SubjectController::class, 'toggleStatus'])->name('subjects.toggleStatus');
 
-
     // Schedule Management Routes
     Route::get('/schedules', [ScheduleController::class, 'index'])->name('schedules.index');
     Route::get('/schedules/create', [ScheduleController::class, 'create'])->name('schedules.create');
@@ -94,7 +91,6 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::put('/teachers/{id}', [TeacherController::class, 'update'])->name('teachers.update');
     Route::delete('/teachers/{id}', [TeacherController::class, 'destroy'])->name('teachers.destroy');
 
-
     Route::get('/fees/plans', [StudentFeePlanController::class, 'index'])->name('fees.plans.index');
     Route::get('/fees/plans/{student}/create', [StudentFeePlanController::class, 'create'])->name('fees.plans.create');
     Route::post('/fees/plans/{student}', [StudentFeePlanController::class, 'store'])->name('fees.plans.store');
@@ -110,16 +106,15 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
         Route::get('paid-fees', [FeeReportController::class, 'paidFees'])->name('paid_fees');
     });
 
+    Route::get('marks', [MarksController::class, 'index'])->name('marks.index');
+    Route::post('marks', [MarksController::class, 'store'])->name('marks.store');
+    Route::get('marks/get-subjects/{class_id}', [MarksController::class, 'getSubjects'])->name('marks.getSubjects');
+
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('roles', RoleController::class)->except(['show']);
         Route::resource('schools', SchoolController::class);
     });
 });
-
-// web.php
-Route::get('/marks', function () {
-    return view('admin.marks.index');
-})->name('marks.index');
 
 Route::get('/teacher_diary', function () {
     return view('admin.diary.teacher_diary');

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Scopes\SchoolScope;
 use Illuminate\Database\Eloquent\SoftDeletes;
+
 class Student extends Model
 {
     use HasFactory, SoftDeletes;
@@ -36,9 +37,20 @@ class Student extends Model
     {
         return $this->hasMany(StudentFeeVoucher::class);
     }
+    
     public function feePlans()
     {
         return $this->hasMany(StudentFeePlan::class);
+    }
+
+    /**
+     * A student can have many marks.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function marks()
+    {
+        return $this->hasMany(Mark::class);
     }
 
     protected static function booted()
