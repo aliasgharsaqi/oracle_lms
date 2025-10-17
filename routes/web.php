@@ -115,6 +115,7 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
         Route::resource('schools', SchoolController::class);
     });
 });
+Route::get('marks/export', [MarksController::class, 'export'])->name('marks.export');
 
 Route::get('/teacher_diary', function () {
     return view('admin.diary.teacher_diary');

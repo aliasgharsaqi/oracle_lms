@@ -3,16 +3,59 @@
 @section('title', 'Student Marks Management')
 @section('page-title', 'Enter & Update Student Marks')
 
+@push('styles')
+{{-- This style block handles the print layout --}}
+<style>
+    @media print {
+        /* Hide all elements on the page by default */
+        body * {
+            visibility: hidden;
+        }
+        /* Only display the printable area and its contents */
+        #printable-area, #printable-area * {
+            visibility: visible;
+        }
+        /* Position the printable area to fill the page */
+        #printable-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        /* Ensure elements marked with .no-print are not displayed */
+        .no-print {
+            display: none !important;
+        }
+        /* Basic table styling for a clean print output */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        h4 {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+    }
+</style>
+@endpush
+
 @section('content')
 
 <!-- 1. Filters Card -->
-<div class="bg-white shadow-lg rounded-2xl overflow-hidden mb-6">
+<div class="bg-white shadow-lg rounded-2xl overflow-hidden mb-6 no-print">
     <div class="px-4 py-3 border-b bg-gradient-to-r from-blue-500 to-blue-600">
         <h4 class="text-lg font-bold text-white flex items-center gap-2">
             <i class="bi bi-funnel-fill"></i> Select Criteria to Load Students
         </h4>
     </div>
-
     <div class="p-4">
         <form id="filter-form" method="GET" action="{{ route('marks.index') }}">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -35,7 +78,7 @@
                     <select id="class_id" name="class_id" required class="w-full rounded-lg border border-gray-300 shadow-sm px-3 py-2 focus:ring-blue-500 focus:border-blue-500 transition">
                         <option value="">Select a Class</option>
                         @foreach($classes as $class)
-                            <option value="{{ $class->id }}" {{ $selectedClassId == $class->id ? 'selected' : '' }}>
+                            <option value="{{ $class->id }}" {{ $selectedSchoolClassId == $class->id ? 'selected' : '' }}>
                                 {{ $class->name }}
                             </option>
                         @endforeach
@@ -68,49 +111,71 @@
 
 <!-- 2. Marks Entry Table -->
 @if($students->isNotEmpty())
-<div class="bg-white shadow-lg rounded-2xl overflow-hidden">
-    <div class="px-4 py-3 border-b bg-gradient-to-r from-gray-700 to-gray-800">
-        <h4 class="text-lg font-bold text-white flex items-center gap-2">
-            <i class="bi bi-pencil-square"></i> Entering Marks for: {{ $subjects->find($selectedSubjectId)->name ?? '' }} - {{ $classes->find($selectedClassId)->name ?? '' }}
-        </h4>
-    </div>
+<div id="printable-area">
+    <div class="bg-white shadow-lg rounded-2xl overflow-hidden">
+        <div class="px-4 py-3 border-b bg-gradient-to-r from-gray-700 to-gray-800 flex justify-between items-center">
+            <h4 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="bi bi-pencil-square"></i> Entering Marks for: {{ $subjects->find($selectedSubjectId)->name ?? '' }} - {{ $classes->find($selectedSchoolClassId)->name ?? '' }}
+            </h4>
+            <div class="flex items-center gap-2 no-print">
+                {{-- Export Button Form --}}
+                <form method="GET" action="{{ route('marks.export') }}">
+                    <input type="hidden" name="semester_id" value="{{ $selectedSemesterId }}">
+                    <input type="hidden" name="class_id" value="{{ $selectedSchoolClassId }}">
+                    <input type="hidden" name="subject_id" value="{{ $selectedSubjectId }}">
+                    <button type="submit" class="text-white bg-green-600 hover:bg-green-700 font-bold py-1 px-3 rounded-lg shadow-md text-sm flex items-center gap-1 transition-transform transform hover:scale-105">
+                        <i class="bi bi-file-earmark-excel-fill"></i>
+                        <span>Export</span>
+                    </button>
+                </form>
+                {{-- Print Button --}}
+                <button id="print-btn" type="button" class="text-white bg-sky-600 hover:bg-sky-700 font-bold py-1 px-3 rounded-lg shadow-md text-sm flex items-center gap-1 transition-transform transform hover:scale-105">
+                    <i class="bi bi-printer-fill"></i>
+                    <span>Print</span>
+                </button>
+            </div>
+        </div>
 
-    <div class="overflow-x-auto">
-        <table class="min-w-full table-auto text-sm text-center">
-            <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
-                <tr>
-                    <th class="px-4 py-3 font-semibold"><i class="bi bi-person-badge"></i> Student Name</th>
-                    <th class="px-4 py-3 font-semibold"><i class="bi bi-card-heading"></i> Total Marks</th>
-                    <th class="px-4 py-3 font-semibold"><i class="bi bi-check2-circle"></i> Obtained Marks</th>
-                    <th class="px-4 py-3 font-semibold"><i class="bi bi-gear-fill"></i> Action</th>
-                </tr>
-            </thead>
-            <tbody class="text-gray-700">
-                @foreach($students as $student)
-                @php
-                    $mark = $student->marks->where('subject_id', $selectedSubjectId)->where('semester_id', $selectedSemesterId)->first();
-                @endphp
-                <tr class="border-b hover:bg-gray-50 transition marks-row">
-                    <td class="px-4 py-2 font-medium text-gray-900">{{ $student->user->name }}</td>
-                    
-                    <td class="px-4 py-2">
-                        <input type="hidden" name="student_id" value="{{ $student->id }}">
-                        <input type="number" name="total_marks" class="w-24 rounded-md border-gray-300 text-center font-semibold shadow-sm focus:ring-indigo-500 focus:border-indigo-500" value="{{ $mark->total_marks ?? 100 }}" required>
-                    </td>
+        <div class="overflow-x-auto">
+            <table class="min-w-full table-auto text-sm text-center">
+                <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
+                    <tr>
+                        <th class="px-4 py-3 font-semibold">#</th>
+                        <th class="px-4 py-3 font-semibold"><i class="bi bi-person-badge"></i> Student Name</th>
+                        <th class="px-4 py-3 font-semibold"><i class="bi bi-hash"></i> Roll Number</th>
+                        <th class="px-4 py-3 font-semibold"><i class="bi bi-card-heading"></i> Total Marks</th>
+                        <th class="px-4 py-3 font-semibold"><i class="bi bi-check2-circle"></i> Obtained Marks</th>
+                        <th class="px-4 py-3 font-semibold no-print"><i class="bi bi-gear-fill"></i> Action</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    @foreach($students as $student)
+                    @php
+                        $mark = $student->marks->where('subject_id', $selectedSubjectId)->where('semester_id', $selectedSemesterId)->first();
+                    @endphp
+                    <tr class="border-b hover:bg-gray-50 transition marks-row">
+                        <td class="px-4 py-2 font-medium">{{ $loop->iteration }}</td>
+                        <td class="px-4 py-2 font-medium text-gray-900">{{ $student->user->name }}</td>
+                        <td class="px-4 py-2">{{ $student->roll_number ?? 'N/A' }}</td>
+                        <td class="px-4 py-2">
+                            <input type="hidden" name="student_id" value="{{ $student->id }}">
+                            <input type="number" name="total_marks" class="w-24 rounded-md border-gray-300 text-center font-semibold shadow-sm focus:ring-indigo-500 focus:border-indigo-500" value="{{ $mark->total_marks ?? 100 }}" required>
+                        </td>
 
-                    <td class="px-4 py-2">
-                        <input type="number" name="obtained_marks" class="w-24 rounded-md border-gray-300 text-center font-semibold shadow-sm focus:ring-indigo-500 focus:border-indigo-500" value="{{ $mark->obtained_marks ?? '' }}" required>
-                    </td>
+                        <td class="px-4 py-2">
+                            <input type="number" name="obtained_marks" class="w-24 rounded-md border-gray-300 text-center font-semibold shadow-sm focus:ring-indigo-500 focus:border-indigo-500" value="{{ $mark->obtained_marks ?? '' }}" required>
+                        </td>
 
-                    <td class="px-4 py-2">
-                        <button type="button" class="save-btn text-white bg-green-500 hover:bg-green-600 font-bold py-1 px-3 rounded-md shadow-sm transition-all duration-300 ease-in-out">
-                            <i class="bi bi-save"></i> Save
-                        </button>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+                        <td class="px-4 py-2 no-print">
+                            <button type="button" class="save-btn text-white bg-green-500 hover:bg-green-600 font-bold py-1 px-3 rounded-md shadow-sm transition-all duration-300 ease-in-out">
+                                <i class="bi bi-save"></i> Save
+                            </button>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 @elseif(request()->has('class_id'))
@@ -128,6 +193,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const classSelect = document.getElementById('class_id');
     const subjectSelect = document.getElementById('subject_id');
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const printButton = document.getElementById('print-btn');
+
+    // Print functionality
+    if (printButton) {
+        printButton.addEventListener('click', function () {
+            window.print();
+        });
+    }
 
     const fetchSubjects = () => {
         const classId = classSelect.value;
@@ -180,6 +253,7 @@ document.addEventListener('DOMContentLoaded', function () {
             formData.append('total_marks', row.querySelector('input[name="total_marks"]').value);
             formData.append('obtained_marks', row.querySelector('input[name="obtained_marks"]').value);
             formData.append('semester_id', document.getElementById('semester_id').value);
+            formData.append('class_id', document.getElementById('class_id').value);
             formData.append('subject_id', document.getElementById('subject_id').value);
             
             fetch("{{ route('marks.store') }}", {

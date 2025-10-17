@@ -19,7 +19,9 @@ class Mark extends Model
         'student_id',
         'subject_id',
         'semester_id',
-        'school_id', // <-- Add school_id
+        'school_id',
+        'class_id',         // <-- Added class_id
+        'school_class_id',  // <-- This was already here
         'total_marks',
         'obtained_marks',
     ];
@@ -34,6 +36,8 @@ class Mark extends Model
         // Apply the global scope to automatically filter by school
         static::addGlobalScope(new SchoolScope);
     }
+
+    // --- EXISTING RELATIONSHIPS ---
 
     /**
      * Get the school that the mark belongs to.
@@ -66,5 +70,13 @@ class Mark extends Model
     {
         return $this->belongsTo(Semester::class);
     }
-}
 
+    /**
+     * Get the school class that the mark belongs to.
+     * This links the 'school_class_id' column to the 'school_classes' table.
+     */
+    public function schoolClass()
+    {
+        return $this->belongsTo(SchoolClass::class, 'school_class_id');
+    }
+}
