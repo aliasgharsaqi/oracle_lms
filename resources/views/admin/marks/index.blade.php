@@ -3,53 +3,12 @@
 @section('title', 'Student Marks Management')
 @section('page-title', 'Enter & Update Student Marks')
 
-@push('styles')
-{{-- This style block handles the print layout --}}
-<style>
-    @media print {
-        /* Hide all elements on the page by default */
-        body * {
-            visibility: hidden;
-        }
-        /* Only display the printable area and its contents */
-        #printable-area, #printable-area * {
-            visibility: visible;
-        }
-        /* Position the printable area to fill the page */
-        #printable-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-        }
-        /* Ensure elements marked with .no-print are not displayed */
-        .no-print {
-            display: none !important;
-        }
-        /* Basic table styling for a clean print output */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        h4 {
-            font-size: 1.25rem;
-            font-weight: bold;
-        }
-    }
-</style>
-@endpush
+{{-- 1. PURANA PRINT @push('styles') BLOCK HATA DIYA GAYA HAI --}}
+{{-- DataTables ko uski zaroorat nahi hai --}}
 
 @section('content')
 
-<!-- 1. Filters Card -->
+{{-- 'no-print' class ki ab zaroorat nahi, lekin isay rakhna acha hai --}}
 <div class="bg-white shadow-lg rounded-2xl overflow-hidden mb-6 no-print">
     <div class="px-4 py-3 border-b bg-gradient-to-r from-blue-500 to-blue-600">
         <h4 class="text-lg font-bold text-white flex items-center gap-2">
@@ -59,7 +18,6 @@
     <div class="p-4">
         <form id="filter-form" method="GET" action="{{ route('marks.index') }}">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <!-- Semester -->
                 <div>
                     <label for="semester_id" class="block text-sm font-semibold mb-1 text-gray-700">Semester</label>
                     <select id="semester_id" name="semester_id" required class="w-full rounded-lg border border-gray-300 shadow-sm px-3 py-2 focus:ring-blue-500 focus:border-blue-500 transition">
@@ -72,7 +30,6 @@
                     </select>
                 </div>
 
-                <!-- Class -->
                 <div>
                     <label for="class_id" class="block text-sm font-semibold mb-1 text-gray-700">Class</label>
                     <select id="class_id" name="class_id" required class="w-full rounded-lg border border-gray-300 shadow-sm px-3 py-2 focus:ring-blue-500 focus:border-blue-500 transition">
@@ -85,7 +42,6 @@
                     </select>
                 </div>
 
-                <!-- Subject -->
                 <div>
                     <label for="subject_id" class="block text-sm font-semibold mb-1 text-gray-700">Subject</label>
                     <select id="subject_id" name="subject_id" required class="w-full rounded-lg border border-gray-300 shadow-sm px-3 py-2 focus:ring-blue-500 focus:border-blue-500 transition" disabled>
@@ -98,7 +54,6 @@
                     </select>
                 </div>
 
-                <!-- Button -->
                 <div class="flex items-end">
                     <button type="submit" class="w-full text-white bg-blue-600 hover:bg-blue-700 font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
                         <i class="bi bi-search me-1"></i> Load Students
@@ -109,16 +64,18 @@
     </div>
 </div>
 
-<!-- 2. Marks Entry Table -->
 @if($students->isNotEmpty())
-<div id="printable-area">
+<div> 
     <div class="bg-white shadow-lg rounded-2xl overflow-hidden">
-        <div class="px-4 py-3 border-b bg-gradient-to-r from-gray-700 to-gray-800 flex justify-between items-center">
+        
+        {{-- Table Header --}}
+        {{-- 'no-print' class ki ab zaroorat nahi, lekin isay rakhna acha hai --}}
+        <div class="px-4 py-3 border-b bg-gradient-to-r from-gray-700 to-gray-800 flex justify-between items-center no-print">
             <h4 class="text-lg font-bold text-white flex items-center gap-2">
                 <i class="bi bi-pencil-square"></i> Entering Marks for: {{ $subjects->find($selectedSubjectId)->name ?? '' }} - {{ $classes->find($selectedSchoolClassId)->name ?? '' }}
             </h4>
             <div class="flex items-center gap-2 no-print">
-                {{-- Export Button Form --}}
+                {{-- Export Button Form (Yeh DataTables mein shamil nahi hai, isko rakhain) --}}
                 <form method="GET" action="{{ route('marks.export') }}">
                     <input type="hidden" name="semester_id" value="{{ $selectedSemesterId }}">
                     <input type="hidden" name="class_id" value="{{ $selectedSchoolClassId }}">
@@ -128,16 +85,13 @@
                         <span>Export</span>
                     </button>
                 </form>
-                {{-- Print Button --}}
-                <button id="print-btn" type="button" class="text-white bg-sky-600 hover:bg-sky-700 font-bold py-1 px-3 rounded-lg shadow-md text-sm flex items-center gap-1 transition-transform transform hover:scale-105">
-                    <i class="bi bi-printer-fill"></i>
-                    <span>Print</span>
-                </button>
+                {{-- 2. PURANA PRINT BUTTON (id="print-btn") HATA DIYA GAYA HAI --}}
+                {{-- Hum DataTables ka print button istemal karain gay --}}
             </div>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="min-w-full table-auto text-sm text-center">
+        <div class="overflow-x-auto p-4"> {{-- Thori padding add ki hai --}}
+            <table id="studentsTable" class="min-w-full table-auto text-sm text-center">
                 <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
                     <tr>
                         <th class="px-4 py-3 font-semibold">#</th>
@@ -145,6 +99,7 @@
                         <th class="px-4 py-3 font-semibold"><i class="bi bi-hash"></i> Roll Number</th>
                         <th class="px-4 py-3 font-semibold"><i class="bi bi-card-heading"></i> Total Marks</th>
                         <th class="px-4 py-3 font-semibold"><i class="bi bi-check2-circle"></i> Obtained Marks</th>
+                        {{-- 'no-print' class DataTables ke print button ke liye bhi kaam karti hai --}}
                         <th class="px-4 py-3 font-semibold no-print"><i class="bi bi-gear-fill"></i> Action</th>
                     </tr>
                 </thead>
@@ -156,7 +111,7 @@
                     <tr class="border-b hover:bg-gray-50 transition marks-row">
                         <td class="px-4 py-2 font-medium">{{ $loop->iteration }}</td>
                         <td class="px-4 py-2 font-medium text-gray-900">{{ $student->user->name }}</td>
-                        <td class="px-4 py-2">{{ $student->roll_number ?? 'N/A' }}</td>
+                        <td class="px-4 py-2">{{ $student->school_class_id . $student->id }}</td>
                         <td class="px-4 py-2">
                             <input type="hidden" name="student_id" value="{{ $student->id }}">
                             <input type="number" name="total_marks" class="w-24 rounded-md border-gray-300 text-center font-semibold shadow-sm focus:ring-indigo-500 focus:border-indigo-500" value="{{ $mark->total_marks ?? 100 }}" required>
@@ -189,19 +144,137 @@
 
 @push('scripts')
 <script>
+    $(document).ready(function() {
+        $('#studentsTable').DataTable({
+            dom: 
+                "<'flex flex-col md:flex-row justify-between items-center my-3 mx-3'<'flex items-center gap-2'B><'ml-auto'f>>" + // Buttons + Search
+                "<'overflow-x-auto'tr>" + // Table
+                "<'flex flex-col md:flex-row justify-between items-center my-3 mx-3'<'text-sm'i><'mt-2 md:mt-0'p>>", // Info + Pagination
+            buttons: [
+                {
+                    extend: 'excel',
+                    className: 'text-white bg-black-600 hover:bg-black-700 font-bold py-1 px-3 rounded-lg shadow-md text-sm flex items-center gap-1',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4], 
+                        format: {
+                            body: function(data, row, col, node) {
+                                // FIX: Input ko naam (name) se dhoondain
+                                if (col === 3) {
+                                    return $(node).find('input[name="total_marks"]').val();
+                                }
+                                if (col === 4) {
+                                    return $(node).find('input[name="obtained_marks"]').val();
+                                }
+                                return data;
+                            }
+                        }
+                    }
+                },
+                {
+                    extend: 'pdf',
+                    className: 'text-white bg-black-600 hover:bg-black-700 font-bold py-1 px-3 rounded-lg shadow-md text-sm flex items-center gap-1',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4],
+                        format: {
+                            body: function(data, row, col, node) {
+                                // FIX: Input ko naam (name) se dhoondain
+                                if (col === 3) {
+                                    return $(node).find('input[name="total_marks"]').val();
+                                }
+                                if (col === 4) {
+                                    return $(node).find('input[name="obtained_marks"]').val();
+                                }
+                                return data;
+                            }
+                        }
+                    }
+                },
+                {
+                    extend: 'print',
+                    className: 'text-white bg-black-600 hover:bg-black-700 font-bold py-1 px-3 rounded-lg shadow-md text-sm flex items-center gap-1',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4],
+                        format: {
+                            body: function(data, row, col, node) {
+                                // FIX: Input ko naam (name) se dhoondain
+                                // col === 3 (Total Marks)
+                                if (col === 3) {
+                                    return $(node).find('input[name="total_marks"]').val();
+                                }
+                                // col === 4 (Obtained Marks)
+                                if (col === 4) {
+                                    return $(node).find('input[name="obtained_marks"]').val();
+                                }
+                                // Baaqi columns ke liye normal text
+                                return data;
+                            }
+                        }
+                    },
+                    customize: function (win) {
+                        // Custom CSS for the print window
+                        let css = `
+                            @media print {
+                                body { padding: 20px; font-family: Arial, sans-serif; }
+                                h1 { text-align: center; font-size: 1.5rem; margin-bottom: 20px; }
+                                table { width: 100% !important; border-collapse: collapse !important; font-size: 10pt !important; }
+                                th, td {
+                                    border: 1px solid #D1D5DB !important;
+                                    padding: 10px 8px !important;
+                                    text-align: center !important;
+                                    vertical-align: middle !important;
+                                }
+                                thead th {
+                                    background-color: #F3F4F6 !important;
+                                    color: #1F2937 !important;
+                                    font-weight: 600 !important;
+                                }
+                                tbody tr:nth-child(even) { background-color: #F9FAFB; }
+                                .dt-print-footer { display: none; }
+                            }
+                        `;
+                        
+                        // Add styles to the print window
+                        $(win.document.head).append('<style>' + css + '</style>');
+                        
+                        // Get Class and Subject names for the title
+                        let className = $("#class_id option:selected").text().trim();
+                        let subjectName = $("#subject_id option:selected").text().trim();
+                        
+                        // Set the print window title
+                        $(win.document.head).find('title').text('Marks - ' + className + ' - ' + subjectName);
+                        
+                        // Add a title above the table
+                        $(win.document.body).prepend(
+                            '<h1>Marks List: ' + className + ' - ' + subjectName + '</h1>'
+                        );
+                    }
+                },
+                {
+                    extend: 'colvis',
+                    className: 'text-white bg-black-600 hover:bg-black-700 font-bold py-1 px-3 rounded-lg shadow-md text-sm flex items-center gap-1'
+                }
+            ],
+            paging: true,
+            searching: true,
+            ordering: true,
+            info: true,
+            responsive: true,
+            columnDefs: [
+                {
+                    orderable: false,
+                    targets: 5 // Disable sorting on 'Actions' column (index 5)
+                }
+            ]
+        });
+    });
+</script>
+
+<script>
 document.addEventListener('DOMContentLoaded', function () {
     const classSelect = document.getElementById('class_id');
     const subjectSelect = document.getElementById('subject_id');
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    const printButton = document.getElementById('print-btn');
-
-    // Print functionality
-    if (printButton) {
-        printButton.addEventListener('click', function () {
-            window.print();
-        });
-    }
-
+    
     const fetchSubjects = () => {
         const classId = classSelect.value;
         subjectSelect.innerHTML = '<option value="">Loading...</option>';
@@ -237,6 +310,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
     classSelect.addEventListener('change', fetchSubjects);
 
+    // Save Button functionality
     document.querySelectorAll('.save-btn').forEach(button => {
         button.addEventListener('click', function (event) {
             event.preventDefault();
@@ -298,4 +372,3 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endpush
-

@@ -60,6 +60,7 @@ class RolePermissionSeeder extends Seeder
             'View Monthly Income Reports',
             'View Total Income Reports',
             'Manage Schools',
+            'Manage Results',
         ];
 
         foreach ($permissions as $permission) {

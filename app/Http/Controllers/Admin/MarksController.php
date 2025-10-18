@@ -91,7 +91,6 @@ class MarksController extends Controller
             [
                 'total_marks'     => $request->total_marks,
                 'obtained_marks'  => $request->obtained_marks,
-                'class_id'        => $schoolClass->class_id, // Also save the parent class_id
             ]
         );
 

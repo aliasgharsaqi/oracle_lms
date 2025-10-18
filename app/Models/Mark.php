@@ -20,7 +20,6 @@ class Mark extends Model
         'subject_id',
         'semester_id',
         'school_id',
-        'class_id',         // <-- Added class_id
         'school_class_id',  // <-- This was already here
         'total_marks',
         'obtained_marks',
