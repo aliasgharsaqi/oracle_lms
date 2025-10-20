@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FeePaymentController;
 use App\Http\Controllers\Admin\FeeReportController;
 use App\Http\Controllers\Admin\MarksController;
+use App\Http\Controllers\Admin\PdfController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\ResultCardController;
 use App\Http\Controllers\Admin\RoleController;
@@ -116,12 +117,18 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::get('/result-cards', [ResultCardController::class, 'index'])->name('result-cards.index');
     Route::get('/result-cards/students/{class_id}', [ResultCardController::class, 'getStudentsByClass'])->name('result-cards.getStudents');
     Route::get('/result-cards/show/{student}/{semester}', [ResultCardController::class, 'showResultCard'])->name('result-cards.show');
+    Route::get('/result-cards/pdf/{student_id}/{semester_id}', [ResultCardController::class, 'generatePdf'])->name('result-cards.pdf');
     // END: NEW RESULT CARD ROUTES
 
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('roles', RoleController::class)->except(['show']);
         Route::resource('schools', SchoolController::class);
     });
+    Route::get('/students/{student}/semester/{semester}/result-card/generate', [PdfController::class, 'generateResultCard'])
+     ->name('students.result-card.generate');
+
+    Route::get('/students/{student}/semester/{semester}/result-card/download', [PdfController::class, 'downloadResultCard'])
+     ->name('students.result-card.download');
 });
 
 

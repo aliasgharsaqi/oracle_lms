@@ -83,21 +83,21 @@
         }
 
         /* Table Styling for Modal */
-        #resultCardTable {
+        .resultCardTable {
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
             font-size: 0.9rem;
         }
 
-        #resultCardTable th,
-        #resultCardTable td {
+        .resultCardTable th,
+        .resultCardTable td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: center;
         }
 
-        #resultCardTable th {
+        .resultCardTable th {
             background-color: #f2f2f2;
             font-weight: bold;
         }
@@ -118,6 +118,14 @@
                 visibility: hidden;
             }
 
+            /* Hide datatables UI from print */
+            .dt-buttons,
+            .dataTables_filter,
+            .dataTables_info,
+            .dataTables_paginate {
+                display: none !important;
+            }
+
             .modal-body,
             .modal-body * {
                 visibility: visible;
@@ -134,12 +142,16 @@
 
             .modal-footer,
             .modal-header .close,
-            .no-print {
+            .no-print,
+            #modal-result-row-template
+
+            /* Hide template from print */
+                {
                 display: none !important;
             }
 
-            #resultCardTable th,
-            #resultCardTable td {
+            .resultCardTable th,
+            .resultCardTable td {
                 font-size: 9pt;
                 padding: 5px;
             }
@@ -158,7 +170,6 @@
 
 @section('content')
 
-    <!-- 1. Filters Card -->
     <div class="bg-white shadow-lg rounded-2xl overflow-hidden mb-6 no-print">
         <div class="px-4 py-3 border-b bg-gradient-to-r from-indigo-500 to-indigo-600">
             <h4 class="text-lg font-bold text-white flex items-center gap-2">
@@ -169,7 +180,6 @@
             {{-- Form submits to the index route to reload the page with students --}}
             <form id="filter-form" method="GET" action="{{ route('result-cards.index') }}">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <!-- Semester -->
                     <div>
                         <label for="semester_id" class="block text-sm font-semibold mb-1 text-gray-700">Semester</label>
                         <select id="semester_id" name="semester_id" required
@@ -183,7 +193,6 @@
                         </select>
                     </div>
 
-                    <!-- Class -->
                     <div>
                         <label for="class_id" class="block text-sm font-semibold mb-1 text-gray-700">Class</label>
                         <select id="class_id" name="class_id" required
@@ -197,7 +206,6 @@
                         </select>
                     </div>
 
-                    <!-- Button -->
                     <div class="flex items-end">
                         <button type="submit"
                             class="w-full text-white bg-indigo-600 hover:bg-indigo-700 font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
@@ -209,7 +217,6 @@
         </div>
     </div>
 
-    <!-- 2. Students List Table -->
     @if($students->isNotEmpty())
         <div class="bg-white shadow-lg rounded-2xl overflow-hidden mb-6">
             <div class="px-4 py-3 border-b bg-gradient-to-r from-gray-700 to-gray-800">
@@ -233,13 +240,27 @@
                                 <td class="px-4 py-2">{{ $loop->iteration }}</td>
                                 <td class="px-4 py-2 font-medium text-gray-900">{{ $student->user->name ?? 'N/A' }}</td>
                                 <td class="px-4 py-2">{{ $student->schoolClass->name ?? 'N/A' }}</td>
-                                <td class="px-4 py-2">
-                                    <button type="button"
-                                        class="view-result-btn text-white bg-blue-500 hover:bg-blue-600 font-bold py-1 px-3 rounded-md shadow-sm text-xs"
-                                        data-student-id="{{ $student->id }}" data-semester-id="{{ $selectedSemesterId }}">
-                                        <i class="bi bi-eye-fill"></i> View Result
-                                    </button>
-                                </td>
+                               <td class="px-4 py-2">
+    <div class="flex justify-center items-center gap-2">
+        <button type="button"
+            class="view-result-btn text-white bg-blue-500 hover:bg-blue-600 font-bold py-1 px-3 rounded-md shadow-sm text-xs"
+            data-student-id="{{ $student->id }}" data-semester-id="{{ $selectedSemesterId }}">
+            <i class="bi bi-eye-fill"></i> View Result
+        </button>
+
+        <a href="{{ route('students.result-card.generate', [$student->id, $selectedSemesterId]) }}"
+            class="text-white bg-green-600 hover:bg-green-700 font-bold py-1 px-3 rounded-md shadow-sm text-xs">
+            <i class="bi bi-file-earmark-pdf-fill"></i> Print
+        </a>
+
+        <a id="print_btn_pdf"
+            href="/students/{{ $student->id }}/semester/{{ $selectedSemesterId }}/result-card/download"
+            class="text-white bg-green-600 hover:bg-green-700 font-bold py-1 px-3 rounded-md shadow-sm text-xs">
+            <i class="bi bi-file-earmark-pdf-fill"></i> Download
+        </a>
+    </div>
+</td>
+
                             </tr>
                         @endforeach
                     </tbody>
@@ -248,8 +269,6 @@
         </div>
     @endif
 
-
-    <!-- 3. Result Card Modal (Initially Hidden) -->
     <div id="resultCardModal" class="modal">
         <div class="modal-content">
             <div
@@ -265,14 +284,85 @@
             </div>
 
             <div class="modal-body">
-                {{-- Content will be loaded via JS --}}
-                <p>Loading result...</p>
+
+                <div id="modal-loading" class="text-center py-5">
+                    <p>Loading result...</p>
+                </div>
+
+                <div id="modal-error" class="text-center py-5 text-red-600 font-semibold" style="display: none;">
+                    <p>Could not load result card.</p>
+                </div>
+
+                <div id="modal-result-content" style="display: none;">
+                    <div class="text-center mb-5">
+                        <h5 id="modal-student-name" class="text-2xl font-extrabold text-gray-800 mb-1 tracking-wide">
+                        </h5>
+                        <div class="flex justify-center gap-6 text-sm text-gray-600">
+                            <span class="bg-gray-100 px-4 py-1 rounded-full shadow-sm border border-gray-200">
+                                <i class="bi bi-person-lines-fill text-indigo-600 mr-1"></i>
+                                Class: <span id="modal-class-name" class="font-medium text-gray-800"></span>
+                            </span>
+                            <span class="bg-gray-100 px-4 py-1 rounded-full shadow-sm border border-gray-200">
+                                <i class="bi bi-book-half text-indigo-600 mr-1"></i>
+                                Semester: <span id="modal-semester-name" class="font-medium text-gray-800"></span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <table id=""
+                        class="w-full resultCardTable border-collapse mt-4 text-sm text-gray-700 rounded-xl overflow-hidden shadow-md">
+                        <thead>
+                            <tr
+                                class="bg-gradient-to-r from-indigo-600 to-indigo-500 text-white text-sm uppercase tracking-wider text-center">
+                                <th class="py-3 px-4 font-semibold">#</th>
+                                <th class="py-3 px-4 font-semibold">Subject</th>
+                                <th class="py-3 px-4 font-semibold">Total Marks</th>
+                                <th class="py-3 px-4 font-semibold">Obtained Marks</th>
+                                <th class="py-3 px-4 font-semibold">Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="modal-table-body" class="bg-white divide-y divide-gray-200 text-center">
+
+                            <tr id="modal-result-row-template" style="display: none;"
+                                class="hover:bg-indigo-50 transition-colors duration-200">
+                                <td class="py-3 px-4 text-center font-medium text-gray-800" data-field="index"></td>
+                                <td class="py-3 px-4 text-center text-gray-700 font-semibold" data-field="subject-name">
+                                </td>
+                                <td class="py-3 px-4 text-center text-gray-600" data-field="total-marks"></td>
+                                <td class="py-3 px-4 text-center text-gray-600" data-field="obtained-marks"></td>
+                                <td class="py-3 px-4 text-center">
+                                    <span class="px-3 py-1 rounded-full text-xs font-semibold" data-field="status-badge">
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-gray-100 font-semibold text-gray-800 text-center">
+                                <td colspan="2" class="py-3 px-4 text-right">Total</td>
+                                <td id="modal-total-possible" class="py-3 px-4"></td>
+                                <td id="modal-total-obtained" class="py-3 px-4"></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <div class="text-center mt-4 font-semibold">
+                        <span>Percentage: <span id="modal-percentage"></span>%</span> |
+                        <span>Overall Status:
+                            <span id="modal-overall-status"></span>
+                        </span>
+                    </div>
+                </div>
             </div>
+
             <div class="modal-footer">
-                <button type="button" id="modalPrintBtn"
-                    class="text-white bg-blue-600 hover:bg-blue-700 font-bold py-1 px-3 rounded-lg shadow-md text-sm">
-                    <i class="bi bi-printer-fill"></i> Print
-                </button>
+
+                <a id="print_btn_pdf" href="/students/{student_id}/semester/{semester_id}/result-card/download"
+                    class="text-white bg-green-600 hover:bg-green-700 font-bold py-1 px-3 rounded-md shadow-sm text-xs">
+                    <i class="bi bi-file-earmark-pdf-fill"></i> Download
+                </a>
+
                 <button type="button" id="modalCloseFooterBtn"
                     class="text-gray-700 bg-gray-200 hover:bg-gray-300 font-bold py-1 px-3 rounded-lg shadow-md text-sm">Close</button>
             </div>
@@ -282,13 +372,39 @@
 @endsection
 
 @push('scripts')
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const studentsTableBody = document.getElementById('students-table-body');
             const modal = document.getElementById('resultCardModal');
+
+            // --- Get Modal Content Containers ---
             const modalBody = modal.querySelector('.modal-body');
+            const modalLoading = document.getElementById('modal-loading');
+            const modalError = document.getElementById('modal-error');
+            const modalResultContent = document.getElementById('modal-result-content');
+
+            // --- Get Modal Data Placeholders ---
+            const modalStudentName = document.getElementById('modal-student-name');
+            const modalClassName = document.getElementById('modal-class-name');
+            const modalSemesterName = document.getElementById('modal-semester-name');
+
+            const modalTableBody = document.getElementById('modal-table-body');
+            const rowTemplate = document.getElementById('modal-result-row-template');
+
+            const modalTotalPossible = document.getElementById('modal-total-possible');
+            const modalTotalObtained = document.getElementById('modal-total-obtained');
+            const modalPercentage = document.getElementById('modal-percentage');
+            const modalOverallStatus = document.getElementById('modal-overall-status');
+
+            // --- Get Modal Buttons ---
             const modalCloseBtns = [document.getElementById('modalCloseBtn'), document.getElementById('modalCloseFooterBtn')];
             const modalPrintBtn = document.getElementById('modalPrintBtn');
+            const modalDownloadBtn = document.getElementById('print_btn_pdf'); // <-- NEW LINE: Select the download button
+
+            // --- START: DataTable Variable ---
+            let resultDataTable = null;
+            // --- END: DataTable Variable ---
 
             // --- Helper Functions ---
             function openModal() {
@@ -299,10 +415,40 @@
             function closeModal() {
                 modal.style.display = 'none';
                 document.body.classList.remove('modal-open');
+                showLoadingState();
+
+                if (resultDataTable) {
+                    resultDataTable.destroy();
+                    resultDataTable = null;
+                }
+
+                // Reset download button href to prevent wrong downloads
+                modalDownloadBtn.href = '#'; // <-- NEW LINE: Reset href on close
+
+                modalTableBody.querySelectorAll('tr:not(#modal-result-row-template)').forEach(row => row.remove());
             }
 
             function printModalContent() {
                 window.print();
+            }
+
+            // --- State Management Functions ---
+            function showLoadingState() {
+                modalLoading.style.display = 'block';
+                modalError.style.display = 'none';
+                modalResultContent.style.display = 'none';
+            }
+
+            function showErrorState() {
+                modalLoading.style.display = 'none';
+                modalError.style.display = 'block';
+                modalResultContent.style.display = 'none';
+            }
+
+            function showResultState() {
+                modalLoading.style.display = 'none';
+                modalError.style.display = 'none';
+                modalResultContent.style.display = 'block';
             }
 
             // --- Fetch and Display Result Card in Modal (Event Delegation) ---
@@ -319,7 +465,7 @@
                             return;
                         }
 
-                        modalBody.innerHTML = '<p class="text-center py-5">Loading result...</p>';
+                        showLoadingState();
                         openModal();
 
                         fetch(`{{ url('result-cards/show') }}/${studentId}/${semesterId}`)
@@ -328,83 +474,56 @@
                                 return response.json();
                             })
                             .then(data => {
-                                let tableRows = '';
-                                data.results.forEach((res, index) => {
-                                    tableRows += `
-                                                    <tr class="hover:bg-indigo-50 transition-colors duration-200">
-                                                    <td class="py-3 px-4 text-center font-medium text-gray-800">${index + 1}</td>
-                                                    <td class="py-3 px-4 text-center text-gray-700 font-semibold">${res.subject_name}</td>
-                                                    <td class="py-3 px-4 text-center text-gray-600">${res.total_marks}</td>
-                                                    <td class="py-3 px-4 text-center text-gray-600">${res.obtained_marks}</td>
-                                                    <td class="py-3 px-4 text-center">
-                                                        <span class="px-3 py-1 rounded-full text-xs font-semibold 
-                                                        ${res.status === 'Pass'
-                                                                                            ? 'bg-green-100 text-green-700 border border-green-300'
-                                                                                            : 'bg-red-100 text-red-700 border border-red-300'}">
-                                                        ${res.status}
-                                                        </span>
-                                                    </td>
-                                                    </tr>
+                                // --- START: Update Download Button ---
+                                // Use the same IDs that were passed to the fetch
+                                modalDownloadBtn.href = `{{ url('students') }}/${studentId}/semester/${semesterId}/result-card/download`; // <-- NEW LINE: Update the href
+                                // --- END: Update Download Button ---
 
-                                                `;
+
+                                // 2. Populate the static HTML elements with data
+                                modalStudentName.textContent = data.student_name;
+                                modalClassName.textContent = data.class_name;
+                                modalSemesterName.textContent = data.semester_name;
+
+                                // Clear any existing rows
+                                modalTableBody.querySelectorAll('tr:not(#modal-result-row-template)').forEach(row => row.remove());
+
+                                // Table Body (Rows)
+                                data.results.forEach((res, index) => {
+                                    const newRow = rowTemplate.cloneNode(true);
+                                    newRow.id = '';
+                                    newRow.style.display = '';
+
+                                    newRow.querySelector('[data-field="index"]').textContent = index + 1;
+                                    newRow.querySelector('[data-field="subject-name"]').textContent = res.subject_name;
+                                    newRow.querySelector('[data-field="total-marks"]').textContent = res.total_marks;
+                                    newRow.querySelector('[data-field="obtained-marks"]').textContent = res.obtained_marks;
+
+                                    const statusBadge = newRow.querySelector('[data-field="status-badge"]');
+                                    statusBadge.textContent = res.status;
+                                    statusBadge.classList.remove('bg-green-100', 'text-green-700', 'border-green-300', 'bg-red-100', 'text-red-700', 'border-red-300');
+
+                                    if (res.status === 'Pass') {
+                                        statusBadge.classList.add('bg-green-100', 'text-green-700', 'border-green-300');
+                                    } else {
+                                        statusBadge.classList.add('bg-red-100', 'text-red-700', 'border-red-300');
+                                    }
+                                    modalTableBody.appendChild(newRow);
                                 });
 
-                                const modalHtml = `
-                                               <div class="text-center mb-5">
-  <h5 class="text-2xl font-extrabold text-gray-800 mb-1 tracking-wide">
-    ${data.student_name}
-  </h5>
-  <div class="flex justify-center gap-6 text-sm text-gray-600">
-    <span class="bg-gray-100 px-4 py-1 rounded-full shadow-sm border border-gray-200">
-      <i class="bi bi-person-lines-fill text-indigo-600 mr-1"></i>
-      Class: <span class="font-medium text-gray-800">${data.class_name}</span>
-    </span>
-    <span class="bg-gray-100 px-4 py-1 rounded-full shadow-sm border border-gray-200">
-      <i class="bi bi-book-half text-indigo-600 mr-1"></i>
-      Semester: <span class="font-medium text-gray-800">${data.semester_name}</span>
-    </span>
-  </div>
-</div>
+                                // Footer / Summary Info
+                                modalTotalPossible.textContent = data.total_possible;
+                                modalTotalObtained.textContent = data.total_obtained;
+                                modalPercentage.textContent = data.percentage;
+                                modalOverallStatus.textContent = data.status;
+                                modalOverallStatus.className = data.status === 'Pass' ? 'pass-status' : 'fail-status';
 
-
-                                               <table id="resultCardTable" class="w-full border-collapse mt-4 text-sm text-gray-700 rounded-xl overflow-hidden shadow-md">
-                                                <thead>
-                                                    <tr class="bg-gradient-to-r from-indigo-600 to-indigo-500 text-white text-sm uppercase tracking-wider text-center">
-                                                    <th class="py-3 px-4 font-semibold">#</th>
-                                                    <th class="py-3 px-4 font-semibold">Subject</th>
-                                                    <th class="py-3 px-4 font-semibold">Total Marks</th>
-                                                    <th class="py-3 px-4 font-semibold">Obtained Marks</th>
-                                                    <th class="py-3 px-4 font-semibold">Status</th>
-                                                    </tr>
-                                                </thead>
-
-                                                <tbody class="bg-white divide-y divide-gray-200 text-center">
-                                                    ${tableRows}
-                                                </tbody>
-
-                                                <tfoot>
-                                                    <tr class="bg-gray-100 font-semibold text-gray-800 text-center">
-                                                    <td colspan="2" class="py-3 px-4 text-right">Total</td>
-                                                    <td class="py-3 px-4">${data.total_possible}</td>
-                                                    <td class="py-3 px-4">${data.total_obtained}</td>
-                                                    <td></td>
-                                                    </tr>
-                                                </tfoot>
-                                                </table>
-
-
-                                                <div style="margin-top: 15px; text-align: center;">
-                                                    <span class="font-semibold">Percentage: ${data.percentage}%</span> |
-                                                    <span class="font-semibold">Overall Status:
-                                                        <span class="${data.status === 'Pass' ? 'pass-status' : 'fail-status'}">${data.status}</span>
-                                                    </span>
-                                                </div>
-                                            `;
-                                modalBody.innerHTML = modalHtml;
+                                // 3. Show the populated content
+                                showResultState();
                             })
                             .catch(error => {
                                 console.error('Error fetching result card:', error);
-                                modalBody.innerHTML = `<p class="text-center py-5 text-red-600 font-semibold">Could not load result card.</p>`;
+                                showErrorState();
                             });
                     }
                 });
