@@ -5,193 +5,275 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Result Card - {{ $student->user->name }}</title>
     <style>
-        body {
-            font-family: 'dejavu sans', sans-serif;
-            font-size: 13px;
-            color: #333;
+        @page {
+            margin: 15px;
         }
-        .container {
-            padding: 5px;
-            border: 2px solid #002D62;
-            border-radius: 10px;
+
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            color: #000;
+            font-size: 14px;
+        }
+
+        /* The main container with the outer decorative border */
+        .page-container {
+            border: 3px double #000;
+            padding: 8px;
             height: 98%;
         }
-        .header {
+
+        /* The inner container with the thin line border */
+        .content-wrapper {
+            border: 1px solid #000;
+            padding: 20px;
+            height: 100%;
+        }
+
+        /* Header Section */
+        .header-section {
+            display: -webkit; /* For wkhtmltopdf */
+            -webkit-box-pack: justify;
+            -webkit-box-align: start;
             text-align: center;
-            border-bottom: 2px solid #002D62;
-            padding-bottom: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
-        .header .school-name {
-            font-size: 24px;
-            font-weight: bold;
-            color: #002D62;
-            margin: 0;
+
+        .logo {
+            max-width: 90px;
+            max-height: 90px;
+            margin-bottom: 20px
         }
-        .header .school-address {
-            font-size: 12px;
-            margin: 5px 0;
-        }
-        .header .title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 10px;
-            text-decoration: underline;
-        }
-        .student-info {
+        
+        .school-details {
             width: 100%;
-            margin-bottom: 20px;
+            text-align: center;
         }
-        .student-info table {
+
+        .title-box {
+            background-color: #fff;
+            color: #000;
+            border: 1px solid #000;
+            padding: 5px 10px;
+            font-size: 16px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+
+        .school-name-box {
+            background-color: #000;
+            color: #fff;
+            padding: 8px 15px;
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        /* Student Info Section */
+        .info-section {
+            margin-top: 20px;
+            font-size: 15px;
+        }
+        
+        .info-line {
+            margin-bottom: 12px;
             width: 100%;
-            border-collapse: collapse;
         }
-        .student-info td {
-            padding: 6px;
-            vertical-align: top;
+
+        .info-line:after {
+            content: "";
+            display: table;
+            clear: both;
         }
+
         .info-label {
             font-weight: bold;
-            width: 120px;
+            display: inline-block;
         }
+
+        .info-value {
+            border-bottom: 1px solid #000;
+            display: inline-block;
+            min-width: 250px;
+            padding-left: 10px;
+        }
+        
+        .info-line .short-field {
+            min-width: 150px;
+        }
+        
+        .info-line .pull-right {
+            float: right;
+        }
+
+        /* Marks Table Section */
+        .marks-section {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        .marks-title {
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: underline;
+            margin-bottom: 15px;
+        }
+
         .results-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            border: 2px solid #000;
         }
+
         .results-table th, .results-table td {
-            border: 1px solid #999;
+            border: 1px solid #000;
             padding: 8px;
             text-align: center;
         }
+        
         .results-table th {
-            background-color: #e0e0e0;
             font-weight: bold;
+            background-color: #f2f2f2;
         }
-        .text-left { text-align: left; }
-        .pass-status { color: #008000; font-weight: bold; }
-        .fail-status { color: #FF0000; font-weight: bold; }
+        
+        .results-table .text-left {
+            text-align: left;
+        }
 
-        .summary-section {
-            width: 100%;
-        }
-        .summary-table {
-            width: 45%;
-            float: right;
-            border-collapse: collapse;
-        }
-        .summary-table td {
-            border: 1px solid #999;
-            padding: 8px;
-        }
-        .summary-table .label {
+        .results-table .total-row td {
             font-weight: bold;
-            background-color: #e0e0e0;
         }
+
+        /* Summary & Footer Section */
+        .summary-section {
+            margin-top: 20px;
+            width: 100%;
+            font-weight: bold;
+        }
+
+        .summary-section .summary-field {
+            display: inline-block;
+            margin-right: 40px;
+        }
+        
+        .summary-section .summary-value {
+            border-bottom: 1px solid #000;
+            min-width: 100px;
+            display: inline-block;
+            text-align: center;
+        }
+        
         .signature-section {
             margin-top: 60px;
             width: 100%;
         }
+
         .signature-box {
-            width: 30%;
-            float: left;
+            width: 200px;
+            display: inline-block;
             text-align: center;
-            margin: 0 1.5%;
-        }
-        .signature-line {
-            border-top: 1px solid #333;
-            margin-top: 30px;
+            border-top: 1px solid #000;
             padding-top: 5px;
-            font-weight: bold;
         }
-        .clearfix { clear: both; }
+        
+        .signature-section .principal-sign {
+            margin: 0 80px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <p class="school-name">Global Knowledge High School</p>
-            <p class="school-address">123 Education Lane, Lahore, Punjab, Pakistan</p>
-            <p class="title">ACADEMIC RESULT CARD</p>
-        </div>
+    <div class="page-container">
+        <div class="content-wrapper">
 
-        <div class="student-info">
-            <table>
-                <tr>
-                    <td class="info-label">Student Name:</td>
-                    <td>{{ $student->user->name }}</td>
-                    <td class="info-label">Roll Number:</td>
-                    <td>{{ $student->roll_number ?? 'N/A' }}</td>
-                </tr>
-                <tr>
-                    <td class="info-label">Class:</td>
-                    <td>{{ $student->schoolClass->name }}</td>
-                    <td class="info-label">Semester:</td>
-                    <td>{{ $semester_name }}</td>
-                </tr>
-            </table>
-        </div>
-
-        <table class="results-table">
-            <thead>
-                <tr>
-                    <th class="text-left">Subject</th>
-                    <th>Total Marks</th>
-                    <th>Obtained Marks</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($results as $result)
-                <tr>
-                    <td class="text-left">{{ $result['subject_name'] }}</td>
-                    <td>{{ $result['total_marks'] }}</td>
-                    <td><strong>{{ $result['obtained_marks'] }}</strong></td>
-                    <td>
-                        <span class="{{ $result['status'] === 'Pass' ? 'pass-status' : 'fail-status' }}">
-                            {{ $result['status'] }}
-                        </span>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-
-        <div class="summary-section">
-            <table class="summary-table">
-                <tr>
-                    <td class="label">Total Marks</td>
-                    <td><strong>{{ $total_possible }}</strong></td>
-                </tr>
-                <tr>
-                    <td class="label">Marks Obtained</td>
-                    <td><strong>{{ $total_obtained }}</strong></td>
-                </tr>
-                <tr>
-                    <td class="label">Percentage</td>
-                    <td><strong>{{ $percentage }}%</strong></td>
-                </tr>
-                <tr>
-                    <td class="label">Overall Result</td>
-                    <td>
-                        <strong class="{{ $status === 'Pass' ? 'pass-status' : 'fail-status' }}">
-                            {{ $status }}
-                        </strong>
-                    </td>
-                </tr>
-            </table>
-        </div>
-        <div class="clearfix"></div>
-
-        <div class="signature-section">
-            <div class="signature-box">
-                <div class="signature-line">Class Teacher</div>
+            <!-- HEADER -->
+            <div class="header-section">
+                @if($school->logo)
+                    <img src="{{ $school->logo }}" alt="School Logo" class="logo">
+                @else
+                    <img src="https://placehold.co/90x90/000/FFF?text=Logo" alt="School Logo" class="logo">
+                @endif
+                <div class="school-details">
+                    <div class="title-box">Student's Result Card</div>
+                    <div class="school-name-box">{{ $school->name }}</div>
+                </div>
             </div>
-            <div class="signature-box" style="float:right;">
-                <div class="signature-line">Principal</div>
+
+            <!-- STUDENT INFO -->
+            <div class="info-section">
+                <div class="info-line" style="margin-top: 20px; font-weight: bold;">
+                    Exam: <span style="border-bottom: 1px solid #000; display: inline-block; min-width: 200px; margin-left:10px; text-align:center;">{{ $semester_name }}</span>
+                </div>
+                <div class="info-line">
+                    <span class="info-label">Student's Name:</span>
+                    <span class="info-value">{{ $student->user->name }}</span>
+                </div>
+               
+                <div class="info-line" style="">
+                    <span class="info-label">Class:</span>
+                    <span class="info-value short-field">{{ $student->schoolClass->name }}</span>
+                </div>
+                <span class="pull-right">
+                    <span class="info-label">Roll No.</span>
+                    <span class="info-value short-field" style="min-width: 120px;">{{ $student->school_class_id . $student->id }}</span>
+                </span>
+            </div>
+
+            <!-- MARKS DETAIL -->
+            <div class="marks-section">
+                <div class="marks-title">Marks Detail</div>
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" style="width: 5%;">Sr.#</th>
+                            <th rowspan="2">Subjects</th>
+                            <th colspan="2">Marks</th>
+                        </tr>
+                        <tr>
+                            <th style="width: 20%;">Maximum</th>
+                            <th style="width: 20%;">Obtained</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($results as $index => $result)
+                        <tr>
+                            <td>{{ $index + 1 }}</td>
+                            <td class="text-left">{{ $result['subject_name'] }}</td>
+                            <td>{{ $result['total_marks'] }}</td>
+                            <td>{{ $result['obtained_marks'] }}</td>
+                        </tr>
+                        @endforeach
+                        <!-- Total Row -->
+                        <tr class="total-row">
+                            <td colspan="2" class="text-left" style="text-align: right; padding-right: 20px;"><strong>Total</strong></td>
+                            <td><strong>{{ $total_possible }}</strong></td>
+                            <td><strong>{{ $total_obtained }}</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- SUMMARY -->
+            <div class="summary-section">
+                 <div class="summary-field">
+                    Attendance: <span class="summary-value">&nbsp;</span>
+                </div>
+                <div class="summary-field">
+                    Marks Percentage: <span class="summary-value">{{ $percentage }}%</span>
+                </div>
+                 <div class="summary-field">
+                    Position in Class: <span class="summary-value">&nbsp;</span>
+                </div>
+            </div>
+
+            <!-- SIGNATURES -->
+            <div class="signature-section">
+                <span class="signature-box">Sign of Class Incharge</span>
+                <span class="signature-box principal-sign">Sign of Principal</span>
+                <span class="signature-box" style="float: right;">Result Declaration Date</span>
             </div>
         </div>
-
     </div>
 </body>
 </html>
+

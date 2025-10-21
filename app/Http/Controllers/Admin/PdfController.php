@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 
 use App\Http\Controllers\Controller;
+use App\Models\School;
 use App\Models\Student;    // Import your Student model
 use App\Models\Semester;  // Import your Semester model
+use Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use PDF; // Import the PDF Facade
@@ -28,6 +30,8 @@ class PdfController extends Controller
     public function generateResultCard(Student $student, Semester $semester)
     {
         try {
+              $school_id = Auth::user()->school_id;
+            $school = School::find($school_id);
             // === START: Logic copied from your showResultCard function ===
 
             // Load necessary relationships
@@ -89,7 +93,8 @@ class PdfController extends Controller
                 'total_possible' => $totalPossible,
                 'percentage'     => round($overallPercentage, 2),
                 'status'         => $overallStatus,
-                'issue_date'     => date('F j, Y')
+                'issue_date'     => date('F j, Y'),
+                'school'       => $school
             ];
 
             // Load the view and generate the PDF
@@ -115,6 +120,8 @@ class PdfController extends Controller
        public function downloadResultCard(Student $student, Semester $semester)
     {
         try {
+            $school_id = Auth::user()->school_id;
+            $school = School::find($school_id);
             // === START: Logic copied from your showResultCard function ===
 
             // Load necessary relationships
@@ -176,7 +183,8 @@ class PdfController extends Controller
                 'total_possible' => $totalPossible,
                 'percentage'     => round($overallPercentage, 2),
                 'status'         => $overallStatus,
-                'issue_date'     => date('F j, Y')
+                'issue_date'     => date('F j, Y'),
+                'school'       => $school
             ];
 
             // Load the view and generate the PDF
