@@ -26,15 +26,15 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             
             // 4. Semesters depend on a school_id.
-            SemesterSeeder::class,
+            // SemesterSeeder::class,
 
             // 5. SchoolClasses depend on school_id and created_by (user_id).
-            SchoolClassSeeder::class,
+            // SchoolClassSeeder::class,
 
             // 6. Subjects are dependent on a school_class_id.
-            SubjectSeeder::class,
+            // SubjectSeeder::class,
 
-            StudentSeeder::class,
+            // StudentSeeder::class,
         ]);
     }
 }

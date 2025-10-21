@@ -188,7 +188,7 @@
                     <div class="logo-container">
                         <img src="{{ asset('images/logo.png') }}" alt="School Logo">
                     </div>
-                    <h2 class="mb-3">Neshat us Sania</h2>
+                    <h2 class="mb-3">Nishat us Sania</h2>
                     <p class="lead">Learning Management System</p>
                 </div>
             </div>
