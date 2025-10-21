@@ -60,11 +60,16 @@
         
         @can('Manage Fees')
         <li class="nav-item">
-            <a href="javascript:void(0);" class="nav-link d-flex align-items-center text-white toggle-dropdown"
-                style="gap: 8px; padding: 2px 12px;">
-                <i class="bi bi-cash-coin"></i>
-                <span>Fee Management</span>
-            </a>
+          <a href="javascript:void(0);" 
+       class="nav-link text-white d-flex align-items-center justify-content-between toggle-dropdown"
+       style="gap: 8px; padding: 1px 14px; border-radius: 8px; transition: all 0.3s;">
+       <div class="d-flex align-items-center" style="gap: 4px;">
+           <i class="bi bi-cash-coin fs-5"></i>
+           <span class="fw-semibold">Fee Management</span>
+       </div>
+       <i class="bi bi-chevron-down dropdown-arrow fs-6"></i>
+    </a>
+
 
             <ul class="list-unstyled ps-3 dropdown-submenu" style="display: {{ request()->routeIs(['fees.payments.*','fees.plans.*']) ? 'block' : 'none' }};">
                 @can('Manage Student Fees Plan')
@@ -92,11 +97,16 @@
 
         @can('Manage Reports')
         <li class="nav-item">
-            <a href="javascript:void(0);" class="nav-link d-flex align-items-center text-white toggle-dropdown"
-                style="gap: 8px; padding: 2px 12px;">
-                <i class="bi bi-bar-chart-line"></i>
-                <span>Reports</span>
-            </a>
+            <a href="javascript:void(0);" 
+       class="nav-link text-white d-flex align-items-center justify-content-between toggle-dropdown"
+       style="gap: 8px; padding: 1px 14px; border-radius: 8px; transition: all 0.3s;">
+       <div class="d-flex align-items-center" style="gap: 4px;">
+           <i class="bi bi-cash-coin fs-5"></i>
+           <span class="fw-semibold">Reports</span>
+       </div>
+       <i class="bi bi-chevron-down dropdown-arrow fs-6"></i>
+    </a>
+
 
             <ul class="list-unstyled ps-3 dropdown-submenu" style="display: {{ request()->routeIs(['reports.revenue_dashboard','reports.paid_fees','reports.pending_fees']) ? 'block' : 'none' }};">
                 {{-- I've mapped the new dashboard to your existing permission for viewing monthly reports --}}
@@ -199,16 +209,41 @@
         </li>
         @endcan
 
+   @canany(['Manage Marks'])
+<li class="nav-item">
+      <a href="javascript:void(0);" 
+       class="nav-link text-white d-flex align-items-center justify-content-between toggle-dropdown"
+       style="gap: 8px; padding: 1px 14px; border-radius: 8px; transition: all 0.3s;">
+       <div class="d-flex align-items-center" style="gap: 4px;">
+           <i class="bi bi-cash-coin fs-5"></i>
+           <span class="fw-semibold">Examination</span>
+       </div>
+       <i class="bi bi-chevron-down dropdown-arrow fs-6"></i>
+    </a>
+    <ul class="list-unstyled ps-3 dropdown-submenu"
+        style="display: {{ request()->routeIs(['marks.*','results.*']) ? 'block' : 'none' }};">
         @can('Manage Marks')
         <li>
             <a href="{{ route('marks.index') }}"
-                class="nav-link d-flex align-items-center {{ request()->routeIs('marks.*') ? 'active' : 'text-white' }}"
-                style="gap: 8px; padding: 2px 12px;">
-                <i class="bi bi-card-checklist"></i>
-                <span>Marks</span>
+                class="nav-link d-flex align-items-center text-white {{ request()->routeIs('marks.*') ? 'active' : '' }}"
+                style="gap: 6px; padding: 2px 12px;">
+                <i class="bi bi-card-checklist me-2"></i> Marks
             </a>
         </li>
         @endcan
+
+        <li>
+            <a href="{{ route('result-cards.index') }}"
+                class="nav-link d-flex align-items-center text-white {{ request()->routeIs('results.*') ? 'active' : '' }}"
+                style="gap: 6px; padding: 2px 12px;">
+                <i class="bi bi-card-list me-2"></i> Result
+            </a>
+        </li>
+    </ul>
+</li>
+@endcanany
+
+        </li>
 
         <!-- static routes -->
         @role('Super Admin')

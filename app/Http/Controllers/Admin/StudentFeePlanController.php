@@ -88,10 +88,12 @@ class StudentFeePlanController extends Controller
             );
 
             for ($month = 1; $month <= 12; $month++) {
-                MonthlyTuitionFee::updateOrCreate(
-                    [ 'student_fee_plan_id' => $feePlan->id, 'month' => $month, ],
-                    [ 'tuition_fee' => $request->input("tuition_fee.$month", 0), ]
-                );
+                if($request->input("tuition_fee.$month", 0) > 0 )   {
+                    MonthlyTuitionFee::updateOrCreate(
+                        [ 'student_fee_plan_id' => $feePlan->id, 'month' => $month, ],
+                        [ 'tuition_fee' => $request->input("tuition_fee.$month", 0), ]
+                    );
+                }
             }
 
             DB::commit();
