@@ -13,17 +13,14 @@ use Illuminate\Validation\Rule;
 
 class SubjectController extends Controller
 {
-    // ... index() and create() methods remain the same ...
     public function index(): View
     {
-        // Eager load the schoolClass relationship
         $subjects = Subject::with('schoolClass')->latest()->get();
         return view('admin.subjects.index', compact('subjects'));
     }
 
     public function create(): View
     {
-        // Get classes belonging to the user's school
         $classes = SchoolClass::where('school_id', Auth::user()->school_id)->get();
         return view('admin.subjects.create', compact('classes'));
     }

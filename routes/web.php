@@ -108,17 +108,14 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
         Route::get('paid-fees', [FeeReportController::class, 'paidFees'])->name('paid_fees');
     });
 
-    // Marks Routes
     Route::get('marks', [MarksController::class, 'index'])->name('marks.index');
     Route::post('marks', [MarksController::class, 'store'])->name('marks.store');
     Route::get('marks/get-subjects/{class_id}', [MarksController::class, 'getSubjects'])->name('marks.getSubjects');
     
-    // START: NEW RESULT CARD ROUTES
     Route::get('/result-cards', [ResultCardController::class, 'index'])->name('result-cards.index');
     Route::get('/result-cards/students/{class_id}', [ResultCardController::class, 'getStudentsByClass'])->name('result-cards.getStudents');
     Route::get('/result-cards/show/{student}/{semester}', [ResultCardController::class, 'showResultCard'])->name('result-cards.show');
     Route::get('/result-cards/pdf/{student_id}/{semester_id}', [ResultCardController::class, 'generatePdf'])->name('result-cards.pdf');
-    // END: NEW RESULT CARD ROUTES
 
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('roles', RoleController::class)->except(['show']);
