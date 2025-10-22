@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Scopes\SchoolScope; // 1. IMPORT THE SCOPE
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -18,6 +19,14 @@ class Subject extends Model
         'school_class_id', 
         'type',            
     ];
+
+    /**
+     * 2. ADD THIS METHOD TO APPLY THE SCOPE
+     */
+    protected static function booted()
+    {
+        static::addGlobalScope(new SchoolScope);
+    }
 
     /**
      * A subject belongs to a class.
