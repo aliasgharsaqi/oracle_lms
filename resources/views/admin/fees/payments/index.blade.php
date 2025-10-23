@@ -237,7 +237,7 @@
                                         $status = optional($student->voucher)->status;
                                     @endphp
 
-                                    @if($student->has_plan_for_month && $isCurrentMonthSelected || $student->has_plan_for_month && $status != 'partial' && $status != 'paid')
+                                    @if($student->has_plan_for_month && $isCurrentMonthSelected && $status != 'paid' || $student->has_plan_for_month && $status != 'partial' && $status != 'paid')
                                     <button class="btn bg-green-700 hover:bg-green-700 text-white collect-fee-btn"
                                         data-student-id="{{ $student->id }}"
                                         data-student-name="{{ $student->user->name ?? 'Student' }}"
