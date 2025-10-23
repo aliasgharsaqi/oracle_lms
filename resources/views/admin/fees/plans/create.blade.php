@@ -148,9 +148,9 @@
                             Total Yearly Fee: <span id="yearly-total" class="fw-bolder">PKR 0.00</span>
                         </div>
 
-                        <div class="sm:pl-[50%]  gap-2 w-100 w-sm-auto">
-                            <a href="{{ route('fees.plans.index') }}"
-                                class="btn btn-outline-light rounded-pill px-4 fw-semibold">
+                        <div class="sm:pl-[45%]  gap-2 w-100 w-sm-auto">
+                            <a href="{{ url()->previous() }}"
+                                    class="btn btn-outline-light rounded-pill px-4 fw-semibold">
                                 <i class="bi bi-x-circle me-1"></i> Cancel
                             </a>
                             <button type="submit" class="btn btn-light text-primary fw-semibold rounded-pill px-4">
