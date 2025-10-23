@@ -102,7 +102,8 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::post('/fees/payments', [FeePaymentController::class, 'storePayment'])->name('fees.payments.store');
     Route::get('/fees/receipt/{voucher}', [FeePaymentController::class, 'showReceipt'])->name('fees.receipt');
     Route::get('/fees/student-ledger/{student}/{year}', [FeePaymentController::class, 'getStudentLedger'])->name('fees.student.ledger');
-
+    Route::post('fees/generate-voucher/{student}', [FeePaymentController::class, 'generateAndGetVoucher'])->name('fees.generateVoucher');
+    
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('revenue-dashboard', [FeeReportController::class, 'revenueDashboard'])->name('revenue_dashboard');
         Route::get('pending-fees', [FeeReportController::class, 'pendingFees'])->name('pending_fees');
