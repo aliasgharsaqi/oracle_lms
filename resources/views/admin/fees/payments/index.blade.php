@@ -318,7 +318,7 @@
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content rounded-4 border-0 shadow-lg">
                 <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title" id="ledgerModalTitle"> Full Year Details</h5>
+                    <h5 class="modal-title" id="ledgerModalTitle"></h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
@@ -350,93 +350,18 @@
             </div>
         </div>
     </div>
-
-</div> @endsection
+</div> 
+@endsection
 
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const paymentModals = document.querySelectorAll('[id^="paymentModal-"]');
-        paymentModals.forEach(modal => {
-            const paymentInputs = modal.querySelectorAll('.payment-input');
-            const totalPaidInput = modal.querySelector('.total-paid-input');
-
-            function updateTotal() {
-                let total = 0;
-                paymentInputs.forEach(input => {
-                    total += parseFloat(input.value) || 0;
-                });
-                totalPaidInput.value = total.toFixed(2);
-            }
-            paymentInputs.forEach(input => input.addEventListener('input', updateTotal));
-        });
-
-        const ledgerModal = new bootstrap.Modal(document.getElementById('ledgerModal'));
-        const ledgerModalTitle = document.getElementById('ledgerModalTitle');
-        const ledgerTableBody = document.getElementById('ledgerTableBody');
-        const ledgerTotalPayable = document.getElementById('ledgerTotalPayable');
-        const ledgerTotalPaid = document.getElementById('ledgerTotalPaid');
-        const ledgerTotalBalance = document.getElementById('ledgerTotalBalance');
-
-        document.querySelectorAll('.view-ledger-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const studentId = this.dataset.studentId;
-                const studentName = this.dataset.studentName;
-                const year = this.dataset.year;
-
-                ledgerModalTitle.innerText = `Fee Ledger for ${studentName} (${year})`;
-                ledgerTableBody.innerHTML = '<tr><td colspan="6" class="text-center p-5">Loading...</td></tr>';
-                ledgerModal.show();
-
-                fetch(`/fees/student-ledger/${studentId}/${year}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        ledgerTableBody.innerHTML = '';
-                        if (data.ledger && data.ledger.length > 0) {
-                            data.ledger.forEach(item => {
-                                let rowHtml;
-                                if (item.status !== 'not_generated') {
-                                    const balance = item.amount_due - (item.amount_paid || 0);
-                                    rowHtml = `<tr>
-                                        <td>${item.month}</td>
-                                        <td>${parseFloat(item.amount_due).toFixed(2)}</td>
-                                        <td>${parseFloat(item.amount_paid || 0).toFixed(2)}</td>
-                                        <td class="${balance > 0.01 ? 'text-danger fw-bold' : ''}">${balance.toFixed(2)}</td>
-                                        <td><span class="badge bg-${item.status === 'paid' ? 'success' : (item.status === 'partial' ? 'info' : 'warning')}">${item.status}</span></td>
-                                        <td>${item.paid_on}</td>
-                                    </tr>`;
-                                } else {
-                                    rowHtml = `<tr><td>${item.month}</td><td colspan="5" class="text-center text-muted small">Not Generated</td></tr>`;
-                                }
-                                ledgerTableBody.insertAdjacentHTML('beforeend', rowHtml);
-                            });
-
-                            ledgerTotalPayable.innerText = 'PKR ' + parseFloat(data.totals.payable).toFixed(2);
-                            ledgerTotalPaid.innerText = 'PKR ' + parseFloat(data.totals.paid).toFixed(2);
-                            ledgerTotalBalance.innerText = 'PKR ' + parseFloat(data.totals.balance).toFixed(2);
-                            ledgerTotalBalance.className = data.totals.balance > 0.01 ? 'text-danger' : '';
-
-                        } else {
-                            ledgerTableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted p-5">No fee records found for this year.</td></tr>';
-                        }
-                    })
-                    .catch(error => {
-                        ledgerTableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger p-5">Failed to load data. Please try again.</td></tr>';
-                        console.error('Error:', error);
-                    });
-            });
-        });
-    });
-</script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // --- Initialize Modals ---
+        // --- Initialize Modals ONCE ---
         const ledgerModalElement = document.getElementById('ledgerModal');
-        const ledgerModalInstance = ledgerModalElement ? new bootstrap.Modal(ledgerModalElement) : null; // Init Ledger Modal ONCE
+        const ledgerModalInstance = ledgerModalElement ? new bootstrap.Modal(ledgerModalElement) : null;
 
         const paymentModalElement = document.getElementById('paymentModal');
-        const paymentModalInstance = paymentModalElement ? new bootstrap.Modal(paymentModalElement) : null; // Init Payment Modal ONCE
+        const paymentModalInstance = paymentModalElement ? new bootstrap.Modal(paymentModalElement) : null;
 
         // --- Get Modal Content Elements ---
         const ledgerModalTitle = document.getElementById('ledgerModalTitle');
@@ -444,7 +369,6 @@
         const ledgerTotalPayable = document.getElementById('ledgerTotalPayable');
         const ledgerTotalPaid = document.getElementById('ledgerTotalPaid');
         const ledgerTotalBalance = document.getElementById('ledgerTotalBalance');
-
         const modalStudentName = document.getElementById('modal_student_name');
         const modalVoucherId = document.getElementById('modal_voucher_id');
         const modalBodyContent = document.getElementById('modal_body_content');
@@ -452,131 +376,252 @@
 
         // --- Check if crucial elements exist ---
         if (!ledgerModalInstance || !ledgerModalTitle || !ledgerTableBody || !ledgerTotalPayable || !ledgerTotalPaid || !ledgerTotalBalance) {
-            console.error('Ledger modal elements missing. Ledger functionality might be broken.');
+            console.error('CRITICAL: Ledger modal elements missing or failed to initialize.');
+            document.querySelectorAll('.view-ledger-btn, .view-ledger-inside-modal-btn').forEach(btn => {
+                btn.disabled = true; btn.title = 'Ledger modal error.'; btn.classList.add('disabled');
+            });
         }
         if (!paymentModalInstance || !modalStudentName || !modalVoucherId || !modalBodyContent || !modalSubmitButton) {
-            console.error('Payment modal elements missing. Payment functionality might be broken.');
-             // Disable collect buttons if payment modal is broken
+            console.error('CRITICAL: Payment modal elements missing or failed to initialize.');
              document.querySelectorAll('.collect-fee-btn').forEach(btn => {
-                 btn.disabled = true;
-                 btn.title = 'Payment modal error.';
+                 btn.disabled = true; btn.title = 'Payment modal error.'; btn.classList.add('disabled');
             });
         }
 
         // --- Ledger Button Event Listener (Outside Payment Modal) ---
         document.querySelectorAll('.view-ledger-btn').forEach(button => {
             button.addEventListener('click', function() {
-                // Check if ledger modal is ready
-                if (!ledgerModalInstance) {
-                    alert('Error: Ledger modal could not be initialized.');
-                    return;
-                }
+                if (!ledgerModalInstance) { alert('Error: Ledger modal could not be initialized.'); return; }
                 const studentId = this.dataset.studentId;
                 const studentName = this.dataset.studentName;
                 const year = this.dataset.year;
+                if (!studentId || !studentName || !year) { console.error('Missing data attributes on external ledger button:', this); alert('Could not load ledger: Missing student information.'); return; }
 
-                if (!studentId || !studentName || !year) {
-                    console.error('Missing data attributes on ledger button:', this);
-                    alert('Could not load ledger: Missing student information.');
-                    return;
-                }
-
-                // Show loading state in ledger modal
                 ledgerModalTitle.innerText = `Fee Ledger for ${studentName} (${year})`;
                 ledgerTableBody.innerHTML = '<tr><td colspan="6" class="text-center p-5"><div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">Loading...</span></div> Loading...</td></tr>';
                 ledgerTotalPayable.innerText = 'Calculating...';
                 ledgerTotalPaid.innerText = 'Calculating...';
                 ledgerTotalBalance.innerText = 'Calculating...';
-                ledgerModalInstance.show(); // Use the single instance
+                ledgerModalInstance.show();
 
                 const ledgerUrl = `/fees/student-ledger/${encodeURIComponent(studentId)}/${encodeURIComponent(year)}`;
 
-                // Fetch and populate ledger data
                 fetch(ledgerUrl)
-                    .then(response => { /* ... ledger fetch error handling ... */ return response.json(); })
-                    .then(data => { /* ... populate ledger table ... */ })
-                    .catch(error => { /* ... ledger fetch catch error handling ... */ });
+                    .then(response => {
+                        // ** Start: Ledger Fetch Error Handling **
+                        if (!response.ok) {
+                             return response.text().then(text => {
+                                 throw new Error(`HTTP error ${response.status}: ${text || response.statusText}`);
+                             });
+                        }
+                        const contentType = response.headers.get("content-type");
+                         if (!contentType || contentType.indexOf("application/json") === -1) {
+                             return response.text().then(text => {
+                                 throw new Error("Received non-JSON response from server (Ledger): " + text.substring(0, 150) + "...");
+                             });
+                         }
+                         // ** End: Ledger Fetch Error Handling **
+                        return response.json();
+                    })
+                    .then(data => {
+                        // ** Start: Populate Ledger Table **
+                        ledgerTableBody.innerHTML = '';
+                        if (data && data.ledger && Array.isArray(data.ledger) && data.ledger.length > 0) {
+                            data.ledger.forEach(item => {
+                                let rowHtml = '';
+                                if (item && item.status !== 'not_generated') {
+                                    const amountDue = parseFloat(item.amount_due || 0);
+                                    const amountPaid = parseFloat(item.amount_paid || 0);
+                                    const balance = amountDue - amountPaid;
+                                    let statusBadgeClass = 'secondary';
+                                    if (item.status === 'paid') statusBadgeClass = 'success';
+                                    else if (item.status === 'partial') statusBadgeClass = 'info';
+                                    else if (item.status === 'pending') statusBadgeClass = 'warning';
+                                    else if (item.status === 'overdue') statusBadgeClass = 'danger';
+
+                                    rowHtml = `<tr>
+                                        <td>${item.month || 'N/A'}</td>
+                                        <td>${amountDue.toFixed(2)}</td>
+                                        <td>${amountPaid.toFixed(2)}</td>
+                                        <td class="${balance > 0.01 ? 'text-danger fw-bold' : ''}">${balance.toFixed(2)}</td>
+                                        <td><span class="badge bg-${statusBadgeClass}-subtle text-${statusBadgeClass}-emphasis">${item.status || 'N/A'}</span></td>
+                                        <td>${item.paid_on || 'N/A'}</td>
+                                    </tr>`;
+                                } else if (item && item.month) {
+                                    rowHtml = `<tr><td>${item.month}</td><td colspan="5" class="text-center text-muted small fst-italic">Not Generated</td></tr>`;
+                                } else { console.warn('Skipping invalid ledger item:', item); }
+                                if(rowHtml) ledgerTableBody.insertAdjacentHTML('beforeend', rowHtml);
+                            });
+
+                            const totalPayable = parseFloat(data.totals?.payable || 0);
+                            const totalPaid = parseFloat(data.totals?.paid || 0);
+                            const totalBalance = parseFloat(data.totals?.balance || 0);
+
+                            ledgerTotalPayable.innerText = 'PKR ' + totalPayable.toFixed(2);
+                            ledgerTotalPaid.innerText = 'PKR ' + totalPaid.toFixed(2);
+                            ledgerTotalBalance.innerText = 'PKR ' + totalBalance.toFixed(2);
+                            ledgerTotalBalance.className = totalBalance > 0.01 ? 'text-danger fw-bold' : 'fw-bold';
+                        } else {
+                            ledgerTableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted p-5 fst-italic">No fee records found.</td></tr>';
+                            ledgerTotalPayable.innerText = 'PKR 0.00';
+                            ledgerTotalPaid.innerText = 'PKR 0.00';
+                            ledgerTotalBalance.innerText = 'PKR 0.00';
+                            ledgerTotalBalance.className = 'fw-bold';
+                        }
+                        // ** End: Populate Ledger Table **
+                    })
+                    .catch(error => {
+                        // ** Start: Ledger Fetch Catch Error Handling **
+                        ledgerTableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger p-5">Failed to load ledger data. Please try again later.</td></tr>';
+                        console.error('Ledger Fetch Error:', error);
+                        ledgerTotalPayable.innerText = 'Error';
+                        ledgerTotalPaid.innerText = 'Error';
+                        ledgerTotalBalance.innerText = 'Error';
+                        // ** End: Ledger Fetch Catch Error Handling **
+                    });
             });
         });
 
         // --- Payment Modal "Collect Fee" Button Event Listener ---
         document.querySelectorAll('.collect-fee-btn').forEach(button => {
             button.addEventListener('click', function() {
-                // Check if payment modal is ready
-                if (!paymentModalInstance) {
-                    alert('Error: Payment modal could not be initialized.');
-                    return;
-                }
+                if (!paymentModalInstance) { alert('Error: Payment modal could not be initialized.'); return; }
                 const studentId = this.dataset.studentId;
                 const studentName = this.dataset.studentName;
                 const selectedMonthInput = document.querySelector('input[name="month"]');
                 const selectedMonth = selectedMonthInput ? selectedMonthInput.value : null;
 
-                if (!studentId || !studentName || !selectedMonth) { /* ... validation ... */ return; }
+                if (!studentId || !studentName || !selectedMonth) { alert('Cannot collect fee: Missing required information.'); console.error('Missing data for collect button:', {studentId, studentName, selectedMonth}); return; }
 
-                // Set loading state in payment modal
                 modalStudentName.innerText = studentName;
                 modalBodyContent.innerHTML = `<div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-3">Generating voucher...</p></div>`;
                 modalSubmitButton.disabled = true;
-                modalSubmitButton.innerHTML = 'Confirm & Print'; // Reset button text
-                paymentModalInstance.show(); // Use the single instance
+                modalSubmitButton.innerHTML = 'Confirm & Print';
+                paymentModalInstance.show();
 
                 const generateVoucherUrl = `/fees/generate-voucher/${encodeURIComponent(studentId)}`;
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                if (!csrfToken) { console.error('CSRF token not found!'); modalBodyContent.innerHTML = '<div class="alert alert-danger">Error: Security token missing.</div>'; return; }
 
-                if (!csrfToken) {
-                     console.error('CSRF token not found!');
-                     modalBodyContent.innerHTML = '<div class="alert alert-danger">Error: Security token missing. Please refresh the page.</div>';
-                     return;
-                }
-
-                // Fetch voucher data for payment modal
                 fetch(generateVoucherUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
                         body: JSON.stringify({ month: selectedMonth })
                     })
-                    .then(response => { /* ... voucher fetch error handling ... */ return response.json(); })
+                    .then(response => {
+                        // ** Start: Voucher Fetch Error Handling **
+                        if (!response.ok) {
+                            return response.json().then(err => {
+                                let errMsg = err.error || `HTTP error ${response.status}`;
+                                if (response.status === 404) errMsg = `Fee plan not found for ${selectedMonth}.`;
+                                else if (response.status === 403) errMsg = 'Unauthorized action.';
+                                throw new Error(errMsg);
+                            }).catch(() => { throw new Error(`HTTP error ${response.status}`); });
+                        }
+                        const contentType = response.headers.get("content-type");
+                        if (!contentType || contentType.indexOf("application/json") === -1) {
+                            return response.text().then(text => { throw new Error("Received non-JSON response (Voucher): " + text.substring(0, 150) + "..."); });
+                        }
+                        // ** End: Voucher Fetch Error Handling **
+                        return response.json();
+                    })
                     .then(voucher => {
-                        /* ... validation of voucher data ... */
+                        // ** Start: Validate Voucher Data **
+                        if (!voucher || typeof voucher !== 'object' || !voucher.id) {
+                            console.error('Invalid voucher data received:', voucher);
+                            throw new Error('Received invalid voucher data from the server.');
+                        }
+                        // ** End: Validate Voucher Data **
+
                         modalVoucherId.value = voucher.id;
                         const year = selectedMonth.substring(0, 4);
 
-                        /* ... calculate remaining amounts ... */
-                        let remainingTotal = /* ... */;
+                        // ** Start: Calculate Remaining Amounts **
+                        let voucherAmountDue = parseFloat(voucher.amount_due || 0);
+                        let voucherAmountPaid = parseFloat(voucher.amount_paid || 0);
+                        let remainingTuition = Math.max(0, (parseFloat(voucher.tuition_fee || 0)) - (parseFloat(voucher.paid_tuition || 0)));
+                        let remainingAdmission = Math.max(0, (parseFloat(voucher.admission_fee || 0)) - (parseFloat(voucher.paid_admission || 0)));
+                        let remainingExamination = Math.max(0, (parseFloat(voucher.examination_fee || 0)) - (parseFloat(voucher.paid_examination || 0)));
+                        let remainingOther = Math.max(0, (parseFloat(voucher.other_fees || 0)) - (parseFloat(voucher.paid_other || 0)));
+                        let remainingArrears = Math.max(0, (parseFloat(voucher.arrears || 0)) - (parseFloat(voucher.paid_arrears || 0)));
+                        let remainingTotal = Math.max(0, voucherAmountDue - voucherAmountPaid);
+                        // ** End: Calculate Remaining Amounts **
 
-                        /* ... build tableHtml for modal body ... */
-                        let tableHtml = `<div class="row g-4"> ... </div>`; // Your existing HTML structure
+                        // ** Start: Build Payment Modal HTML **
+                        let tableHtml = `<div class="row g-4">
+                            <div class="col-lg-7">
+                                <h6 class="fw-bold text-muted text-uppercase small mb-3 border-bottom pb-2"><i class="bi bi-list-ul me-2"></i>Fee Breakdown (${selectedMonth})</h6>
+                                <table class="table table-sm table-striped">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Description</th>
+                                            <th class="text-end" style="width: 120px;">Amount Due</th>
+                                            <th style="width: 150px;">Amount to Pay Now</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>`;
+                        if (parseFloat(voucher.tuition_fee || 0) > 0) tableHtml += `<tr><td>Tuition Fee</td><td class="text-end">PKR ${parseFloat(voucher.tuition_fee || 0).toFixed(2)}</td><td><input type="number" name="paid_tuition" class="form-control form-control-sm payment-input" value="${remainingTuition.toFixed(2)}" step="0.01" min="0"></td></tr>`;
+                        if (parseFloat(voucher.admission_fee || 0) > 0) tableHtml += `<tr><td>Admission Fee</td><td class="text-end">PKR ${parseFloat(voucher.admission_fee || 0).toFixed(2)}</td><td><input type="number" name="paid_admission" class="form-control form-control-sm payment-input" value="${remainingAdmission.toFixed(2)}" step="0.01" min="0"></td></tr>`;
+                        if (parseFloat(voucher.examination_fee || 0) > 0) tableHtml += `<tr><td>Examination Fee</td><td class="text-end">PKR ${parseFloat(voucher.examination_fee || 0).toFixed(2)}</td><td><input type="number" name="paid_examination" class="form-control form-control-sm payment-input" value="${remainingExamination.toFixed(2)}" step="0.01" min="0"></td></tr>`;
+                        if (parseFloat(voucher.other_fees || 0) > 0) tableHtml += `<tr><td>Other Charges</td><td class="text-end">PKR ${parseFloat(voucher.other_fees || 0).toFixed(2)}</td><td><input type="number" name="paid_other" class="form-control form-control-sm payment-input" value="${remainingOther.toFixed(2)}" step="0.01" min="0"></td></tr>`;
+                        if (parseFloat(voucher.arrears || 0) > 0) tableHtml += `<tr><td class="text-danger fw-bold">Arrears</td><td class="text-end text-danger fw-bold">PKR ${parseFloat(voucher.arrears || 0).toFixed(2)}</td><td><input type="number" name="paid_arrears" class="form-control form-control-sm payment-input" value="${remainingArrears.toFixed(2)}" step="0.01" min="0"></td></tr>`;
+                        tableHtml += `</tbody></table>
+                            </div>
+                            <div class="col-lg-5">
+                                <h6 class="fw-bold text-muted text-uppercase small mb-3 border-bottom pb-2"><i class="bi bi-credit-card me-2"></i>Payment Summary & Details</h6>
+                                <div class="alert alert-light border shadow-sm p-3 mb-3">
+                                     <div class="d-flex justify-content-between mb-1"><span>Total Due:</span> <strong class="text-primary">PKR ${voucherAmountDue.toFixed(2)}</strong></div>
+                                     <div class="d-flex justify-content-between mb-1"><span>Already Paid:</span> <strong class="text-success">PKR ${voucherAmountPaid.toFixed(2)}</strong></div>
+                                     <div class="d-flex justify-content-between fw-bold border-top pt-2 mt-2"><span>Remaining Balance:</span> <strong class="text-danger">PKR ${remainingTotal.toFixed(2)}</strong></div>
+                                </div>
+                                 <div class="mb-3">
+                                     <label class="form-label fw-semibold small text-muted">Amount Being Paid Now</label>
+                                     <input type="number" step="0.01" class="form-control form-control-lg total-paid-input" value="${remainingTotal.toFixed(2)}" required readonly style="background-color: #e9ecef; border: 1px solid #ced4da; font-weight: bold;">
+                                 </div>
+                                 <div class="mb-3">
+                                     <label class="form-label fw-semibold small text-muted">Payment Method</label>
+                                     <select class="form-select form-select-lg" name="payment_method" required><option value="Cash" selected>Cash</option><option value="Bank Transfer">Bank Transfer</option><option value="Card">Card</option></select>
+                                 </div>
+                                 <div class="mb-3">
+                                      <label class="form-label fw-semibold small text-muted">Notes (Optional)</label>
+                                      <textarea name="notes" class="form-control" rows="2" placeholder="e.g., Paid by father, Check #123"></textarea>
+                                 </div>
+                                 <div class="d-grid mt-3">
+                                    <button type="button" class="btn btn-outline-secondary view-ledger-inside-modal-btn"
+                                        data-student-id="${studentId}"
+                                        data-student-name="${studentName}"
+                                        data-year="${year}">
+                                        <i class="bi bi-journal-text me-2"></i>View Full Fee Ledger (${year})
+                                    </button>
+                                 </div>
+                            </div>
+                        </div>`;
+                        // ** End: Build Payment Modal HTML **
 
                         modalBodyContent.innerHTML = tableHtml;
 
-                         // Handle fully paid status AFTER setting innerHTML
-                         if (voucher.status === 'paid' || remainingTotal < 0.01) {
-                             modalSubmitButton.disabled = true;
-                             modalBodyContent.insertAdjacentHTML('beforeend', '<div class="alert alert-success mt-3">... Fully paid message ...</div>');
-                         } else {
-                             modalSubmitButton.disabled = false;
-                         }
+                        // Handle fully paid status
+                        if (voucher.status === 'paid' || remainingTotal < 0.01) {
+                            modalSubmitButton.disabled = true;
+                            modalBodyContent.insertAdjacentHTML('beforeend', '<div class="alert alert-success mt-3"><i class="bi bi-check-circle-fill me-2"></i>This voucher is already fully paid.</div>');
+                        } else {
+                            modalSubmitButton.disabled = false;
+                        }
 
-                        // Re-initialize total calculator
-                        updateModalTotalCalculator();
+                        updateModalTotalCalculator(); // Initialize calculator
 
                         // Add listener for ledger button *inside* the payment modal
                         const ledgerButtonInsideModal = modalBodyContent.querySelector('.view-ledger-inside-modal-btn');
                         if (ledgerButtonInsideModal) {
                             ledgerButtonInsideModal.addEventListener('click', function() {
-                                 // Check if ledger modal instance exists before trying to use it
-                                if (!ledgerModalInstance) {
-                                    alert('Error: Ledger modal is not available.');
-                                    return;
-                                }
+                                if (!ledgerModalInstance) { alert('Error: Ledger modal is not available.'); return; }
                                 const ledgerStudentId = this.dataset.studentId;
                                 const ledgerStudentName = this.dataset.studentName;
                                 const ledgerYear = this.dataset.year;
 
                                 paymentModalInstance.hide(); // Hide payment modal
 
-                                // Trigger ledger modal (reuse logic/elements)
+                                // Trigger ledger modal
                                 ledgerModalTitle.innerText = `Fee Ledger for ${ledgerStudentName} (${ledgerYear})`;
                                 ledgerTableBody.innerHTML = '<tr><td colspan="6" class="text-center p-5">... Loading ...</td></tr>';
                                 // ... clear totals ...
@@ -584,15 +629,30 @@
 
                                 const ledgerUrlInner = `/fees/student-ledger/${encodeURIComponent(ledgerStudentId)}/${encodeURIComponent(ledgerYear)}`;
                                 fetch(ledgerUrlInner)
-                                    .then(response => {/* ... ledger fetch ... */ return response.json();})
-                                    .then(data => { /* ... populate ledger table ... */ })
-                                    .catch(error => { /* ... ledger error handling ... */ });
+                                    .then(response => {
+                                        // ** Start: Inner Ledger Fetch Error Handling **
+                                        if (!response.ok) { return response.text().then(text => { throw new Error(`HTTP error ${response.status}: ${text || response.statusText}`); }); }
+                                        const contentType = response.headers.get("content-type");
+                                        if (!contentType || contentType.indexOf("application/json") === -1) { return response.text().then(text => { throw new Error("Received non-JSON response (Inner Ledger): " + text.substring(0, 150) + "..."); }); }
+                                        // ** End: Inner Ledger Fetch Error Handling **
+                                        return response.json();
+                                     })
+                                    .then(data => { /* ... populate ledger table (reuse previous logic) ... */ }) // Make sure this logic is correctly pasted here
+                                    .catch(error => { /* ... ledger error handling (reuse previous logic) ... */ }); // Make sure this logic is correctly pasted here
                             });
-                        } else {
-                             console.warn('Could not find ledger button inside payment modal.');
-                        }
+                        } else { console.warn('Could not find ledger button inside payment modal.'); }
                     })
-                    .catch(error => { /* ... voucher fetch catch error handling ... */ });
+                    .catch(error => {
+                        // ** Start: Voucher Fetch Catch Error Handling **
+                        console.error('Voucher Fetch/Processing Error:', error);
+                        modalBodyContent.innerHTML = `<div class="alert alert-danger text-center p-4">
+                            <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> Error</h5>
+                            <p>${error.message || 'An unexpected error occurred while fetching fee details.'}</p>
+                            <p class="mb-0 small">Please check the fee plan, ensure the server is running, or contact support.</p>
+                        </div>`;
+                        modalSubmitButton.disabled = true;
+                         // ** End: Voucher Fetch Catch Error Handling **
+                    });
             });
         });
 
@@ -601,28 +661,41 @@
             const currentModal = document.getElementById('paymentModal');
             if (!currentModal) return;
             const paymentInputs = currentModal.querySelectorAll('.payment-input');
-            const totalPaidInput = currentModal.querySelector('.total-paid-input');
+            const totalPaidInput = currentModal.querySelector('.total-paid-input'); // Selects the 'Amount Being Paid Now' input
 
             if (paymentInputs.length > 0 && totalPaidInput) {
-                const updateTotal = () => { /* ... calculate and set total ... */ };
+                const updateTotal = () => {
+                    let currentTotal = 0;
+                    paymentInputs.forEach(input => {
+                        const value = parseFloat(input.value);
+                        if (!isNaN(value)) { // Add only if it's a valid number
+                             // Ensure negative values aren't added to total (user shouldn't enter negative, but safeguard)
+                            currentTotal += Math.max(0, value);
+                        }
+                    });
+                    totalPaidInput.value = currentTotal.toFixed(2); // Update the readonly total input
+                };
+                // Clean up previous listeners before adding new ones
                 paymentInputs.forEach(input => {
-                    // Clean up potential duplicate listeners before adding
                     input.removeEventListener('input', updateTotal);
                     input.addEventListener('input', updateTotal);
                 });
                 updateTotal(); // Initial calculation
-            }
-        }
+            } else {
+                 if (paymentInputs.length === 0) console.warn('No payment input fields found (.payment-input).');
+                 if (!totalPaidInput) console.warn('Total paid input field not found (.total-paid-input).');
+             }
+        } // --- END of updateModalTotalCalculator ---
 
-        // --- Set Max Month & Default ---
+
+        // --- Set Max Month for Input ---
         const monthInput = document.getElementById('month-select');
         if (monthInput) {
             const now = new Date();
             const year = now.getFullYear();
             const month = (now.getMonth() + 1).toString().padStart(2, '0');
-            const currentMonth = `${year}-${month}`;
-            monthInput.max = currentMonth;
-            // Removed the default setting part - rely on PHP's $selectedMonth
+            monthInput.max = `${year}-${month}`; // Set max attribute
+            // Removed default setting, rely on PHP's $selectedMonth
         }
 
         // --- Re-run calculator when payment modal is shown ---
