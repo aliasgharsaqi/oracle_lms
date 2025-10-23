@@ -5,11 +5,11 @@
     <!-- Logo and Close Button -->
     <div class="sidebar-brand-container d-flex justify-content-between align-items-center">
         <a href="/" class="d-flex align-items-center text-white text-decoration-none">
-            <div class="sidebar-brand-icon bg-white rounded-circle d-flex align-items-center justify-content-center">
+            <div class="sidebar-brand-icon bg-white rounded-circle d-flex align-items-center p-2 justify-content-center">
                 @if (Auth::user()->school && Auth::user()->school->logo)
                 <img src="{{ asset('storage/' . Auth::user()->school->logo) }}" alt="{{ Auth::user()->school->name }} Logo" style="max-width: 70px; max-height: 90px;">
                 @else
-                <img src="{{ asset('images/logo.png') }}" alt="Logo" style="max-width: 70px; max-height: 90px;">
+                <img src="{{ asset('images/oracle.png') }}" alt="Logo" style="max-width: 50px; max-height: 70px;">
                 @endif
             </div>
             @if (Auth::user()->school)

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ClassController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FeeController;
 use App\Http\Controllers\Admin\FeePaymentController;
 use App\Http\Controllers\Admin\FeeReportController;
 use App\Http\Controllers\Admin\MarksController;
@@ -128,7 +129,8 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
      ->name('students.result-card.download');
 });
 
-
+Route::get('/fees/receipt/{voucher}/print-4-up', [FeeController::class, 'printReceipt4Up'])
+     ->name('admin.fees.receipt.print4up');
 Route::get('marks/export', [MarksController::class, 'export'])->name('marks.export');
 
 Route::get('/result_card', function () {
