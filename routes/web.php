@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AttendenceController;
 use App\Http\Controllers\Admin\ClassController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FeeController;
@@ -128,6 +129,15 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
 
     Route::get('/students/{student}/semester/{semester}/result-card/download', [PdfController::class, 'downloadResultCard'])
      ->name('students.result-card.download');
+
+     
+    Route::get('attendence/teacher', [AttendenceController::class, 'teacher_attendence'])->name('attendence.teacher');
+
+    // ADD THESE TWO NEW ROUTES
+    Route::post('attendence/teacher/mark', [AttendenceController::class, 'mark_attendance'])->name('attendence.teacher.mark');
+    Route::post('attendence/teacher/leave', [AttendenceController::class, 'apply_leave'])->name('attendence.teacher.leave');
+    Route::post('attendence/teacher/update-past', [AttendenceController::class, 'update_past_attendance'])->name('attendence.teacher.update_past');
+    Route::get('attendence/monthly-report', [AttendenceController::class, 'monthly_report'])->name('attendence.teacher.monthly_report');
 });
 
 Route::get('/fees/receipt/{voucher}/print-4-up', [FeeController::class, 'printReceipt4Up'])
