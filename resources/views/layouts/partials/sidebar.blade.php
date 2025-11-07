@@ -286,7 +286,7 @@
                 </li>
 
                 <li>
-                    <a href="{{ route('result-cards.index') }}"
+                    <a href="{{ route('attendance.create') }}"
                         class="nav-link d-flex align-items-center bg-transparent text-white {{ request()->routeIs('attendence.*') ? 'active' : '' }}"
                         style="gap: 6px; padding: 2px 12px;">
                         <i class="bi bi-card-list me-2"></i> Student Attendence
