@@ -40,6 +40,7 @@
                     elseif (str_contains($permission->name, 'Mark')) $group = 'Marks Management';
                     elseif (str_contains($permission->name, 'Fee')) $group = 'Fee Management';
                     elseif (str_contains($permission->name, 'Report')) $group = 'Report Management';
+                    elseif (str_contains($permission->name, 'Attendence')) $group = 'Attendence Management';
                     else $group = 'General';
 
                     $groupedPermissions[$group][] = $permission;
