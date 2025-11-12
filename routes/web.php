@@ -112,6 +112,11 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
         Route::get('paid-fees', [FeeReportController::class, 'paidFees'])->name('paid_fees');
     });
 
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::resource('roles', RoleController::class)->except(['show']);
+        Route::resource('schools', SchoolController::class);
+    });
+
     Route::get('marks', [MarksController::class, 'index'])->name('marks.index');
     Route::post('marks', [MarksController::class, 'store'])->name('marks.store');
     Route::get('marks/get-subjects/{class_id}', [MarksController::class, 'getSubjects'])->name('marks.getSubjects');
@@ -121,17 +126,12 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::get('/result-cards/show/{student}/{semester}', [ResultCardController::class, 'showResultCard'])->name('result-cards.show');
     Route::get('/result-cards/pdf/{student_id}/{semester_id}', [ResultCardController::class, 'generatePdf'])->name('result-cards.pdf');
 
-
-
-        // --- STUDENT ATTENDANCE ROUTES MOVED HERE ---
-        Route::get('attendance', [StudentAttendanceController::class, 'create'])->name('attendance.create');
-        Route::post('attendance/fetch-students', [StudentAttendanceController::class, 'fetchStudents'])->name('attendance.fetch');
-        Route::post('attendance', [StudentAttendanceController::class, 'store'])->name('attendance.store');
-        
-        Route::get('attendance-report', [StudentAttendanceController::class, 'report'])->name('attendance.report');
-        Route::post('attendance-report', [StudentAttendanceController::class, 'showReport'])->name('attendance.showReport');
-        // --- END OF STUDENT ATTENDANCE ROUTES ---
+    Route::get('attendance', [StudentAttendanceController::class, 'create'])->name('attendance.create');
+    Route::post('attendance/fetch-students', [StudentAttendanceController::class, 'fetchStudents'])->name('attendance.fetch');
+    Route::post('attendance', [StudentAttendanceController::class, 'store'])->name('attendance.store');
     
+    Route::get('attendance-report', [StudentAttendanceController::class, 'report'])->name('attendance.report');
+    Route::post('attendance-report', [StudentAttendanceController::class, 'showReport'])->name('attendance.showReport');
 
     Route::get('/students/{student}/semester/{semester}/result-card/generate', [PdfController::class, 'generateResultCard'])
      ->name('students.result-card.generate');
@@ -154,9 +154,6 @@ Route::get('/fees/receipt/{voucher}/print-4-up', [FeeController::class, 'printRe
      ->name('admin.fees.receipt.print4up');
 Route::get('marks/export', [MarksController::class, 'export'])->name('marks.export');
 
-Route::get('/result_card', function () {
-    return view('admin.results.index');
-})->name('result_card');
 
 Route::get('/teacher_diary', function () {
     return view('admin.diary.teacher_diary');
@@ -165,14 +162,6 @@ Route::get('/teacher_diary', function () {
 Route::get('/student_diary', function () {
     return view('admin.diary.student_diary');
 })->name('student_diary');
-
-Route::get('/attendence', function () {
-    return view('admin.diary.attendence');
-})->name('attendence');
-
-Route::get('/exam', function () {
-    return view('admin.exam');
-})->name('exam');
 
 Route::get('/quiz', function () {
     return view('admin.quiz');
@@ -189,8 +178,3 @@ Route::get('/transaction', function () {
 Route::get('/quize_detail', function () {
     return view('admin.quize_detail');
 })->name('quize_detail');
-
-// --- THIS ROUTE IS NOW REMOVED as it is replaced by admin.attendance.create ---
-// Route::get('/student_attendence', function () {
-//     return view('admin.students.student-attendence');
-// })->name('student_attendence');
