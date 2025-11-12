@@ -240,26 +240,26 @@
                                 <td class="px-4 py-2">{{ $loop->iteration }}</td>
                                 <td class="px-4 py-2 font-medium text-gray-900">{{ $student->user->name ?? 'N/A' }}</td>
                                 <td class="px-4 py-2">{{ $student->schoolClass->name ?? 'N/A' }}</td>
-                               <td class="px-4 py-2">
-    <div class="flex justify-center items-center gap-2">
-        <button type="button"
-            class="view-result-btn text-white bg-blue-500 hover:bg-blue-600 font-bold py-1 px-3 rounded-md shadow-sm text-xs"
-            data-student-id="{{ $student->id }}" data-semester-id="{{ $selectedSemesterId }}">
-            <i class="bi bi-eye-fill"></i> View Result
-        </button>
+                                <td class="px-4 py-2">
+                                    <div class="flex justify-center items-center gap-2">
+                                        <button type="button"
+                                            class="view-result-btn text-white bg-blue-500 hover:bg-blue-600 font-bold py-1 px-3 rounded-md shadow-sm text-xs"
+                                            data-student-id="{{ $student->id }}" data-semester-id="{{ $selectedSemesterId }}">
+                                            <i class="bi bi-eye-fill"></i> View Result
+                                        </button>
 
-        <a href="{{ route('students.result-card.generate', [$student->id, $selectedSemesterId]) }}"
-            class="text-white bg-green-600 hover:bg-green-700 font-bold py-1 px-3 rounded-md shadow-sm text-xs">
-            <i class="bi bi-file-earmark-pdf-fill"></i> Print
-        </a>
+                                        <a href="{{ route('students.result-card.generate', [$student->id, $selectedSemesterId]) }}"
+                                            class="text-white bg-green-600 hover:bg-green-700 font-bold py-1 px-3 rounded-md shadow-sm text-xs">
+                                            <i class="bi bi-file-earmark-pdf-fill"></i> Print
+                                        </a>
 
-        <a id="print_btn_pdf"
-            href="/students/{{ $student->id }}/semester/{{ $selectedSemesterId }}/result-card/download"
-            class="text-white bg-green-600 hover:bg-green-700 font-bold py-1 px-3 rounded-md shadow-sm text-xs">
-            <i class="bi bi-file-earmark-pdf-fill"></i> Download
-        </a>
-    </div>
-</td>
+                                        <a id="print_btn_pdf"
+                                            href="/students/{{ $student->id }}/semester/{{ $selectedSemesterId }}/result-card/download"
+                                            class="text-white bg-green-600 hover:bg-green-700 font-bold py-1 px-3 rounded-md shadow-sm text-xs">
+                                            <i class="bi bi-file-earmark-pdf-fill"></i> Download
+                                        </a>
+                                    </div>
+                                </td>
 
                             </tr>
                         @endforeach

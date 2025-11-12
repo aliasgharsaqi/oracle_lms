@@ -43,15 +43,20 @@ class Student extends Model
         return $this->hasMany(StudentFeePlan::class);
     }
 
-    /**
-     * A student can have many marks.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
     public function marks()
     {
         return $this->hasMany(Mark::class);
     }
+
+    // --- ADD THIS FUNCTION ---
+    /**
+     * Get all of the attendance records for the student.
+     */
+    public function attendances()
+    {
+        return $this->hasMany(StudentAttendance::class);
+    }
+    // --- END OF ADDITION ---
 
     protected static function booted()
     {

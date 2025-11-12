@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Policies\StudentPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use App\Models\StudentAttendance;
+use App\Policies\StudentAttendancePolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -21,6 +23,7 @@ class AuthServiceProvider extends ServiceProvider
         // 'App\Models\Model' => 'App\Policies\ModelPolicy',
         User::class => UserPolicy::class,
         Student::class => StudentPolicy::class,
+        StudentAttendance::class => StudentAttendancePolicy::class, // YEH LINE ADD KAREIN
     ];
 
     /**

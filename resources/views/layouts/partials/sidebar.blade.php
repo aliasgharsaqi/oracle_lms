@@ -241,7 +241,7 @@
         </li>
     </ul>
 </li>
-@endcanany
+   @endcanany
 
         </li>
 
@@ -263,15 +263,37 @@
                 Student Diary
             </a>
         </li>
-        <li>
-            <a href="{{ route('attendence') }}"
-                class="nav-link d-flex align-items-center text-white {{ request()->routeIs('attendence') ? 'active' : '' }}"
-                style="gap: 6px; padding: 2px 12px;">
-                <i class="bi bi-journal-text"></i> <!-- Student Diary Icon -->
-                Attendence
-            </a>
-        </li>
         @endif
+
+        <li class="nav-item">
+            <a href="javascript:void(0);" 
+            class="nav-link text-white d-flex align-items-center justify-content-between toggle-dropdown"
+            style="gap: 8px; padding: 1px 14px; border-radius: 8px; transition: all 0.3s;">
+            <div class="d-flex align-items-center" style="gap: 4px;">
+                <i class="bi bi-cash-coin fs-5"></i>
+                <span class="fw-semibold">Attendence</span>
+            </div>
+            <i class="bi bi-chevron-down dropdown-arrow fs-6"></i>
+            </a>
+            <ul class="list-unstyled ps-3 dropdown-submenu"
+                style="display: {{ request()->routeIs(['marks.*','results.*']) ? 'block' : 'none' }};">
+                <li>
+                    <a href="{{ route('attendence.teacher') }}"
+                        class="nav-link bg-transparent d-flex align-items-center text-white {{ request()->routeIs('attendence.*') ? 'active' : '' }}"
+                        style="gap: 6px; padding: 2px 12px;">
+                        <i class="bi bi-card-checklist me-2"></i> Teacher Attendence
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ route('attendance.create') }}"
+                        class="nav-link d-flex align-items-center bg-transparent text-white {{ request()->routeIs('attendence.*') ? 'active' : '' }}"
+                        style="gap: 6px; padding: 2px 12px;">
+                        <i class="bi bi-card-list me-2"></i> Student Attendence
+                    </a>
+                </li>
+            </ul>
+        </li>
     </ul>
 
 

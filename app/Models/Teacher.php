@@ -25,6 +25,26 @@ class Teacher extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Get all attendance records for the teacher.
+     */
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    public function attendanceRecord()
+    {
+        return $this->hasOne(Attendance::class);
+    }
+    /**
+     * Get the attendance record for today.
+     */
+    public function todayAttendance()
+    {
+        return $this->hasOne(Attendance::class)->where('date', today());
+    }
+
     protected static function booted()
     {
         static::addGlobalScope(new SchoolScope);

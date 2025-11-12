@@ -7,8 +7,8 @@
     <title>Result Card - {{ $student->user->name }}</title>
     <style>
         @page {
-        margin: 15px;
-    }
+            margin: 15px;
+        }
 
         body {
             font-family: 'DejaVu Sans', Arial, sans-serif;
@@ -170,11 +170,12 @@
             </div>
             <!-- HEADER -->
             <div style="width: 100%; overflow: hidden; border-bottom: 1px solid #000;">
-                <div style="width: 20%; float: left;">
+                <div style="width: 20%; height: 10%; float: left;">
                     @if($school->logo)
                         <img src="{{ $school->logo }}" alt="School Logo" class="logo">
                     @else
-                        <img src="https://placehold.co/90x90/000/FFF?text=Logo" alt="School Logo" class="logo">
+                        <img src="{{ public_path('images/oracle.png') }}" style="padding-top: 10px;" alt="Logo" width="100" height="120"
+                            height="60%">
                     @endif
                 </div>
                 <div style="width: 80%; float: left; text-align: center; margin-top: 20px;">
@@ -254,12 +255,15 @@
                     </div>
 
                     <!-- Right Side: Student Image -->
-                    <div style="width: 15%; float: left; text-align: center;">
-                        <img src="{{ $student->user->user_pic ?? 'https://placehold.co/100x100' }}" alt="user_image"
-                            loading="lazy"
-                            style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-top: 10px;">
+                    <div>
+                        @if($student->user->user_pic)
+                            <img src="{{ $student->user->user_pic }}" alt="user_image" loading="lazy"
+                                style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-top: 10px;">
+                        @else
+                            <img src="{{ public_path('images/student.jpeg') }}" alt="user_image" loading="lazy"
+                               style=" border-radius: 8px; margin-top: 10px;">
+                        @endif
                     </div>
-
                 </div>
 
             </div>
