@@ -16,4 +16,9 @@ class Attendance extends Model
         'check_in' => 'datetime',
         'check_out' => 'datetime',
     ];
+
+    public function teacher()
+    {
+        return $this->belongsTo(Teacher::class);
+    }
 }

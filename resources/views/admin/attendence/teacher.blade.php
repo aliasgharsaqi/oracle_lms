@@ -7,10 +7,8 @@
 
     <div class=" p-6 rounded-2xl shadow-lg max-w-2xl mx-auto my-6">
     <form method="GET" action="{{ route('attendence.teacher') }}" class="space-y-4">
-        <!-- Title -->
         <h2 class="text-xl font-semibold text-gray-800 mb-3">📅 Attendance Filter</h2>
 
-        <!-- Date Field -->
         <div>
             <label for="date" class="block text-sm font-medium text-gray-700 mb-1">
                 Select Date
@@ -33,11 +31,9 @@
             </div>
         </div>
 
-        <!-- Divider Line -->
         <div class="border-t border-gray-200 my-4"></div>
 
-        <!-- Monthly Report Link -->
-        <div class="text-center">
+        <div class="text-center flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
             <a 
                 href="{{ route('attendence.teacher.monthly_report') }}" 
                 class="inline-flex items-center text-blue-700 font-medium hover:text-blue-800 transition-all duration-300"
@@ -46,6 +42,20 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
+            </a>
+
+            <span class="text-gray-300 hidden sm:inline">|</span>
+
+            {{-- NEW PENDING LEAVES LINK --}}
+            <a 
+                href="{{ route('attendence.teacher.pending_leaves') }}" 
+                class="inline-flex items-center text-yellow-700 font-medium hover:text-yellow-800 transition-all duration-300 relative"
+            >
+                View Pending Leaves
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {{-- You can add a badge here later if you pass a $pending_count --}}
             </a>
         </div>
     </form>
@@ -62,12 +72,20 @@
 
                 $status = $attendance->status ?? 'none';
                 
+                // NEW: Check leave status
+                $leaveStatus = $attendance->leave_status ?? null;
+                $leaveType = $attendance->leave_type ?? null;
+                $isLeavePending = $leaveStatus === 'pending';
+                $isLeaveApproved = $leaveStatus === 'approved';
+                $isLeaveRejected = $leaveStatus === 'rejected';
+
                 $hasCheckedIn = $attendance && $attendance->check_in && !$attendance->check_out; 
                 $hasCheckedOut = $attendance && $attendance->check_out;
                 
                 $isAbsent = $status === 'absent';
-                $isLeave = $status === 'leave';
-                $isShortLeave = $status === 'short_leave';
+                // Only "Approved" leave counts as leave now
+                $isLeave = $status === 'leave' && $isLeaveApproved;
+                $isShortLeave = $status === 'short_leave' && $isLeaveApproved;
                 $isLate = $status === 'late_arrival';
                 $isPresent = $status === 'present';
 
@@ -75,10 +93,24 @@
                 $dotColor = 'bg-gray-400'; // Default (not marked)
                 if ($isPresent) $dotColor = 'bg-green-500';
                 if ($isLate) $dotColor = 'bg-yellow-500'; 
-                if ($isAbsent || $isLeave || $isShortLeave) $dotColor = 'bg-red-500'; 
+                if ($isAbsent) $dotColor = 'bg-red-500';
+                if ($isLeave || $isShortLeave) $dotColor = 'bg-blue-500'; // Approved Leave
                 
                 if ($hasCheckedIn) $dotColor = 'bg-green-500'; // Present
                 if ($hasCheckedOut) $dotColor = 'bg-blue-500'; // Checked Out
+                
+                // NEW: Pending status overrides all
+                if ($isLeavePending) $dotColor = 'bg-yellow-500'; // Pending
+                
+                // Set title for status dot
+                $statusTitle = ucfirst(str_replace('_', ' ', $status));
+                if ($isLeavePending) {
+                    $statusTitle = 'Leave Pending';
+                } elseif ($isLeave) {
+                    $statusTitle = 'Leave (Approved)';
+                } elseif ($isShortLeave) {
+                    $statusTitle = 'Short Leave (Approved)';
+                }
             @endphp
 
             {{-- Main Attendance Card --}}
@@ -96,7 +128,8 @@
                             <p class="text-xs text-gray-500">{{ optional($teacher->user)->email ?? 'No Email' }}</p>
                         </div>
                     </div>
-                    <div id="status-dot-{{ $teacher->id }}" class="w-3 h-3 {{ $dotColor }} rounded-full shadow-sm transition-colors duration-300" title="Status: {{ ucfirst(str_replace('_', ' ', $status)) }}"></div>
+                    {{-- UPDATED: Title now reflects pending status --}}
+                    <div id="status-dot-{{ $teacher->id }}" class="w-3 h-3 {{ $dotColor }} rounded-full shadow-sm transition-colors duration-300" title="Status: {{ $statusTitle }}"></div>
                 </div>
 
                 <div class="flex justify-between items-center pt-4 border-t border-gray-100">
@@ -139,7 +172,8 @@
                             @else
                                 {{-- Show Check In button --}}
                                 @php
-                                    $checkInDisabled = $isPresent || $isLate;
+                                    // UPDATED: Cannot check in if leave is pending
+                                    $checkInDisabled = $isPresent || $isLate || $isLeavePending || $isLeave || $isShortLeave;
                                 @endphp
                                 <button data-teacher-id="{{ $teacher->id }}" data-action="check_in"
                                     class="btn-attendance-action w-full flex items-center justify-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition-all
@@ -154,12 +188,12 @@
                                 <button data-teacher-id="{{ $teacher->id }}" data-action="absent"
                                     class="btn-attendance-action flex-1 flex items-center justify-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition-all
                                     {{ $isAbsent ? 'bg-red-500 text-white cursor-not-allowed' : 'bg-red-100 text-red-700 hover:bg-red-200' }}
-                                    {{ $isAbsent || $hasCheckedIn ? 'disabled' : '' }}">
+                                    {{ $isAbsent || $hasCheckedIn || $isLeavePending ? 'disabled' : '' }}">
                                     Absent
                                 </button>
                                 
                                 @php
-                                    $lateDisabled = $isLate || $hasCheckedIn || $isAbsent || $isLeave || $isShortLeave;
+                                    $lateDisabled = $isLate || $hasCheckedIn || $isAbsent || $isLeave || $isShortLeave || $isLeavePending;
                                 @endphp
                                 <button data-teacher-id="{{ $teacher->id }}" data-action="late_arrival"
                                     class="btn-attendance-action flex-1 flex items-center justify-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition-all
@@ -168,18 +202,20 @@
                                     Late
                                 </button>
                                 
+                                {{-- UPDATED: Short Leave Button --}}
                                 <button data-teacher-id="{{ $teacher->id }}" data-action="short_leave" data-teacher-name="{{ optional($teacher->user)->name }}"
                                     class="btn-leave-modal flex-1 flex items-center justify-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition-all
-                                    {{ $isShortLeave ? 'bg-purple-500 text-white cursor-not-allowed' : 'bg-purple-100 text-purple-700 hover:bg-purple-200' }}"
-                                    {{ $isShortLeave ? 'disabled' : '' }}>
-                                    Short Leave
+                                    {{ $isLeavePending && $leaveType == 'short_leave' ? 'bg-yellow-500 text-white cursor-not-allowed' : ($isShortLeave ? 'bg-purple-500 text-white cursor-not-allowed' : 'bg-purple-100 text-purple-700 hover:bg-purple-200') }}"
+                                    {{ $isLeavePending || $isShortLeave ? 'disabled' : '' }}>
+                                    {{ $isLeavePending && $leaveType == 'short_leave' ? 'Pending' : ($isShortLeave ? 'On Leave' : 'Short Leave') }}
                                 </button>
 
+                                {{-- UPDATED: Full Leave Button --}}
                                 <button data-teacher-id="{{ $teacher->id }}" data-action="leave" data-teacher-name="{{ optional($teacher->user)->name }}"
                                     class="btn-leave-modal flex-1 flex items-center justify-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition-all
-                                    {{ $isLeave ? 'bg-blue-500 text-white cursor-not-allowed' : 'bg-blue-100 text-blue-700 hover:bg-blue-200' }}"
-                                    {{ $isLeave ? 'disabled' : '' }}>
-                                    Apply Leave
+                                    {{ $isLeavePending && $leaveType == 'leave' ? 'bg-yellow-500 text-white cursor-not-allowed' : ($isLeave ? 'bg-blue-500 text-white cursor-not-allowed' : 'bg-blue-100 text-blue-700 hover:bg-blue-200') }}"
+                                    {{ $isLeavePending || $isLeave ? 'disabled' : '' }}>
+                                    {{ $isLeavePending && $leaveType == 'leave' ? 'Pending' : ($isLeave ? 'On Leave' : 'Apply Leave') }}
                                 </button>
                             </div>
                         @endif
@@ -189,7 +225,7 @@
                         
                         @php
                             $presentActive = $isPresent;
-                            $absentActive = $isAbsent;
+                            $absentActive = $isAbsent && !$isLeavePending; // Don't show active absent if leave is pending
                             $leaveActive = $isLeave;
                             $shortLeaveActive = $isShortLeave;
                             $lateActive = $isLate;
@@ -201,7 +237,7 @@
                                 data-action="present"
                                 class="btn-past-action flex-1 items-center justify-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition-all
                                 {{ $presentActive ? 'bg-green-500 text-white cursor-not-allowed' : 'bg-green-100 text-green-700 hover:bg-green-200' }}"
-                                {{ $presentActive ? 'disabled' : '' }}>
+                                {{ $presentActive || $isLeavePending ? 'disabled' : '' }}>
                                 Present
                             </button>
                             <button 
@@ -209,7 +245,7 @@
                                 data-action="absent"
                                 class="btn-past-action flex-1 items-center justify-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition-all
                                 {{ $absentActive ? 'bg-red-500 text-white cursor-not-allowed' : 'bg-red-100 text-red-700 hover:bg-red-200' }}"
-                                {{ $absentActive ? 'disabled' : '' }}>
+                                {{ $absentActive || $isLeavePending ? 'disabled' : '' }}>
                                 Absent
                             </button>
                             <button 
@@ -217,22 +253,29 @@
                                 data-action="late_arrival"
                                 class="btn-past-action flex-1 items-center justify-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition-all
                                 {{ $lateActive ? 'bg-yellow-500 text-white cursor-not-allowed' : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' }}"
-                                {{ $lateActive ? 'disabled' : '' }}>
+                                {{ $lateActive || $isLeavePending ? 'disabled' : '' }}>
                                 Late
                             </button>
+                            
+                            {{-- UPDATED: Past Leave Button --}}
                             <button 
                                 data-teacher-id="{{ $teacher->id }}" 
                                 data-action="leave"
                                 data-teacher-name="{{ optional($teacher->user)->name }}"
                                 class="btn-past-leave-modal flex-1 items-center justify-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition-all
-                                {{ $leaveActive ? 'bg-blue-500 text-white cursor-not-allowed' : 'bg-blue-100 text-blue-700 hover:bg-blue-200' }}"
-                                {{ $leaveActive ? 'disabled' : '' }}>
-                                Leave
+                                {{ $isLeavePending ? 'bg-yellow-500 text-white cursor-not-allowed' : ($leaveActive ? 'bg-blue-500 text-white cursor-not-allowed' : 'bg-blue-100 text-blue-700 hover:bg-blue-200') }}"
+                                {{ $isLeavePending || $leaveActive ? 'disabled' : '' }}>
+                                {{ $isLeavePending ? 'Pending' : ($leaveActive ? 'On Leave' : 'Leave') }}
                             </button>
                         </div>
                         
                         @if ($attendance && $attendance->notes)
-                            <p class="text-xs text-gray-600 mt-2"><strong>Notes:</strong> {{ $attendance->notes }}</p>
+                            <p class="text-xs text-gray-600 mt-2">
+                                <strong>Notes:</strong> {{ $attendance->notes }}
+                                @if ($isLeaveRejected)
+                                    <span class="font-bold text-red-600">(Leave Rejected)</span>
+                                @endif
+                            </p>
                         @endif
 
                     @endif
@@ -427,9 +470,19 @@
             if (formType === 'past') {
                 url = "{{ route('attendence.teacher.update_past') }}";
                 formData.append('date', selectedDate); // Past date ke liye date add karein
+
+                // ==========================================================
+                // === THE FIX IS HERE ===
+                // The controller expects 'action', but the form only has 'leave_type'.
+                // We must read the value from 'leave_type' and add it as 'action'.
+                var action = document.getElementById('modal_leave_type').value;
+                formData.append('action', action);
+                // ==========================================================
+
             } else {
                 url = "{{ route('attendence.teacher.leave') }}";
                 // Today ke liye date add karne ki zaroorat nahi, controller khud kar lega
+                // The 'apply_leave' controller correctly reads 'leave_type', so no change is needed.
             }
 
             fetch(url, {
@@ -444,13 +497,26 @@
             .then(({ok, data}) => {
                 if (ok) {
                     closeModal();
-                    alert('Attendance updated successfully!');
+                    
+                    // Give specific feedback
+                    if (data.leave_status === 'pending') {
+                        alert('Leave request submitted and is pending approval.');
+                    } else {
+                        alert('Attendance updated successfully!');
+                    }
+                    
                     location.reload(); 
                 } else {
-                    if (data.errors && data.errors.reason) {
-                        throw new Error(data.errors.reason[0]);
+                    // This is where your error was likely coming from (Validation Error)
+                    if (data.errors) {
+                        if (data.errors.reason) {
+                            throw new Error(data.errors.reason[0]);
+                        }
+                        if (data.errors.action) {
+                            throw new Error(data.errors.action[0]);
+                        }
                     }
-                    throw new Error(data.error || 'An error occurred.');
+                    throw new Error(data.error || 'An error occurred. Please check console.');
                 }
             })
             .catch(error => {

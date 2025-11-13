@@ -7,13 +7,13 @@
         <a href="/" class="d-flex align-items-center text-white text-decoration-none">
             <div class="sidebar-brand-icon bg-white rounded-circle d-flex align-items-center p-2 justify-content-center">
                 @if (Auth::user()->school && Auth::user()->school->logo)
-                <img src="{{ asset('storage/' . Auth::user()->school->logo) }}" alt="{{ Auth::user()->school->name }} Logo" style="max-width: 70px; max-height: 90px;">
-                @else
                 <img src="{{ asset('images/oracle.png') }}" alt="Logo" style="max-width: 50px; max-height: 70px;">
+                @else
+                <img src="{{ asset('storage/' . Auth::user()->school->logo) }}" alt="{{ Auth::user()->school->name }} Logo" style="max-width: 70px; max-height: 90px;">
                 @endif
             </div>
             @if (Auth::user()->school)
-            <span class="fs-4 fw-bold ms-3 d-none d-lg-inline">{{ Auth::user()->school->name }}</span>
+            <span class="fzs-4 fw-bold ms-3 d-none d-lg-inline">{{ Auth::user()->school->name }}</span>
             @else
             <span class="fs-4 fw-bold ms-3 d-none d-lg-inline">Oracles Force</span>
             @endif
@@ -286,7 +286,7 @@
                 </li>
 
                 <li>
-                    <a href="{{ route('result-cards.index') }}"
+                    <a href="{{ route('attendance.create') }}"
                         class="nav-link d-flex align-items-center bg-transparent text-white {{ request()->routeIs('attendence.*') ? 'active' : '' }}"
                         style="gap: 6px; padding: 2px 12px;">
                         <i class="bi bi-card-list me-2"></i> Student Attendence
