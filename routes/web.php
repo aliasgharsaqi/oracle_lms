@@ -148,11 +148,21 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::post('attendence/teacher/update-past', [AttendenceController::class, 'update_past_attendance'])->name('attendence.teacher.update_past');
     Route::get('attendence/monthly-report', [AttendenceController::class, 'monthly_report'])->name('attendence.teacher.monthly_report');
 });
+Route::controller(AttendenceController::class)->prefix('admin')->middleware(['auth'])->group(function () {
+    // ... your existing routes like 'attendence.teacher' ...
+    
+    // New Routes for Leave Approval
+    Route::get('attendance/pending-leaves', 'show_pending_leaves')
+         ->name('attendence.teacher.pending_leaves');
+         
+    Route::post('attendance/action-on-leave', 'action_on_leave')
+         ->name('attendence.teacher.action_on_leave');
+});
 
 
-Route::get('/fees/receipt/{voucher}/print-4-up', [FeeController::class, 'printReceipt4Up'])
-     ->name('admin.fees.receipt.print4up');
-Route::get('marks/export', [MarksController::class, 'export'])->name('marks.export');
+// Route::get('/fees/receipt/{voucher}/print-4-up', [FeeController::class, 'printReceipt4Up'])
+//      ->name('admin.fees.receipt.print4up');
+// Route::get('marks/export', [MarksController::class, 'export'])->name('marks.export');
 
 
 Route::get('/teacher_diary', function () {

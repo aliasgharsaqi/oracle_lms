@@ -17,13 +17,16 @@
         font-size: 12px;
         line-height: 1;
     }
-    .att-p { background-color: #dcfce7; color: #166534; } /* Present */
-    .att-a { background-color: #fee2e2; color: #991b1b; } /* Absent */
-    .att-l { background-color: #fef9c3; color: #854d0e; } /* Late */
-    .att-sl { background-color: #f3e8ff; color: #6b21a8; } /* Short Leave */
-    .att-lv { background-color: #e0f2fe; color: #0369a1; } /* Leave */
-    .att-w { background-color: #f3f4f6; color: #4b5563; } /* Weekend */
-    .att-na { background-color: #f3f4f6; color: #9ca3af; } /* Not Marked */
+    /* Tailwind classes are used for backgrounds directly in the HTML.
+      These classes are for the text color inside the circles.
+    */
+    .att-p { background-color: #dcfce7; color: #166534; } /* Present (bg-green-50) */
+    .att-a { background-color: #fee2e2; color: #991b1b; } /* Absent (bg-red-50) */
+    .att-l { background-color: #fef9c3; color: #854d0e; } /* Late (bg-yellow-50) */
+    .att-sl { background-color: #f3e8ff; color: #6b21a8; } /* Short Leave (bg-purple-50) */
+    .att-lv { background-color: #e0f2fe; color: #0369a1; } /* Leave (bg-blue-50) */
+    .att-w { background-color: #f3f4f6; color: #4b5563; } /* Weekend (bg-gray-100) */
+    .att-na { background-color: #f3f4f6; color: #9ca3af; } /* Not Marked (bg-gray-100) */
 
     /* Small legend badges */
     .att-legend {
@@ -72,7 +75,7 @@
                 <div class="flex items-center gap-1.5"><span class="att-status att-legend att-p">P</span> Present</div>
                 <div class="flex items-center gap-1.5"><span class="att-status att-legend att-a">A</span> Absent</div>
                 <div class="flex items-center gap-1.5"><span class="att-status att-legend att-l">L</span> Late</div>
-                <div class="flex items-center gap-1.5"><span class="att-status att-legend att-lv">LV</span> Leave</div>
+                <div class="flex items-center gap-1.5"><span class="att-status att-legend att-lv">L</span> Leave</div>
                 <div class="flex items-center gap-1.5"><span class="att-status att-legend att-sl">SL</span> Short Leave</div>
                 <div class="flex items-center gap-1.5"><span class="att-status att-legend att-w">W</span> Weekend</div>
             </div>
@@ -86,7 +89,7 @@
         Ye section ab har screen par nazar ayega.
         Ye 1-col (mobile), 2-col (tablet/desktop), aur 3-col (large desktop) layout hai.
     --}}
-    <div class="grid grid-cols-1 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         @foreach ($teachers as $teacher)
             @php
                 // Har teacher ke liye logic ko pre-calculate karein
@@ -97,33 +100,66 @@
                     $dateString = $date->format('Y-m-d');
                     $record = $attendanceMatrix[$teacher->id][$dateString] ?? null;
                     
+                    // ========================================================
+                    // === YAHAN BADLAO KIYA GAYA HAI ===
+                    // Sirf Sunday ko weekend mana jayega
+                    // ========================================================
+                    $isWeekend = $date->isSunday();
+
                     // att-status-sm mobile ke liye choti class hai
                     $statusDisplay = '<span class="att-status att-status-sm att-na">-</span>'; 
+                    $statusClass = ''; // Default background class
                     
                     if ($record) {
                         switch ($record->status) {
                             case 'present':
-                                $statusDisplay = '<span class="att-status att-status-sm att-p">P</span>'; $totalPresent++; break;
+                                $statusDisplay = '<span class="att-status att-status-sm att-p">P</span>'; 
+                                $totalPresent++; 
+                                $statusClass = 'bg-green-50'; // att-p background
+                                break;
                             case 'absent':
-                                $statusDisplay = '<span class="att-status att-status-sm att-a">A</span>'; $totalAbsent++; break;
+                                $statusDisplay = '<span class="att-status att-status-sm att-a">A</span>'; 
+                                $totalAbsent++; 
+                                $statusClass = 'bg-red-50'; // att-a background
+                                break;
                             case 'late_arrival':
-                                $statusDisplay = '<span class="att-status att-status-sm att-l">L</span>'; $totalLate++; break;
+                                $statusDisplay = '<span class="att-status att-status-sm att-l">L</span>'; 
+                                $totalLate++; 
+                                $statusClass = 'bg-yellow-50'; // att-l background
+                                break;
                             case 'leave':
-                                $statusDisplay = '<span class="att-status att-status-sm att-lv">L</span>'; $totalLeave++; break;
+                                $statusDisplay = '<span class="att-status att-status-sm att-lv">L</span>'; // <-- FIXED TYPO
+                                $totalLeave++; 
+                                $statusClass = 'bg-blue-50'; // att-lv background
+                                break;
                             case 'short_leave':
-                                $statusDisplay = '<span class="att-status att-status-sm att-sl">SL</span>'; $totalShortLeave++; break;
+                                $statusDisplay = '<span class="att-status att-status-sm att-sl">SL</span>'; 
+                                $totalShortLeave++; 
+                                $statusClass = 'bg-purple-50'; // att-sl background
+                                break;
+                            default:
+                                 $statusClass = 'bg-gray-100'; // att-w/att-na background
                         }
-                    } elseif ($date->isSunday()) {
+                    } elseif ($isWeekend) {
                         $statusDisplay = '<span class="att-status att-status-sm att-w">W</span>';
+                        $statusClass = 'bg-gray-100'; // att-w background
                     } elseif ($date->isFuture()) {
                         $statusDisplay = '<span class="att-status att-status-sm att-na">-</span>';
+                        $statusClass = 'bg-gray-100'; // att-na background
+                    } else {
+                         // Past dates that were not marked
+                         $statusClass = 'bg-gray-100'; // att-na background
                     }
                     
                     $dateCells[] = [
                         'day' => $date->format('j'),
                         'dayName' => $date->format('D'),
                         'html' => $statusDisplay,
-                        'isWeekend' => $date->isSunday(),
+                        // ========================================================
+                        // === YAHAN BHI BADLAO KIYA GAYA HAI ===
+                        // ========================================================
+                        'isWeekend' => $date->isSunday(), // Keep this for the header loop
+                        'statusClass' => $statusClass // Pass the class to the view
                     ];
                 }
             @endphp
@@ -164,7 +200,13 @@
                         
                         {{-- Asal din (days) --}}
                         @foreach ($dateCells as $cell)
-                            <div class="flex flex-col items-center py-1 {{ $cell['isWeekend'] ? 'bg-gray-50' : '' }} rounded-sm">
+                            {{-- 
+                              ============================================================
+                              === YAHAN BADLAO KIYA GAYA HAI ===
+                              ============================================================
+                              Ab poora cell 'statusClass' (e.g., bg-red-50) ka background lega.
+                            --}}
+                            <div class="flex flex-col items-center py-1 {{ $cell['statusClass'] }} rounded-sm">
                                 <span class="text-xs text-gray-500">{{ $cell['day'] }}</span>
                                 {!! $cell['html'] !!}
                             </div>
@@ -174,12 +216,5 @@
             </div>
         @endforeach
     </div>
-
-    {{-- 
-        ============================================================
-        PURANA DESKTOP VIEW (TABLE-BASED) - (REMOVED)
-        ============================================================
-        Maine desktop wala table wala section poori tarah delete kar diya hai.
-    --}}
 
 @endsection

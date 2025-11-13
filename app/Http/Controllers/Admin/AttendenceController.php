@@ -1,14 +1,13 @@
 <?php
-
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Teacher;
 use App\Models\Attendance;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon; // Carbon ko import karein
+use App\Models\Teacher;
+use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use Illuminate\Http\Request; // Carbon ko import karein
+use Illuminate\Support\Facades\Auth;
 
 class AttendenceController extends Controller
 {
@@ -27,11 +26,11 @@ class AttendenceController extends Controller
 
         // Selected date ke hisab se attendance record load karein
         $teachers = Teacher::with(['user', 'attendanceRecord' => function ($query) use ($selected_date) {
-                            $query->where('date', $selected_date->toDateString());
-                        }])
-                        ->where('school_id', $school_id)
-                        ->get();
-        
+            $query->where('date', $selected_date->toDateString());
+        }])
+            ->where('school_id', $school_id)
+            ->get();
+
         return view('admin.attendence.teacher', compact('teachers', 'selected_date'));
     }
 
@@ -42,33 +41,33 @@ class AttendenceController extends Controller
     {
         $request->validate([
             'teacher_id' => 'required|exists:teachers,id',
-            'action' => 'required|in:check_in,check_out,absent,late_arrival',
+            'action'     => 'required|in:check_in,check_out,absent,late_arrival',
         ]);
 
         $school_id = Auth::user()->school_id;
-        $admin_id = Auth::id();
-        $today = today(); // Ye function SIRF aaj ke liye hai
+        $admin_id  = Auth::id();
+        $today     = today(); // Ye function SIRF aaj ke liye hai
 
         $teacher = Teacher::where('id', $request->teacher_id)
-                          ->where('school_id', $school_id)
-                          ->firstOrFail();
+            ->where('school_id', $school_id)
+            ->firstOrFail();
 
         $attendance = Attendance::firstOrNew([
             'teacher_id' => $teacher->id,
-            'date' => $today,
+            'date'       => $today,
         ]);
 
-        if (!$attendance->exists) {
+        if (! $attendance->exists) {
             $attendance->school_id = $school_id;
             $attendance->marked_by = $admin_id;
         }
 
         switch ($request->action) {
             case 'check_in':
-                $attendance->status = 'present';
+                $attendance->status   = 'present';
                 $attendance->check_in = now(); // Timestamp set karein
                 break;
-            
+
             case 'check_out':
                 if ($attendance->check_in) {
                     $attendance->check_out = now(); // Timestamp set karein
@@ -79,12 +78,12 @@ class AttendenceController extends Controller
 
             case 'absent':
                 $attendance->status = 'absent';
-                $attendance->notes = 'Marked absent by admin.';
+                $attendance->notes  = 'Marked absent by admin.';
                 break;
 
             case 'late_arrival':
                 $attendance->status = 'late_arrival';
-                if (!$attendance->check_in) { 
+                if (! $attendance->check_in) {
                     $attendance->check_in = now(); // Timestamp set karein
                 }
                 $attendance->notes = 'Marked late by admin.';
@@ -95,92 +94,129 @@ class AttendenceController extends Controller
 
         return response()->json([
             'success' => true,
-            'status' => $attendance->status,
+            'status'  => $attendance->status,
         ]);
     }
 
     /**
-     * AAJ (Today) ke liye leave apply karein.
+     * AAJ (Today) ke liye leave request karein.
      */
     public function apply_leave(Request $request)
     {
         $request->validate([
             'teacher_id' => 'required|exists:teachers,id',
             'leave_type' => 'required|in:leave,short_leave',
-            'reason' => 'required|string|min:5',
+            'reason'     => 'required|string|min:5',
         ]);
 
         $school_id = Auth::user()->school_id;
-        $admin_id = Auth::id();
-        $today = today(); // Ye function SIRF aaj ke liye hai
+        $admin_id  = Auth::id();
+        $today     = today();
 
         $teacher = Teacher::where('id', $request->teacher_id)
-                          ->where('school_id', $school_id)
-                          ->firstOrFail();
+            ->where('school_id', $school_id)
+            ->firstOrFail();
 
-        $attendance = Attendance::updateOrCreate(
+        // Check if attendance already exists
+        $attendance = Attendance::firstOrNew(
             [
                 'teacher_id' => $teacher->id,
-                'date' => $today,
-            ],
-            [
-                'school_id' => $school_id,
-                'status' => $request->leave_type,
-                'notes' => $request->reason,
-                'marked_by' => $admin_id,
-                'check_in' => null, 
-                'check_out' => null,
+                'date'       => $today,
             ]
         );
 
+        // Don't change the main status yet. Mark it as 'absent' by default.
+        if (! $attendance->exists) {
+            $attendance->school_id = $school_id;
+            $attendance->status    = 'absent'; // Mark as absent until approved
+            $attendance->marked_by = $admin_id;
+        }
+
+                                                          // Set leave-specific details
+        $attendance->leave_type   = $request->leave_type; // We should add this column! (See note below)
+        $attendance->leave_status = 'pending';            // NEW
+        $attendance->notes        = $request->reason;     // Reason
+        $attendance->check_in     = null;
+        $attendance->check_out    = null;
+
+        $attendance->save();
+
         return response()->json([
-            'success' => true,
-            'status' => $attendance->status,
+            'success'      => true,
+            'status'       => $attendance->status,
+            'leave_status' => $attendance->leave_status, // Send back new status
         ]);
     }
 
-    /**
-     * NAYA FUNCTION: Guzishta (Past) attendance ko update karein.
-     */
     public function update_past_attendance(Request $request)
     {
         $request->validate([
             'teacher_id' => 'required|exists:teachers,id',
-            'action' => 'required|in:present,absent,leave,short_leave,late_arrival',
-            'date' => 'required|date_format:Y-m-d',
-            'reason' => 'nullable|string|min:5|required_if:action,leave,short_leave',
+            'action'     => 'required|in:present,absent,leave,short_leave,late_arrival',
+            'date'       => 'required|date_format:Y-m-d',
+            'reason'     => 'nullable|string|min:5|required_if:action,leave,short_leave',
         ]);
 
-        $school_id = Auth::user()->school_id;
-        $admin_id = Auth::id();
+        $school_id     = Auth::user()->school_id;
+        $admin_id      = Auth::id();
         $selected_date = Carbon::parse($request->date);
 
-        // Security: Is function se aaj ki ya future ki date edit nahi ho sakti
         if ($selected_date->isToday() || $selected_date->isFuture()) {
             return response()->json(['error' => 'Cannot edit today or a future date with this method.'], 422);
         }
 
         $teacher = Teacher::where('id', $request->teacher_id)
-                          ->where('school_id', $school_id)
-                          ->firstOrFail();
+            ->where('school_id', $school_id)
+            ->firstOrFail();
 
-        // Sirf status update karein, koi timestamp (check_in/out) nahi
-        $attendance = Attendance::updateOrCreate(
+        // Get the existing record or create a new one
+        $attendance = Attendance::firstOrNew(
             [
                 'teacher_id' => $teacher->id,
-                'date' => $selected_date,
-            ],
-            [
-                'school_id' => $school_id,
-                'status' => $request->action,
-                'marked_by' => $admin_id,
-                'notes' => $request->reason ?? 'Updated by admin',
-                'check_in' => null, // Manual override pe timestamps clear karein
-                'check_out' => null,
+                'date'       => $selected_date,
             ]
         );
 
-        return response()->json(['success' => true, 'status' => $attendance->status]);
+        if (! $attendance->exists) {
+            $attendance->school_id = $school_id;
+            $attendance->marked_by = $admin_id;
+        }
+
+        // Handle Leave requests separately
+        if ($request->action == 'leave' || $request->action == 'short_leave') {
+
+            $attendance->status       = 'absent';         // Mark as absent until approved
+            $attendance->leave_type   = $request->action; // Store 'leave' or 'short_leave'
+            $attendance->leave_status = 'pending';        // Set to pending
+            $attendance->notes        = $request->reason ?? 'Leave request submitted by admin';
+            $attendance->check_in     = null;
+            $attendance->check_out    = null;
+
+        } else {
+            // Handle Present, Absent, Late
+
+            $attendance->status = $request->action;
+            $attendance_notes   = $request->reason ?? 'Updated by admin';
+
+            // Clear leave status if we are marking as present/absent
+            if ($request->action == 'present' || $request->action == 'absent' || $request->action == 'late_arrival') {
+                $attendance->leave_type   = null;
+                $attendance->leave_status = null;
+                $attendance_notes         = 'Updated to ' . $request->action . ' by admin';
+            }
+
+            $attendance->notes     = $attendance_notes;
+            $attendance->check_in  = null;
+            $attendance->check_out = null;
+        }
+
+        $attendance->save();
+
+        return response()->json([
+            'success'      => true,
+            'status'       => $attendance->status,
+            'leave_status' => $attendance->leave_status,
+        ]);
     }
 
     public function monthly_report(Request $request)
@@ -189,13 +225,13 @@ class AttendenceController extends Controller
 
         // Mahina (Month) aur Saal (Year) request se lein, warna default aaj ka mahina
         $selectedMonth = $request->input('month', now()->format('Y-m'));
-        
+
         try {
             $startDate = Carbon::parse($selectedMonth)->startOfMonth();
-            $endDate = $startDate->copy()->endOfMonth();
+            $endDate   = $startDate->copy()->endOfMonth();
         } catch (\Exception $e) {
             $startDate = now()->startOfMonth();
-            $endDate = now()->endOfMonth();
+            $endDate   = now()->endOfMonth();
         }
 
         // Mahine ke tamam din (dates) generate karein
@@ -205,7 +241,7 @@ class AttendenceController extends Controller
         $teachers = Teacher::with('user')
             ->where('school_id', $school_id)
             ->get();
-            
+
         // Tamam teachers ki poore mahine ki attendance ek hi query mein lein
         $attendances = Attendance::where('school_id', $school_id)
             ->whereIn('teacher_id', $teachers->pluck('id'))
@@ -220,12 +256,65 @@ class AttendenceController extends Controller
                     return $att->date->format('Y-m-d'); // Date ko key banayein
                 });
             });
-            
+
         return view('admin.attendence.monthly_report', compact(
-            'teachers', 
-            'dates', 
-            'selectedMonth', 
+            'teachers',
+            'dates',
+            'selectedMonth',
             'attendanceMatrix'
         ));
+    }
+
+    // app/Http/Controllers/Admin/AttendenceController.php
+
+    /**
+     * Show all pending leave requests.
+     */
+    public function show_pending_leaves(Request $request)
+    {
+        $school_id = Auth::user()->school_id;
+
+        $pending_leaves = Attendance::with('teacher.user')
+            ->where('school_id', $school_id)
+            ->where('leave_status', 'pending')
+            ->orderBy('date', 'desc')
+            ->get();
+
+        return view('admin.attendence.pending_leaves', compact('pending_leaves'));
+    }
+
+    /**
+     * Approve or Reject a leave request.
+     */
+    public function action_on_leave(Request $request)
+    {
+        $request->validate([
+            'attendance_id' => 'required|exists:attendances,id',
+            'action'        => 'required|in:approve,reject',
+        ]);
+
+        $school_id = Auth::user()->school_id;
+
+        $attendance = Attendance::where('id', $request->attendance_id)
+            ->where('school_id', $school_id)
+            ->firstOrFail();
+
+        if ($request->action == 'approve') {
+            $attendance->leave_status = 'approved';
+            // Now we set the official status to 'leave' or 'short_leave'
+            $attendance->status = $attendance->leave_type ?? 'leave';
+        } else {
+            $attendance->leave_status = 'rejected';
+            // If rejected, they remain marked 'absent'
+            $attendance->status = 'absent';
+            $attendance->notes  = ($attendance->notes ?? '') . ' (Leave Rejected)';
+        }
+
+        $attendance->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Leave ' . $request->action . 'd.',
+        ]);
     }
 }
