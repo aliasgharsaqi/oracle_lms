@@ -18,7 +18,7 @@
         line-height: 1;
     }
     /* Tailwind classes are used for backgrounds directly in the HTML.
-      These classes are for the text color inside the circles.
+       These classes are for the text color inside the circles.
     */
     .att-p { background-color: #dcfce7; color: #166534; } /* Present (bg-green-50) */
     .att-a { background-color: #fee2e2; color: #991b1b; } /* Absent (bg-red-50) */
@@ -46,7 +46,7 @@
 
 @section('content')
 
-{{-- Filter Form --}}
+{{-- Filter Form (Aapka existing code) --}}
 <div class="bg-white shadow-lg rounded-lg p-6 mb-6">
     <h3 class="text-xl font-semibold text-gray-800 mb-4">Select Class and Month</h3>
     <form action="{{ route('attendance.showReport') }}" method="POST"
@@ -83,7 +83,7 @@
         </div>
     </form>
 
-    {{-- Naya Legend Section --}}
+    {{-- Legend Section (Aapka existing code) --}}
     <div class="border-t mt-4 pt-4">
         <h4 class="text-xs font-semibold text-gray-600 uppercase mb-2">Legend</h4>
         <div class="flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-700">
@@ -126,7 +126,15 @@
                     $statusDisplay = '<span class="att-status att-status-sm att-na">-</span>'; 
                     $statusClass = ''; // Default background class
                     
+                    // *** CHANGE 1: Timings ko yahan initialize karein ***
+                    $checkInTime = null;
+                    $checkOutTime = null;
+
                     if ($record) {
+                        // *** CHANGE 2: Timings ko record se extract karein ***
+                        $checkInTime = $record->check_in ? \Carbon\Carbon::parse($record->check_in)->format('h:i A') : null;
+                        $checkOutTime = $record->check_out ? \Carbon\Carbon::parse($record->check_out)->format('h:i A') : null;
+
                         switch ($record->status) {
                             case 'present':
                                 $statusDisplay = '<span class="att-status att-status-sm att-p">P</span>'; 
@@ -149,7 +157,7 @@
                                 $statusClass = 'bg-blue-50'; // att-lv background
                                 break;
                             default:
-                                 $statusClass = 'bg-gray-100'; // att-w/att-na background
+                                $statusClass = 'bg-gray-100'; // att-w/att-na background
                         }
                     } elseif ($isWeekend) {
                         $statusDisplay = '<span class="att-status att-status-sm att-w">W</span>';
@@ -160,12 +168,15 @@
                          $statusClass = 'bg-gray-100'; // att-na background
                     }
                     
+                    // *** CHANGE 3: Timings ko array mein save karein ***
                     $dateCells[] = [
                         'day' => $date->format('j'),
                         'dayName' => $date->format('D'),
                         'html' => $statusDisplay,
                         'isWeekend' => $isWeekend,
-                        'statusClass' => $statusClass // Pass the class to the view
+                        'statusClass' => $statusClass, // Pass the class to the view
+                        'check_in' => $checkInTime,
+                        'check_out' => $checkOutTime
                     ];
                 }
             @endphp
@@ -177,6 +188,7 @@
                     <p class="text-xs text-gray-500">{{ $student->id_card_number }}</p>
                 </div>
                 
+                {{-- Totals (Aapka existing code) --}}
                 <div class="flex justify-around text-center py-3 bg-gray-50">
                     <div>
                         <span class="text-xs text-gray-500">Present</span>
@@ -206,9 +218,28 @@
                         
                         {{-- Asal din (days) --}}
                         @foreach ($dateCells as $cell)
-                            <div class="flex flex-col items-center py-1 {{ $cell['statusClass'] }} rounded-sm">
-                                <span class="text-xs text-gray-500">{{ $cell['day'] }}</span>
+                            {{-- *** CHANGE 4: Cell HTML ko update kiya gaya *** --}}
+                            <div class="flex flex-col items-center justify-between py-1 {{ $cell['statusClass'] }} rounded-sm h-16 text-center">
+                                {{-- 1. Din ka number --}}
+                                <span class="text-xs font-medium text-gray-500">{{ $cell['day'] }}</span>
+                                
+                                {{-- 2. Status Circle (P, A, L) --}}
                                 {!! $cell['html'] !!}
+                                
+                                {{-- 3. REQ 3.1: Check-in/Check-out Times --}}
+                                <div class="text-center" style="font-size: 0.65rem; line-height: 1.1;">
+                                    @if($cell['check_in'])
+                                        <span class="text-green-800">{{ $cell['check_in'] }}</span>
+                                    @else
+                                        <span>&nbsp;</span> {{-- Placeholder to maintain height --}}
+                                    @endif
+                                    
+                                    @if($cell['check_out'])
+                                        <span class="text-red-700">{{ $cell['check_out'] }}</span>
+                                    @else
+                                         <span>&nbsp;</span> {{-- Placeholder to maintain height --}}
+                                    @endif
+                                </div>
                             </div>
                         @endforeach
                     </div>

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\SchoolClass;
 use App\Models\Student;
-use App\Models\StudentAttendance;
+use App\Models\StudentAttendance; // Iska model StudentAttendance hai
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -21,13 +21,12 @@ class StudentAttendanceController extends Controller
 
         $classes = SchoolClass::where('school_id', auth()->user()->school_id)->get();
         
-        // *** FIX 1: Corrected View Path ***
+        // View path (jaisa aapne file mein provide kiya)
         return view('admin.students.attendence', compact('classes')); 
     }
 
     /**
      * Fetch students for a given class and date.
-     * This is called when the user selects a class and date.
      */
     public function fetchStudents(Request $request)
     {
@@ -41,7 +40,6 @@ class StudentAttendanceController extends Controller
         $classId = $request->input('school_class_id');
         $date = Carbon::parse($request->input('attendance_date'))->format('Y-m-d');
 
-        // Eager load user and check for existing attendance on the selected date
         $students = Student::with(['user', 'attendances' => function ($query) use ($date) {
             $query->where('attendance_date', $date);
         }])
@@ -49,15 +47,14 @@ class StudentAttendanceController extends Controller
         ->whereHas('user', function ($query) {
             $query->where('status', 1); // Assuming 1 is 'active'
         })
-        ->orderBy('id_card_number') // Or order by user.name, etc.
+        ->orderBy('id_card_number') 
         ->get();
 
-        // Pass the selected class and date back to the view
         $classes = SchoolClass::where('school_id', auth()->user()->school_id)->get();
         $selectedClassId = $classId;
         $selectedDate = $date;
 
-        // *** FIX 2: Corrected View Path ***
+        // View path (jaisa aapne file mein provide kiya)
         return view('admin.students.attendence', compact('classes', 'students', 'selectedClassId', 'selectedDate'));
     }
 
@@ -83,6 +80,19 @@ class StudentAttendanceController extends Controller
             $date = Carbon::parse($request->input('attendance_date'))->format('Y-m-d');
 
             foreach ($request->input('attendance') as $attnData) {
+                
+                // REQ 2.1: Auto Check-in on 'Late'
+                $checkInTime = null;
+                if ($attnData['status'] == 'late') {
+                    // Check karein agar pehle se check_in nahi hai (optional)
+                    $existing = StudentAttendance::where('student_id', $attnData['student_id'])
+                                                 ->where('attendance_date', $date)
+                                                 ->first();
+                    
+                    // Agar pehle se check_in hai to usay retain karein, warna naya time set karein
+                    $checkInTime = $existing->check_in ?? now()->format('H:i:s');
+                }
+
                 StudentAttendance::updateOrCreate(
                     [
                         'student_id' => $attnData['student_id'],
@@ -93,12 +103,17 @@ class StudentAttendanceController extends Controller
                         'school_id' => $schoolId,
                         'status' => $attnData['status'],
                         'remarks' => $attnData['remarks'] ?? null,
+                        'check_in' => $checkInTime, // REQ 2.1 Applied
+                        'check_out' => null, // updateOrCreate mein default set karein
                     ]
                 );
             }
 
             DB::commit();
-            return redirect()->route('admin.students.attendance')->with('success', 'Attendance marked successfully!');
+            
+            // REQ 3.2: Routing Fix
+            // 'admin.students.attendance' ki jagah 'attendance.create' (jo web.php mein defined hai)
+            return redirect()->route('attendance.create')->with('success', 'Attendance marked successfully!');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -106,25 +121,17 @@ class StudentAttendanceController extends Controller
         }
     }
 
-    /**
-     * Show the report filter page.
-     */
+    // ... report() aur showReport() methods (jaisa aapne provide kiya) ...
     public function report()
     {
-        $this->authorize('viewAny', StudentAttendance::class); // Assumes Policy exists
-        
-        // *** FIX 3: Added $classes here ***
+        $this->authorize('viewAny', StudentAttendance::class);
         $classes = SchoolClass::where('school_id', auth()->user()->school_id)->get();
-        
-        // *** FIX 4: Corrected View Path ***
         return view('admin.students.report', compact('classes'));
     }
 
-    /**
-     * Show the generated attendance report.
-     */
     public function showReport(Request $request)
     {
+        // ... Aapka poora existing code ...
         $request->validate([
             'school_class_id' => 'required|exists:school_classes,id',
             'month' => 'required|date_format:Y-m',
@@ -155,13 +162,10 @@ class StudentAttendanceController extends Controller
         $daysInMonth = $startDate->daysInMonth;
         $dateRange = range(1, $daysInMonth);
         $schoolClass = SchoolClass::find($classId);
-
-        // *** FIX 5: Added $classes here for the form dropdown after submission ***
         $classes = SchoolClass::where('school_id', auth()->user()->school_id)->get();
 
-        // *** FIX 6: Corrected View Path and added 'classes' to compact() ***
         return view('admin.students.report', compact(
-            'classes', // <-- ADDED
+            'classes', 
             'students', 
             'attendances', 
             'daysInMonth', 
