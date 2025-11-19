@@ -130,7 +130,7 @@ return view('admin.leaves.student_pending', compact('pending_leaves'));
                         'school_id' => $student->school_id,
                         'school_class_id' => $student->school_class_id,
                         'status' => $status,
-                        // 'check_out' => $check_out,  <-- YE LINE ERROR DE RAHI THI, ISAY HATA DIYA HAI
+                        // 'check_out' => $check_out,
                         // 'remarks' => $leaveRequest->reason,
                         // 'leave_type' => $leave_type,
                         // 'leave_status' => 'approved',
