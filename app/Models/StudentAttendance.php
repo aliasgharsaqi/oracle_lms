@@ -15,14 +15,18 @@ class StudentAttendance extends Model
      *
      * @var array<int, string>
      */
-    protected $fillable = [
-        'student_id',
-        'school_class_id',
-        'school_id',
-        'attendance_date',
-        'status',
-        'remarks',
-    ];
+protected $fillable = [
+    'student_id',
+    'school_id',
+    'school_class_id',
+    'attendance_date',
+    'status',
+    'check_in',     // <-- ADD
+    'check_out',    // <-- ADD
+    'remarks',
+    'leave_type',   // <-- ADD
+    'leave_status', // <-- ADD
+];
 
     /**
      * The attributes that should be cast.
