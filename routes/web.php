@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\SchoolController;
 use App\Http\Controllers\Admin\StudentAttendanceController; // This is correct
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\StudentFeePlanController;
+use App\Http\Controllers\Admin\StudentLeaveController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Admin\UserController;
@@ -127,7 +128,7 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::get('/result-cards/pdf/{student_id}/{semester_id}', [ResultCardController::class, 'generatePdf'])->name('result-cards.pdf');
 
     Route::get('attendance', [StudentAttendanceController::class, 'create'])->name('attendance.create');
-    Route::post('attendance/fetch-students', [StudentAttendanceController::class, 'fetchStudents'])->name('attendance.fetch');
+    // Route::match(['get','post'],'attendance/fetch-students', [StudentAttendanceController::class, 'fetchStudents'])->name('attendance.fetch');
     Route::post('attendance', [StudentAttendanceController::class, 'store'])->name('attendance.store');
     
     Route::get('attendance-report', [StudentAttendanceController::class, 'report'])->name('attendance.report');
@@ -159,7 +160,33 @@ Route::controller(AttendenceController::class)->prefix('admin')->middleware(['au
          ->name('attendence.teacher.action_on_leave');
 });
 
+Route::middleware(['auth'])->prefix('student')->name('student.')->group(function () {
+    Route::get('leaves', [StudentLeaveController::class, 'index'])->name('leaves.index');
+    Route::post('leaves', [StudentLeaveController::class, 'store'])->name('leaves.store');
+});
 
+// Routes for Admin/Teacher
+Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
+    // ... your other admin routes ...
+    
+    // Add these:
+  Route::post('student-leaves/store', [StudentLeaveController::class, 'adminStore'])->name('student.leaves.store.admin');
+    Route::get('student-leaves', [StudentLeaveController::class, 'adminIndex'])->name('student.leaves.index');
+    Route::post('student-leaves/action', [StudentLeaveController::class, 'actionOnLeave'])->name('student.leaves.action');
+});
+
+
+Route::prefix('leaves/student')->name('admin.student.leaves.')->group(function () {
+        
+        // Page to show pending leaves (fixes the current error)
+        Route::get('/pending', [StudentLeaveController::class, 'adminIndex'])->name('pending');
+        
+        // POST route to submit a leave from the modal
+        Route::post('/store', [StudentLeaveController::class, 'adminStore'])->name('store');
+
+        // POST route to approve/reject leaves (for the pending page)
+        Route::post('/action', [StudentLeaveController::class, 'actionOnLeave'])->name('action');
+    });
 // Route::get('/fees/receipt/{voucher}/print-4-up', [FeeController::class, 'printReceipt4Up'])
 //      ->name('admin.fees.receipt.print4up');
 // Route::get('marks/export', [MarksController::class, 'export'])->name('marks.export');
