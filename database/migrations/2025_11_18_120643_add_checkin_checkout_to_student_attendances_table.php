@@ -13,7 +13,7 @@ return new class extends Migration
             $table->timestamp('check_in')->nullable()->after('status');
             $table->timestamp('check_out')->nullable()->after('check_in');
             // Add leave status columns to match the teacher attendance
-            $table->string('leave_type')->nullable()->after('check_in');
+            $table->string('leave_type')->nullable()->after('check_out');
             $table->string('leave_status')->nullable()->after('leave_type');
         });
     }
