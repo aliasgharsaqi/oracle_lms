@@ -17,7 +17,7 @@ return new class extends Migration
             // These are the columns your controller is trying to use
             $table->timestamp('check_in')->nullable()->after('status');
             $table->timestamp('check_out')->nullable()->after('check_in');
-            $table->string('leave_type')->nullable()->after('remarks');
+            $table->string('leave_type')->nullable()->after('check_out');
             $table->string('leave_status')->nullable()->after('leave_type');
         });
     }
