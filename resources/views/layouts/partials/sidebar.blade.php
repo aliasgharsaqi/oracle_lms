@@ -9,7 +9,7 @@
                 @if (Auth::user()->school && Auth::user()->school->logo)
                 <img src="{{ asset('images/oracle.png') }}" alt="Logo" style="max-width: 50px; max-height: 70px;">
                 @else
-                <img src="{{ asset('storage/' . Auth::user()->school->logo) }}" alt="{{ Auth::user()->school->name }} Logo" style="max-width: 70px; max-height: 90px;">
+                <img src="{{ asset('images/oracle.png') }}" alt="Logo" style="max-width: 50px; max-height: 70px;">
                 @endif
             </div>
             @if (Auth::user()->school)
@@ -57,18 +57,18 @@
             </a>
         </li>
         @endcan
-        
+
         @can('Manage Fees')
         <li class="nav-item">
-          <a href="javascript:void(0);" 
-       class="nav-link text-white d-flex align-items-center justify-content-between toggle-dropdown"
-       style="gap: 8px; padding: 1px 14px; border-radius: 8px; transition: all 0.3s;">
-       <div class="d-flex align-items-center" style="gap: 4px;">
-           <i class="bi bi-cash-coin fs-5"></i>
-           <span class="fw-semibold">Fee Management</span>
-       </div>
-       <i class="bi bi-chevron-down dropdown-arrow fs-6"></i>
-    </a>
+            <a href="javascript:void(0);"
+                class="nav-link text-white d-flex align-items-center justify-content-between toggle-dropdown"
+                style="gap: 8px; padding: 1px 14px; border-radius: 8px; transition: all 0.3s;">
+                <div class="d-flex align-items-center" style="gap: 4px;">
+                    <i class="bi bi-cash-coin fs-5"></i>
+                    <span class="fw-semibold">Fee Management</span>
+                </div>
+                <i class="bi bi-chevron-down dropdown-arrow fs-6"></i>
+            </a>
 
 
             <ul class="list-unstyled ps-3 dropdown-submenu" style="display: {{ request()->routeIs(['fees.payments.*','fees.plans.*']) ? 'block' : 'none' }};">
@@ -97,15 +97,15 @@
 
         @can('Manage Reports')
         <li class="nav-item">
-            <a href="javascript:void(0);" 
-       class="nav-link text-white d-flex align-items-center justify-content-between toggle-dropdown"
-       style="gap: 8px; padding: 1px 14px; border-radius: 8px; transition: all 0.3s;">
-       <div class="d-flex align-items-center" style="gap: 4px;">
-           <i class="bi bi-cash-coin fs-5"></i>
-           <span class="fw-semibold">Reports</span>
-       </div>
-       <i class="bi bi-chevron-down dropdown-arrow fs-6"></i>
-    </a>
+            <a href="javascript:void(0);"
+                class="nav-link text-white d-flex align-items-center justify-content-between toggle-dropdown"
+                style="gap: 8px; padding: 1px 14px; border-radius: 8px; transition: all 0.3s;">
+                <div class="d-flex align-items-center" style="gap: 4px;">
+                    <i class="bi bi-cash-coin fs-5"></i>
+                    <span class="fw-semibold">Reports</span>
+                </div>
+                <i class="bi bi-chevron-down dropdown-arrow fs-6"></i>
+            </a>
 
 
             <ul class="list-unstyled ps-3 dropdown-submenu" style="display: {{ request()->routeIs(['reports.revenue_dashboard','reports.paid_fees','reports.pending_fees']) ? 'block' : 'none' }};">
@@ -209,39 +209,39 @@
         </li>
         @endcan
 
-   @canany(['Manage Marks'])
-<li class="nav-item">
-      <a href="javascript:void(0);" 
-       class="nav-link text-white d-flex align-items-center justify-content-between toggle-dropdown"
-       style="gap: 8px; padding: 1px 14px; border-radius: 8px; transition: all 0.3s;">
-       <div class="d-flex align-items-center" style="gap: 4px;">
-           <i class="bi bi-cash-coin fs-5"></i>
-           <span class="fw-semibold">Examination</span>
-       </div>
-       <i class="bi bi-chevron-down dropdown-arrow fs-6"></i>
-    </a>
-    <ul class="list-unstyled ps-3 dropdown-submenu"
-        style="display: {{ request()->routeIs(['marks.*','results.*']) ? 'block' : 'none' }};">
-        @can('Manage Marks')
-        <li>
-            <a href="{{ route('marks.index') }}"
-                class="nav-link d-flex align-items-center text-white {{ request()->routeIs('marks.*') ? 'active' : '' }}"
-                style="gap: 6px; padding: 2px 12px;">
-                <i class="bi bi-card-checklist me-2"></i> Marks
+        @canany(['Manage Marks'])
+        <li class="nav-item">
+            <a href="javascript:void(0);"
+                class="nav-link text-white d-flex align-items-center justify-content-between toggle-dropdown"
+                style="gap: 8px; padding: 1px 14px; border-radius: 8px; transition: all 0.3s;">
+                <div class="d-flex align-items-center" style="gap: 4px;">
+                    <i class="bi bi-cash-coin fs-5"></i>
+                    <span class="fw-semibold">Examination</span>
+                </div>
+                <i class="bi bi-chevron-down dropdown-arrow fs-6"></i>
             </a>
-        </li>
-        @endcan
+            <ul class="list-unstyled ps-3 dropdown-submenu"
+                style="display: {{ request()->routeIs(['marks.*','results.*']) ? 'block' : 'none' }};">
+                @can('Manage Marks')
+                <li>
+                    <a href="{{ route('marks.index') }}"
+                        class="nav-link d-flex align-items-center text-white {{ request()->routeIs('marks.*') ? 'active' : '' }}"
+                        style="gap: 6px; padding: 2px 12px;">
+                        <i class="bi bi-card-checklist me-2"></i> Marks
+                    </a>
+                </li>
+                @endcan
 
-        <li>
-            <a href="{{ route('result-cards.index') }}"
-                class="nav-link d-flex align-items-center text-white {{ request()->routeIs('results.*') ? 'active' : '' }}"
-                style="gap: 6px; padding: 2px 12px;">
-                <i class="bi bi-card-list me-2"></i> Result
-            </a>
+                <li>
+                    <a href="{{ route('result-cards.index') }}"
+                        class="nav-link d-flex align-items-center text-white {{ request()->routeIs('results.*') ? 'active' : '' }}"
+                        style="gap: 6px; padding: 2px 12px;">
+                        <i class="bi bi-card-list me-2"></i> Result
+                    </a>
+                </li>
+            </ul>
         </li>
-    </ul>
-</li>
-   @endcanany
+        @endcanany
 
         </li>
 
@@ -266,14 +266,14 @@
         @endif
 
         <li class="nav-item">
-            <a href="javascript:void(0);" 
-            class="nav-link text-white d-flex align-items-center justify-content-between toggle-dropdown"
-            style="gap: 8px; padding: 1px 14px; border-radius: 8px; transition: all 0.3s;">
-            <div class="d-flex align-items-center" style="gap: 4px;">
-                <i class="bi bi-cash-coin fs-5"></i>
-                <span class="fw-semibold">Attendence</span>
-            </div>
-            <i class="bi bi-chevron-down dropdown-arrow fs-6"></i>
+            <a href="javascript:void(0);"
+                class="nav-link text-white d-flex align-items-center justify-content-between toggle-dropdown"
+                style="gap: 8px; padding: 1px 14px; border-radius: 8px; transition: all 0.3s;">
+                <div class="d-flex align-items-center" style="gap: 4px;">
+                    <i class="bi bi-cash-coin fs-5"></i>
+                    <span class="fw-semibold">Attendence</span>
+                </div>
+                <i class="bi bi-chevron-down dropdown-arrow fs-6"></i>
             </a>
             <ul class="list-unstyled ps-3 dropdown-submenu"
                 style="display: {{ request()->routeIs(['marks.*','results.*']) ? 'block' : 'none' }};">

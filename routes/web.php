@@ -189,7 +189,7 @@ Route::prefix('leaves/student')->name('admin.student.leaves.')->group(function (
     });
 // Route::get('/fees/receipt/{voucher}/print-4-up', [FeeController::class, 'printReceipt4Up'])
 //      ->name('admin.fees.receipt.print4up');
-// Route::get('marks/export', [MarksController::class, 'export'])->name('marks.export');
+Route::get('marks/export', [MarksController::class, 'export'])->name('marks.export');
 
 
 Route::get('/teacher_diary', function () {
