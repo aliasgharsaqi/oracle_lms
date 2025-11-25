@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -6,47 +7,54 @@ use App\Models\Attendance;
 use App\Models\Teacher;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
-use Illuminate\Http\Request; // Carbon ko import karein
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AttendenceController extends Controller
 {
     /**
-     * Attendance page ko data ke sath display karein.
+     * Attendance Page Display
      */
-    public function teacher_attendence(Request $request)
-    {
-        $school_id = Auth::user()->school_id;
+   // App/Http/Controllers/Admin/AttendenceController.php
 
-        try {
-            $selected_date = Carbon::parse($request->input('date', today()));
-        } catch (\Exception $e) {
-            $selected_date = today();
-        }
+public function teacher_attendence(Request $request)
+{
+    $school_id = Auth::user()->school_id;
 
-        // Selected date ke hisab se attendance record load karein
-        $teachers = Teacher::with(['user', 'attendanceRecord' => function ($query) use ($selected_date) {
-            $query->where('date', $selected_date->toDateString());
-        }])
-            ->where('school_id', $school_id)
-            ->get();
-
-        return view('admin.attendence.teacher', compact('teachers', 'selected_date'));
+    try {
+        $selected_date = Carbon::parse($request->input('date', today()));
+    } catch (\Exception $e) {
+        $selected_date = today();
     }
 
+    // --- NEW: Time Inputs ko Request se lein ya Default set karein ---
+    $schoolStartTime = $request->input('school_start_time', '08:00'); // Default 8:00 AM
+    $schoolEndTime = $request->input('school_end_time', '14:00');     // Default 2:00 PM
+
+    $teachers = Teacher::with(['user', 'attendanceRecord' => function ($query) use ($selected_date) {
+        $query->where('date', $selected_date->toDateString());
+    }])
+        ->where('school_id', $school_id)
+        ->get();
+
+    // Variables ko View mein pass karein
+    return view('admin.attendence.teacher', compact('teachers', 'selected_date', 'schoolStartTime', 'schoolEndTime'));
+}
+
     /**
-     * AAJ (Today) ki attendance mark karein (Check In, Out, Absent, Late).
+     * Mark Attendance (Live Check In with Auto-Late Calculation)
      */
     public function mark_attendance(Request $request)
     {
         $request->validate([
             'teacher_id' => 'required|exists:teachers,id',
-            'action'     => 'required|in:check_in,check_out,absent,late_arrival',
+            'action'     => 'required|in:check_in,check_out,absent,short_leave,leave',
+            'school_start_time' => 'nullable', // Expected format HH:mm e.g., "08:00"
         ]);
 
         $school_id = Auth::user()->school_id;
         $admin_id  = Auth::id();
-        $today     = today(); // Ye function SIRF aaj ke liye hai
+        $today     = today();
 
         $teacher = Teacher::where('id', $request->teacher_id)
             ->where('school_id', $school_id)
@@ -62,15 +70,34 @@ class AttendenceController extends Controller
             $attendance->marked_by = $admin_id;
         }
 
+        // Get the School Start Time from Input (Default to 08:00 AM if empty)
+        $inputStartTime = $request->input('school_start_time', '08:00');
+
         switch ($request->action) {
             case 'check_in':
-                $attendance->status   = 'present';
-                $attendance->check_in = now(); // Timestamp set karein
+                $now = now(); // Current Time
+                $attendance->check_in = $now;
+
+                // --- AUTO LATE CALCULATION LOGIC ---
+                // Create a Carbon instance for Today + Input Time
+                $schoolStartDateTime = Carbon::parse($today->format('Y-m-d') . ' ' . $inputStartTime);
+
+                // Compare: If NOW is greater than School Start Time
+                if ($now->gt($schoolStartDateTime)) {
+                    $attendance->status = 'late_arrival';
+                    // Calculate difference in minutes
+                    $attendance->late_minutes = $now->diffInMinutes($schoolStartDateTime);
+                    $attendance->notes = "Auto-marked late (Arrived at " . $now->format('h:i A') . ")";
+                } else {
+                    $attendance->status = 'present';
+                    $attendance->late_minutes = 0;
+                    $attendance->notes = "On time";
+                }
                 break;
 
             case 'check_out':
                 if ($attendance->check_in) {
-                    $attendance->check_out = now(); // Timestamp set karein
+                    $attendance->check_out = now();
                 } else {
                     return response()->json(['error' => 'Must Check In before Checking Out.'], 422);
                 }
@@ -78,15 +105,8 @@ class AttendenceController extends Controller
 
             case 'absent':
                 $attendance->status = 'absent';
+                $attendance->late_minutes = 0;
                 $attendance->notes  = 'Marked absent by admin.';
-                break;
-
-            case 'late_arrival':
-                $attendance->status = 'late_arrival';
-                if (! $attendance->check_in) {
-                    $attendance->check_in = now(); // Timestamp set karein
-                }
-                $attendance->notes = 'Marked late by admin.';
                 break;
         }
 
@@ -95,11 +115,82 @@ class AttendenceController extends Controller
         return response()->json([
             'success' => true,
             'status'  => $attendance->status,
+            'late_minutes' => $attendance->late_minutes
         ]);
     }
 
     /**
-     * AAJ (Today) ke liye leave request karein.
+     * Update Past Attendance (Manual Edits)
+     */
+    public function update_past_attendance(Request $request)
+    {
+        $request->validate([
+            'teacher_id' => 'required|exists:teachers,id',
+            'action'     => 'required|in:present,absent,leave,short_leave,late_arrival',
+            'date'       => 'required|date_format:Y-m-d',
+            'reason'     => 'nullable|string|min:5|required_if:action,leave,short_leave',
+            'late_minutes' => 'nullable|integer|min:1',
+        ]);
+
+        $school_id     = Auth::user()->school_id;
+        $admin_id      = Auth::id();
+        $selected_date = Carbon::parse($request->date);
+
+        if ($selected_date->isToday() || $selected_date->isFuture()) {
+            return response()->json(['error' => 'Cannot edit today or future via this method.'], 422);
+        }
+
+        $teacher = Teacher::where('id', $request->teacher_id)
+            ->where('school_id', $school_id)
+            ->firstOrFail();
+
+        $attendance = Attendance::firstOrNew([
+            'teacher_id' => $teacher->id,
+            'date'       => $selected_date,
+        ]);
+
+        if (! $attendance->exists) {
+            $attendance->school_id = $school_id;
+            $attendance->marked_by = $admin_id;
+        }
+
+        // Handle Leaves
+        if ($request->action == 'leave' || $request->action == 'short_leave') {
+            $attendance->status       = 'absent';
+            $attendance->leave_type   = $request->action;
+            $attendance->leave_status = 'pending';
+            $attendance->notes        = $request->reason ?? 'Admin Request';
+            $attendance->check_in     = null;
+            $attendance->check_out    = null;
+            $attendance->late_minutes = 0;
+        } else {
+            // Handle Present/Absent/Late
+            $attendance->status = $request->action;
+            $attendance_notes   = $request->reason ?? 'Updated by admin';
+
+            if ($request->action == 'late_arrival') {
+                // For past dates, we trust the manual input or default to 0
+                $attendance->late_minutes = $request->late_minutes ?? 0;
+                $attendance_notes = "Marked Late manually ({$attendance->late_minutes} mins)";
+            } else {
+                $attendance->late_minutes = 0;
+            }
+
+            // Clear leave status
+            $attendance->leave_type   = null;
+            $attendance->leave_status = null;
+            $attendance->notes        = $attendance_notes;
+            $attendance->check_in     = null;
+            $attendance->check_out    = null;
+        }
+
+        $attendance->save();
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Apply Leave (Today)
      */
     public function apply_leave(Request $request)
     {
@@ -117,115 +208,31 @@ class AttendenceController extends Controller
             ->where('school_id', $school_id)
             ->firstOrFail();
 
-        // Check if attendance already exists
-        $attendance = Attendance::firstOrNew(
-            [
-                'teacher_id' => $teacher->id,
-                'date'       => $today,
-            ]
-        );
+        $attendance = Attendance::firstOrNew(['teacher_id' => $teacher->id, 'date' => $today]);
 
-        // Don't change the main status yet. Mark it as 'absent' by default.
         if (! $attendance->exists) {
             $attendance->school_id = $school_id;
-            $attendance->status    = 'absent'; // Mark as absent until approved
             $attendance->marked_by = $admin_id;
+            $attendance->status    = 'absent';
         }
 
-                                                          // Set leave-specific details
-        $attendance->leave_type   = $request->leave_type; // We should add this column! (See note below)
-        $attendance->leave_status = 'pending';            // NEW
-        $attendance->notes        = $request->reason;     // Reason
+        $attendance->leave_type   = $request->leave_type;
+        $attendance->leave_status = 'pending';
+        $attendance->notes        = $request->reason;
         $attendance->check_in     = null;
         $attendance->check_out    = null;
+        $attendance->late_minutes = 0;
 
         $attendance->save();
 
-        return response()->json([
-            'success'      => true,
-            'status'       => $attendance->status,
-            'leave_status' => $attendance->leave_status, // Send back new status
-        ]);
+        return response()->json(['success' => true]);
     }
 
-    public function update_past_attendance(Request $request)
-    {
-        $request->validate([
-            'teacher_id' => 'required|exists:teachers,id',
-            'action'     => 'required|in:present,absent,leave,short_leave,late_arrival',
-            'date'       => 'required|date_format:Y-m-d',
-            'reason'     => 'nullable|string|min:5|required_if:action,leave,short_leave',
-        ]);
-
-        $school_id     = Auth::user()->school_id;
-        $admin_id      = Auth::id();
-        $selected_date = Carbon::parse($request->date);
-
-        if ($selected_date->isToday() || $selected_date->isFuture()) {
-            return response()->json(['error' => 'Cannot edit today or a future date with this method.'], 422);
-        }
-
-        $teacher = Teacher::where('id', $request->teacher_id)
-            ->where('school_id', $school_id)
-            ->firstOrFail();
-
-        // Get the existing record or create a new one
-        $attendance = Attendance::firstOrNew(
-            [
-                'teacher_id' => $teacher->id,
-                'date'       => $selected_date,
-            ]
-        );
-
-        if (! $attendance->exists) {
-            $attendance->school_id = $school_id;
-            $attendance->marked_by = $admin_id;
-        }
-
-        // Handle Leave requests separately
-        if ($request->action == 'leave' || $request->action == 'short_leave') {
-
-            $attendance->status       = 'absent';         // Mark as absent until approved
-            $attendance->leave_type   = $request->action; // Store 'leave' or 'short_leave'
-            $attendance->leave_status = 'pending';        // Set to pending
-            $attendance->notes        = $request->reason ?? 'Leave request submitted by admin';
-            $attendance->check_in     = null;
-            $attendance->check_out    = null;
-
-        } else {
-            // Handle Present, Absent, Late
-
-            $attendance->status = $request->action;
-            $attendance_notes   = $request->reason ?? 'Updated by admin';
-
-            // Clear leave status if we are marking as present/absent
-            if ($request->action == 'present' || $request->action == 'absent' || $request->action == 'late_arrival') {
-                $attendance->leave_type   = null;
-                $attendance->leave_status = null;
-                $attendance_notes         = 'Updated to ' . $request->action . ' by admin';
-            }
-
-            $attendance->notes     = $attendance_notes;
-            $attendance->check_in  = null;
-            $attendance->check_out = null;
-        }
-
-        $attendance->save();
-
-        return response()->json([
-            'success'      => true,
-            'status'       => $attendance->status,
-            'leave_status' => $attendance->leave_status,
-        ]);
-    }
-
+    // Monthly Report & Pending Leaves (Standard)
     public function monthly_report(Request $request)
     {
         $school_id = Auth::user()->school_id;
-
-        // Mahina (Month) aur Saal (Year) request se lein, warna default aaj ka mahina
         $selectedMonth = $request->input('month', now()->format('Y-m'));
-
         try {
             $startDate = Carbon::parse($selectedMonth)->startOfMonth();
             $endDate   = $startDate->copy()->endOfMonth();
@@ -233,88 +240,41 @@ class AttendenceController extends Controller
             $startDate = now()->startOfMonth();
             $endDate   = now()->endOfMonth();
         }
-
-        // Mahine ke tamam din (dates) generate karein
         $dates = CarbonPeriod::create($startDate, $endDate);
-
-        // School ke tamam teachers
-        $teachers = Teacher::with('user')
-            ->where('school_id', $school_id)
-            ->get();
-
-        // Tamam teachers ki poore mahine ki attendance ek hi query mein lein
+        $teachers = Teacher::with('user')->where('school_id', $school_id)->get();
         $attendances = Attendance::where('school_id', $school_id)
             ->whereIn('teacher_id', $teachers->pluck('id'))
             ->whereBetween('date', [$startDate, $endDate])
             ->get();
-
-        // Data ko table ke liye tayyar karein (Matrix/Pivot)
-        // Format: [teacher_id => [date => status, ...]]
         $attendanceMatrix = $attendances->groupBy('teacher_id')
             ->map(function ($teacherAttendances) {
                 return $teacherAttendances->keyBy(function ($att) {
-                    return $att->date->format('Y-m-d'); // Date ko key banayein
+                    return $att->date->format('Y-m-d');
                 });
             });
-
-        return view('admin.attendence.monthly_report', compact(
-            'teachers',
-            'dates',
-            'selectedMonth',
-            'attendanceMatrix'
-        ));
+        return view('admin.attendence.monthly_report', compact('teachers', 'dates', 'selectedMonth', 'attendanceMatrix'));
     }
 
-    // app/Http/Controllers/Admin/AttendenceController.php
-
-    /**
-     * Show all pending leave requests.
-     */
     public function show_pending_leaves(Request $request)
     {
         $school_id = Auth::user()->school_id;
-
-        $pending_leaves = Attendance::with('teacher.user')
-            ->where('school_id', $school_id)
-            ->where('leave_status', 'pending')
-            ->orderBy('date', 'desc')
-            ->get();
-
+        $pending_leaves = Attendance::with('teacher.user')->where('school_id', $school_id)->where('leave_status', 'pending')->orderBy('date', 'desc')->get();
         return view('admin.attendence.pending_leaves', compact('pending_leaves'));
     }
 
-    /**
-     * Approve or Reject a leave request.
-     */
     public function action_on_leave(Request $request)
     {
-        $request->validate([
-            'attendance_id' => 'required|exists:attendances,id',
-            'action'        => 'required|in:approve,reject',
-        ]);
-
-        $school_id = Auth::user()->school_id;
-
-        $attendance = Attendance::where('id', $request->attendance_id)
-            ->where('school_id', $school_id)
-            ->firstOrFail();
-
+        $request->validate(['attendance_id' => 'required', 'action' => 'required|in:approve,reject']);
+        $att = Attendance::findOrFail($request->attendance_id);
         if ($request->action == 'approve') {
-            $attendance->leave_status = 'approved';
-            // Now we set the official status to 'leave' or 'short_leave'
-            $attendance->status = $attendance->leave_type ?? 'leave';
+            $att->leave_status = 'approved';
+            $att->status = $att->leave_type;
         } else {
-            $attendance->leave_status = 'rejected';
-            // If rejected, they remain marked 'absent'
-            $attendance->status = 'absent';
-            $attendance->notes  = ($attendance->notes ?? '') . ' (Leave Rejected)';
+            $att->leave_status = 'rejected';
+            $att->status = 'absent';
+            $att->notes .= ' (Rejected)';
         }
-
-        $attendance->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Leave ' . $request->action . 'd.',
-        ]);
+        $att->save();
+        return response()->json(['success' => true]);
     }
 }

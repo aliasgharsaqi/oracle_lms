@@ -109,7 +109,6 @@
                     <i class="bi bi-chevron-down dropdown-arrow fs-6"></i>
                 </a>
 
-
                 <ul class="list-unstyled ps-3 dropdown-submenu"
                     style="display: {{ request()->routeIs(['reports.revenue_dashboard', 'reports.paid_fees', 'reports.pending_fees']) ? 'block' : 'none' }};">
                     {{-- I've mapped the new dashboard to your existing permission for viewing monthly reports --}}
