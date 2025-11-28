@@ -1,9 +1,9 @@
 <?php
-
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
+use App\Models\School;
 use App\Models\Teacher;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
@@ -15,31 +15,51 @@ class AttendenceController extends Controller
     /**
      * Attendance Page Display
      */
-   // App/Http/Controllers/Admin/AttendenceController.php
+    // App/Http/Controllers/Admin/AttendenceController.php
 
-public function teacher_attendence(Request $request)
-{
-    $school_id = Auth::user()->school_id;
+    public function teacher_attendence(Request $request)
+    {
+        $school_id = Auth::user()->school_id;
 
-    try {
-        $selected_date = Carbon::parse($request->input('date', today()));
-    } catch (\Exception $e) {
-        $selected_date = today();
+        try {
+            $selected_date = Carbon::parse($request->input('date', today()));
+        } catch (\Exception $e) {
+            $selected_date = today();
+        }
+
+        // --- NEW: Database se School ki Timing lein ---
+        $school = School::find($school_id);
+
+        // Agar URL mein time hai to wo lein, warna Database wala, warna Default
+        $dbStartTime = $school->start_time ? Carbon::parse($school->start_time)->format('H:i') : '08:00';
+        $dbEndTime   = $school->end_time ? Carbon::parse($school->end_time)->format('H:i') : '14:00';
+
+        $schoolStartTime = $request->input('school_start_time', $dbStartTime);
+        $schoolEndTime   = $request->input('school_end_time', $dbEndTime);
+
+        $teachers = Teacher::with(['user', 'attendanceRecord' => function ($query) use ($selected_date) {
+            $query->where('date', $selected_date->toDateString());
+        }])
+            ->where('school_id', $school_id)
+            ->get();
+
+        return view('admin.attendence.teacher', compact('teachers', 'selected_date', 'schoolStartTime', 'schoolEndTime'));
     }
 
-    // --- NEW: Time Inputs ko Request se lein ya Default set karein ---
-    $schoolStartTime = $request->input('school_start_time', '08:00'); // Default 8:00 AM
-    $schoolEndTime = $request->input('school_end_time', '14:00');     // Default 2:00 PM
+    public function save_time_settings(Request $request)
+    {
+        $request->validate([
+            'start_time' => 'required',
+            'end_time'   => 'required',
+        ]);
 
-    $teachers = Teacher::with(['user', 'attendanceRecord' => function ($query) use ($selected_date) {
-        $query->where('date', $selected_date->toDateString());
-    }])
-        ->where('school_id', $school_id)
-        ->get();
+        $school = School::find(Auth::user()->school_id);
+        $school->start_time = $request->start_time;
+        $school->end_time = $request->end_time;
+        $school->save();
 
-    // Variables ko View mein pass karein
-    return view('admin.attendence.teacher', compact('teachers', 'selected_date', 'schoolStartTime', 'schoolEndTime'));
-}
+        return response()->json(['success' => true, 'message' => 'Time settings saved permanently!']);
+    }
 
     /**
      * Mark Attendance (Live Check In with Auto-Late Calculation)
@@ -47,15 +67,20 @@ public function teacher_attendence(Request $request)
     public function mark_attendance(Request $request)
     {
         $request->validate([
-            'teacher_id' => 'required|exists:teachers,id',
-            'action'     => 'required|in:check_in,check_out,absent,short_leave,leave',
+            'teacher_id'        => 'required|exists:teachers,id',
+            'action'            => 'required|in:check_in,check_out,absent,short_leave,leave',
             'school_start_time' => 'nullable', // Expected format HH:mm e.g., "08:00"
         ]);
 
+        $inputStartTime = $request->input('school_start_time');
         $school_id = Auth::user()->school_id;
         $admin_id  = Auth::id();
         $today     = today();
 
+        if(!$inputStartTime) {
+             $school = School::find(Auth::user()->school_id);
+             $inputStartTime = $school->start_time ? Carbon::parse($school->start_time)->format('H:i') : '08:00';
+        }
         $teacher = Teacher::where('id', $request->teacher_id)
             ->where('school_id', $school_id)
             ->firstOrFail();
@@ -75,7 +100,7 @@ public function teacher_attendence(Request $request)
 
         switch ($request->action) {
             case 'check_in':
-                $now = now(); // Current Time
+                $now                  = now(); // Current Time
                 $attendance->check_in = $now;
 
                 // --- AUTO LATE CALCULATION LOGIC ---
@@ -87,11 +112,11 @@ public function teacher_attendence(Request $request)
                     $attendance->status = 'late_arrival';
                     // Calculate difference in minutes
                     $attendance->late_minutes = $now->diffInMinutes($schoolStartDateTime);
-                    $attendance->notes = "Auto-marked late (Arrived at " . $now->format('h:i A') . ")";
+                    $attendance->notes        = "Auto-marked late (Arrived at " . $now->format('h:i A') . ")";
                 } else {
-                    $attendance->status = 'present';
+                    $attendance->status       = 'present';
                     $attendance->late_minutes = 0;
-                    $attendance->notes = "On time";
+                    $attendance->notes        = "On time";
                 }
                 break;
 
@@ -104,18 +129,18 @@ public function teacher_attendence(Request $request)
                 break;
 
             case 'absent':
-                $attendance->status = 'absent';
+                $attendance->status       = 'absent';
                 $attendance->late_minutes = 0;
-                $attendance->notes  = 'Marked absent by admin.';
+                $attendance->notes        = 'Marked absent by admin.';
                 break;
         }
 
         $attendance->save();
 
         return response()->json([
-            'success' => true,
-            'status'  => $attendance->status,
-            'late_minutes' => $attendance->late_minutes
+            'success'      => true,
+            'status'       => $attendance->status,
+            'late_minutes' => $attendance->late_minutes,
         ]);
     }
 
@@ -125,10 +150,10 @@ public function teacher_attendence(Request $request)
     public function update_past_attendance(Request $request)
     {
         $request->validate([
-            'teacher_id' => 'required|exists:teachers,id',
-            'action'     => 'required|in:present,absent,leave,short_leave,late_arrival',
-            'date'       => 'required|date_format:Y-m-d',
-            'reason'     => 'nullable|string|min:5|required_if:action,leave,short_leave',
+            'teacher_id'   => 'required|exists:teachers,id',
+            'action'       => 'required|in:present,absent,leave,short_leave,late_arrival',
+            'date'         => 'required|date_format:Y-m-d',
+            'reason'       => 'nullable|string|min:5|required_if:action,leave,short_leave',
             'late_minutes' => 'nullable|integer|min:1',
         ]);
 
@@ -171,7 +196,7 @@ public function teacher_attendence(Request $request)
             if ($request->action == 'late_arrival') {
                 // For past dates, we trust the manual input or default to 0
                 $attendance->late_minutes = $request->late_minutes ?? 0;
-                $attendance_notes = "Marked Late manually ({$attendance->late_minutes} mins)";
+                $attendance_notes         = "Marked Late manually ({$attendance->late_minutes} mins)";
             } else {
                 $attendance->late_minutes = 0;
             }
@@ -231,7 +256,7 @@ public function teacher_attendence(Request $request)
     // Monthly Report & Pending Leaves (Standard)
     public function monthly_report(Request $request)
     {
-        $school_id = Auth::user()->school_id;
+        $school_id     = Auth::user()->school_id;
         $selectedMonth = $request->input('month', now()->format('Y-m'));
         try {
             $startDate = Carbon::parse($selectedMonth)->startOfMonth();
@@ -240,8 +265,8 @@ public function teacher_attendence(Request $request)
             $startDate = now()->startOfMonth();
             $endDate   = now()->endOfMonth();
         }
-        $dates = CarbonPeriod::create($startDate, $endDate);
-        $teachers = Teacher::with('user')->where('school_id', $school_id)->get();
+        $dates       = CarbonPeriod::create($startDate, $endDate);
+        $teachers    = Teacher::with('user')->where('school_id', $school_id)->get();
         $attendances = Attendance::where('school_id', $school_id)
             ->whereIn('teacher_id', $teachers->pluck('id'))
             ->whereBetween('date', [$startDate, $endDate])
@@ -257,7 +282,7 @@ public function teacher_attendence(Request $request)
 
     public function show_pending_leaves(Request $request)
     {
-        $school_id = Auth::user()->school_id;
+        $school_id      = Auth::user()->school_id;
         $pending_leaves = Attendance::with('teacher.user')->where('school_id', $school_id)->where('leave_status', 'pending')->orderBy('date', 'desc')->get();
         return view('admin.attendence.pending_leaves', compact('pending_leaves'));
     }
@@ -268,10 +293,10 @@ public function teacher_attendence(Request $request)
         $att = Attendance::findOrFail($request->attendance_id);
         if ($request->action == 'approve') {
             $att->leave_status = 'approved';
-            $att->status = $att->leave_type;
+            $att->status       = $att->leave_type;
         } else {
             $att->leave_status = 'rejected';
-            $att->status = 'absent';
+            $att->status       = 'absent';
             $att->notes .= ' (Rejected)';
         }
         $att->save();

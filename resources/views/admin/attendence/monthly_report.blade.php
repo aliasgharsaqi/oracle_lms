@@ -110,7 +110,7 @@
                             // ===========================
 
                             case 'leave':
-                                $statusDisplay = '<span class="att-status att-status-sm att-lv">L</span>'; 
+                                $statusDisplay = '<span class="att-status att-status-sm att-lv">LV</span>'; 
                                 $totalLeave++; 
                                 $statusClass = 'bg-blue-50'; 
                                 break;

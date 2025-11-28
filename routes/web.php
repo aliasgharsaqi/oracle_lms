@@ -3,7 +3,6 @@
 use App\Http\Controllers\Admin\AttendenceController;
 use App\Http\Controllers\Admin\ClassController;
 use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\FeeController;
 use App\Http\Controllers\Admin\FeePaymentController;
 use App\Http\Controllers\Admin\FeeReportController;
 use App\Http\Controllers\Admin\MarksController;
@@ -13,12 +12,13 @@ use App\Http\Controllers\Admin\ResultCardController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\ScheduleController;
 use App\Http\Controllers\Admin\SchoolController;
-use App\Http\Controllers\Admin\StudentAttendanceController; // This is correct
+use App\Http\Controllers\Admin\StudentAttendanceController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\StudentFeePlanController;
 use App\Http\Controllers\Admin\StudentLeaveController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\TeacherController;
+use App\Http\Controllers\Admin\TeacherDiaryController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
@@ -64,6 +64,7 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::patch('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
     Route::post('/profile/image', [ProfileController::class, 'updateProfileImage'])->name('profile.image.update');
 
+    // Student Routes
     Route::get('/students', [StudentController::class, 'index'])->name('students.index');
     Route::get('/students/create', [StudentController::class, 'create'])->name('students.create');
     Route::post('/students', [StudentController::class, 'store'])->name('students.store');
@@ -72,6 +73,7 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::patch('/students/{student}', [StudentController::class, 'update'])->name('students.update');
     Route::delete('/students/{student}', [StudentController::class, 'destroy'])->name('students.destroy');
 
+    // Subject Routes
     Route::get('/subjects', [SubjectController::class, 'index'])->name('subjects.index');
     Route::get('/subjects/create', [SubjectController::class, 'create'])->name('subjects.create');
     Route::post('/subjects', [SubjectController::class, 'store'])->name('subjects.store');
@@ -90,6 +92,7 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::delete('/schedules/{id}', [ScheduleController::class, 'destroy'])->name('schedules.destroy');
     Route::get('/admin/get-subjects-by-class/{class_id}', [ScheduleController::class, 'getSubjectsByClass'])->name('admin.getSubjectsByClass');
 
+    // Teacher Routes
     Route::get('/teachers', [TeacherController::class, 'index'])->name('teachers.index');
     Route::get('/teachers/create', [TeacherController::class, 'create'])->name('teachers.create');
     Route::post('/teachers', [TeacherController::class, 'store'])->name('teachers.store');
@@ -97,6 +100,24 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::put('/teachers/{id}', [TeacherController::class, 'update'])->name('teachers.update');
     Route::delete('/teachers/{id}', [TeacherController::class, 'destroy'])->name('teachers.destroy');
 
+    // --- Teacher Diary Module Routes (FULLY DYNAMIC) ---
+    // ALIAS for backward compatibility, redirects 'teacher_diary' to 'teacher_diary.index'
+    Route::get('/teacher_diary', function () {
+        return redirect()->route('teacher_diary.index');
+    })->name('teacher_diary');
+
+    Route::controller(TeacherDiaryController::class)->prefix('teacher-diary')->name('teacher_diary.')->group(function () {
+        Route::get('/', 'index')->name('index');                           // Main Diary view
+        Route::get('/record/{teacher}', 'getTeacherRecord')->name('record'); // AJAX to fetch teacher details
+        Route::post('/task', 'storeTask')->name('store_task');             // Modal POST to save assignments (multiple classes/subjects)
+        Route::post('/progress/{assignment}', 'updateProgress')->name('update_progress'); // AJAX to update status/notes
+        Route::match(['get', 'post'], '/monthly-report', 'monthlyReport')->name('monthly_report'); // Monthly Report View/Filter
+        
+        // ** FIX: Missing route for dynamic subject loading **
+        Route::get('/get-subjects', 'getSubjectsByClasses')->name('get_subjects'); // <-- ADDED
+    });
+
+    // Fee Plan & Payment Routes
     Route::get('/fees/plans', [StudentFeePlanController::class, 'index'])->name('fees.plans.index');
     Route::get('/fees/plans/{student}/create', [StudentFeePlanController::class, 'create'])->name('fees.plans.create');
     Route::post('/fees/plans/{student}', [StudentFeePlanController::class, 'store'])->name('fees.plans.store');
@@ -106,96 +127,83 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::get('/fees/receipt/{voucher}', [FeePaymentController::class, 'showReceipt'])->name('fees.receipt');
     Route::get('/fees/student-ledger/{student}/{year}', [FeePaymentController::class, 'getStudentLedger'])->name('fees.student.ledger');
     Route::post('fees/generate-voucher/{student}', [FeePaymentController::class, 'generateAndGetVoucher'])->name('fees.generateVoucher');
-    
+
+    // Fee Report Routes
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('revenue-dashboard', [FeeReportController::class, 'revenueDashboard'])->name('revenue_dashboard');
         Route::get('pending-fees', [FeeReportController::class, 'pendingFees'])->name('pending_fees');
         Route::get('paid-fees', [FeeReportController::class, 'paidFees'])->name('paid_fees');
     });
 
+    // Role & School Routes (Admin Prefix)
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('roles', RoleController::class)->except(['show']);
         Route::resource('schools', SchoolController::class);
     });
 
+    // Marks Management Routes
     Route::get('marks', [MarksController::class, 'index'])->name('marks.index');
     Route::post('marks', [MarksController::class, 'store'])->name('marks.store');
     Route::get('marks/get-subjects/{class_id}', [MarksController::class, 'getSubjects'])->name('marks.getSubjects');
-    
+
+    // Result Card Routes
     Route::get('/result-cards', [ResultCardController::class, 'index'])->name('result-cards.index');
     Route::get('/result-cards/students/{class_id}', [ResultCardController::class, 'getStudentsByClass'])->name('result-cards.getStudents');
     Route::get('/result-cards/show/{student}/{semester}', [ResultCardController::class, 'showResultCard'])->name('result-cards.show');
     Route::get('/result-cards/pdf/{student_id}/{semester_id}', [ResultCardController::class, 'generatePdf'])->name('result-cards.pdf');
 
+    // Student Attendance Marking & Report Routes
     Route::get('attendance', [StudentAttendanceController::class, 'create'])->name('attendance.create');
-    // Route::match(['get','post'],'attendance/fetch-students', [StudentAttendanceController::class, 'fetchStudents'])->name('attendance.fetch');
     Route::post('attendance', [StudentAttendanceController::class, 'store'])->name('attendance.store');
-    
     Route::get('attendance-report', [StudentAttendanceController::class, 'report'])->name('attendance.report');
     Route::post('attendance-report', [StudentAttendanceController::class, 'showReport'])->name('attendance.showReport');
 
+    // PDF Generation/Download Routes
     Route::get('/students/{student}/semester/{semester}/result-card/generate', [PdfController::class, 'generateResultCard'])
-     ->name('students.result-card.generate');
-
+        ->name('students.result-card.generate');
     Route::get('/students/{student}/semester/{semester}/result-card/download', [PdfController::class, 'downloadResultCard'])
-     ->name('students.result-card.download');
+        ->name('students.result-card.download');
 
-      
+    // Teacher Attendance Routes
     Route::get('attendence/teacher', [AttendenceController::class, 'teacher_attendence'])->name('attendence.teacher');
-
-    // ADD THESE TWO NEW ROUTES
     Route::post('attendence/teacher/mark', [AttendenceController::class, 'mark_attendance'])->name('attendence.teacher.mark');
     Route::post('attendence/teacher/leave', [AttendenceController::class, 'apply_leave'])->name('attendence.teacher.leave');
     Route::post('attendence/teacher/update-past', [AttendenceController::class, 'update_past_attendance'])->name('attendence.teacher.update_past');
     Route::get('attendence/monthly-report', [AttendenceController::class, 'monthly_report'])->name('attendence.teacher.monthly_report');
-});
-Route::controller(AttendenceController::class)->prefix('admin')->middleware(['auth'])->group(function () {
-    // ... your existing routes like 'attendence.teacher' ...
-    
-    // New Routes for Leave Approval
-    Route::get('attendance/pending-leaves', 'show_pending_leaves')
-         ->name('attendence.teacher.pending_leaves');
-         
-    Route::post('attendance/action-on-leave', 'action_on_leave')
-         ->name('attendence.teacher.action_on_leave');
+    Route::post('/attendance/save-time-settings', [AttendenceController::class, 'save_time_settings'])->name('attendence.save_settings');
 });
 
+// Teacher Leave Approval Routes (Accessible via 'auth' middleware)
+Route::controller(AttendenceController::class)->prefix('admin')->middleware(['auth'])->group(function () {
+    Route::get('attendance/pending-leaves', 'show_pending_leaves')
+        ->name('attendence.teacher.pending_leaves');
+    Route::post('attendance/action-on-leave', 'action_on_leave')
+        ->name('attendence.teacher.action_on_leave');
+});
+
+// Student Leave Submission (Authenticated Students)
 Route::middleware(['auth'])->prefix('student')->name('student.')->group(function () {
     Route::get('leaves', [StudentLeaveController::class, 'index'])->name('leaves.index');
     Route::post('leaves', [StudentLeaveController::class, 'store'])->name('leaves.store');
 });
 
-// Routes for Admin/Teacher
+// Student Leave Management (Admin/Teacher Access)
 Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
-    // ... your other admin routes ...
-    
-    // Add these:
-  Route::post('student-leaves/store', [StudentLeaveController::class, 'adminStore'])->name('student.leaves.store.admin');
+    Route::post('student-leaves/store', [StudentLeaveController::class, 'adminStore'])->name('student.leaves.store.admin');
     Route::get('student-leaves', [StudentLeaveController::class, 'adminIndex'])->name('student.leaves.index');
     Route::post('student-leaves/action', [StudentLeaveController::class, 'actionOnLeave'])->name('student.leaves.action');
 });
 
-
 Route::prefix('leaves/student')->name('admin.student.leaves.')->group(function () {
-        
-        // Page to show pending leaves (fixes the current error)
-        Route::get('/pending', [StudentLeaveController::class, 'adminIndex'])->name('pending');
-        
-        // POST route to submit a leave from the modal
-        Route::post('/store', [StudentLeaveController::class, 'adminStore'])->name('store');
+    Route::get('/pending', [StudentLeaveController::class, 'adminIndex'])->name('pending');
+    Route::post('/store', [StudentLeaveController::class, 'adminStore'])->name('store');
+    Route::post('/action', [StudentLeaveController::class, 'actionOnLeave'])->name('action');
+});
 
-        // POST route to approve/reject leaves (for the pending page)
-        Route::post('/action', [StudentLeaveController::class, 'actionOnLeave'])->name('action');
-    });
-// Route::get('/fees/receipt/{voucher}/print-4-up', [FeeController::class, 'printReceipt4Up'])
-//      ->name('admin.fees.receipt.print4up');
+// Marks Export Route
 Route::get('marks/export', [MarksController::class, 'export'])->name('marks.export');
 
-
-Route::get('/teacher_diary', function () {
-    return view('admin.diary.teacher_diary');
-})->name('teacher_diary');
-
+// --- Static Routes ---
 Route::get('/student_diary', function () {
     return view('admin.diary.student_diary');
 })->name('student_diary');

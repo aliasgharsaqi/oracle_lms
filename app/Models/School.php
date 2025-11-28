@@ -24,6 +24,8 @@ class School extends Model
         'logo',
         'subscription_plan',
         'status',
+        'start_time', 
+        'end_time'
     ];
 
     /**
