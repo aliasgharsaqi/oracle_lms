@@ -6,7 +6,6 @@
 @section('content')
 <div class="grid grid-cols-1">
     <div class="bg-white shadow-lg rounded-2xl overflow-hidden">
-        <!-- Card Header -->
         <div class="custom-card-header flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 px-4 py-3 border-b">
             <h4 class="text-lg font-bold text-primary-custom flex items-center gap-2">
                 <i class="bi bi-people-fill"></i> Enrolled Students
@@ -19,7 +18,6 @@
             @endcan
         </div>
 
-        <!-- Card Body -->
         <div class="p-0">
             @if (session('success'))
             <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm m-4" role="alert">
@@ -45,11 +43,26 @@
                     <tbody>
                         @forelse ($students as $student)
                         <tr class="border-b hover:bg-gray-50">
+                            {{-- START IMAGE FIX WITH FALLBACK --}}
                             <td class="px-4 py-3">
-                                <img src="{{ asset('storage/' . ($student->user->user_pic ?? '')) }}"
-                                     alt="{{ $student->user->name ?? '' }}"
+                                @php
+                                    $imagePath = $student->user->user_pic ?? null;
+                                    // Get the first letter of the student's name for a placeholder
+                                    $initials = $student->user->name ? strtoupper(substr($student->user->name, 0, 1)) : 'S';
+                                @endphp
+
+                                @if ($imagePath)
+                                <img src="{{ asset('storage/' . $imagePath) }}"
+                                     alt="{{ $student->user->name ?? 'Student Photo' }}"
                                      class="rounded-full w-12 h-12 object-cover">
+                                @else
+                                {{-- Placeholder when image is missing (using Tailwind classes for style) --}}
+                                <div class="rounded-full w-12 h-12 bg-gray-300 flex items-center justify-center text-lg font-bold text-gray-600">
+                                    {{ $initials }}
+                                </div>
+                                @endif
                             </td>
+                            {{-- END IMAGE FIX WITH FALLBACK --}}
                             <td class="px-4 py-3 font-semibold max-w-[160px] truncate">{{ $student->user->name ?? '' }}</td>
                             <td class="px-4 py-3 max-w-[200px] truncate">{{ $student->user->email ?? '' }}</td>
                             <td class="px-4 py-3">{{ $student->schoolClass->name ?? ''}}</td>
@@ -92,7 +105,6 @@
 </div>
 
 
-<!-- Delete Modals -->
 @foreach ($students as $student)
 <div class="modal fade" id="deleteModal-{{ $student->id }}" tabindex="-1">
     <div class="modal-dialog">
@@ -156,7 +168,7 @@
             columnDefs: [
                 {
                     orderable: false,
-                    targets: 5 // Disable sorting on 'Actions' column
+                    targets: 7 // Corrected target index for 'Actions' column (0-based)
                 }
             ]
         });

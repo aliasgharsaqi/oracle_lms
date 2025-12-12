@@ -75,7 +75,7 @@ class StudentFeePlanController extends Controller
         DB::beginTransaction();
         try {
             $totalTuition = collect($request->input('tuition_fee'))->sum();
-            $annualFeesTotal = $totalTuition + $request->input('admission_fee', 0) + ($request->input('examination_fee', 0) * 2) + $request->input('other_fees', 0);
+            $annualFeesTotal = $totalTuition + $request->input('admission_fee', 0) + $request->input('examination_fee', 0) + $request->input('other_fees', 0);
 
             $feePlan = StudentFeePlan::updateOrCreate(
                 [ 'student_id' => $student->id, 'school_id' => auth()->user()->school_id, 'year' => $request->year, ],
