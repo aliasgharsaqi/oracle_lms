@@ -63,6 +63,8 @@ class RolePermissionSeeder extends Seeder
             'Manage Results',
             'Student Attendence',
             'Teacher Attendence',
+            'student_diary',
+            'teacher_diary'
         ];
 
         foreach ($permissions as $permission) {

@@ -123,6 +123,10 @@
     // Note: We are now using server-side filtering, so the basic DataTable is sufficient.
     $(document).ready(function() {
         $('#schedulesTable').DataTable({
+             dom: 
+                "<'flex flex-col md:flex-row justify-between items-center my-3 mx-3'<'flex items-center gap-2'B><'ml-auto'f>>" + // Buttons + Search aligned
+                "<'overflow-x-auto'tr>" + // Table with responsive scroll
+                "<'flex flex-col md:flex-row justify-between items-center my-3 mx-3'<'text-sm'i><'mt-2 md:mt-0'p>>", // Info + Pagination aligned
             paging: true,
             searching: true, // This enables local search on the filtered results
             ordering: false, // Ordering is now handled by the controller

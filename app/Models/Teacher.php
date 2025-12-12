@@ -45,6 +45,13 @@ class Teacher extends Model
         return $this->hasOne(Attendance::class)->where('date', today());
     }
 
+    // --- NEW RELATIONSHIP FOR DIARY/TASKS ---
+    public function assignments()
+    {
+        return $this->hasMany(TeacherAssignment::class);
+    }
+    // --- END NEW RELATIONSHIP ---
+
     protected static function booted()
     {
         static::addGlobalScope(new SchoolScope);

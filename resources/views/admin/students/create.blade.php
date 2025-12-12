@@ -41,9 +41,11 @@
                             <label for="name" class="form-label fw-semibold">Full Name</label>
                             <input type="text" class="form-control rounded-3 shadow-sm" id="name" name="name" value="{{ old('name') }}" required>
                         </div>
-                        <div class="col-md-6">
-                            <label for="email" class="form-label fw-semibold">Email Address (Optional, for login)</label>
-                            <input type="email" class="form-control rounded-3 shadow-sm" id="email" name="email" value="{{ old('email') }}">
+                       <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label fw-semibold">Email Address (Optional)</label>
+                            {{-- FIX 2: Removed the 'required' attribute --}}
+                            <input type="email" class="form-control rounded-3 shadow-sm @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}">
+                            @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-6">
                             <label for="password" class="form-label fw-semibold">Password (Optional)</label>

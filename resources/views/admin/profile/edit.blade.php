@@ -41,7 +41,6 @@
 
 
 <div class="row g-4">
-    <!-- Left Column: Profile Card -->
     <div class="col-xl-4">
         <div class="card shadow-lg border-0 rounded-4 h-100">
             <div class="card-body text-center p-4 d-flex flex-column justify-content-center">
@@ -51,8 +50,8 @@
                     <input type="hidden" name="section" value="image">
                     
                     <img id="profileImagePreview" class="img-fluid rounded-circle mb-3 shadow-lg mx-auto" 
-                         src="{{ $user->user_pic ? asset('storage/' . $user->user_pic) : 'https://placehold.co/150x150/E8E8E8/424242?text=' . substr($user->name, 0, 1) }}" 
-                         alt="Profile Picture" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid white;">
+                        src="{{ $user->user_pic ? asset('storage/' . $user->user_pic) : 'https://placehold.co/150x150/E8E8E8/424242?text=' . substr($user->name, 0, 1) }}" 
+                        alt="Profile Picture" style="width: 150px; height: 150px; object-fit: cover; border: 4px solid white;">
 
                     <h4 class="card-title fw-bold mt-2">{{ $user->name }}</h4>
                     <p class="card-text text-muted mb-3">{{ $user->getRoleNames()->first() ?? 'User' }}</p>
@@ -69,7 +68,6 @@
         </div>
     </div>
 
-    <!-- Right Column: Tabs for Forms -->
     <div class="col-xl-8">
         <div class="card shadow-lg border-0 rounded-4 h-100">
             <div class="card-header bg-light border-0 p-2">
@@ -93,7 +91,6 @@
             </div>
             <div class="card-body p-4">
                 <div class="tab-content" id="myTabContent">
-                    <!-- Profile Info Tab -->
                     <div class="tab-pane fade show active" id="profile-pane" role="tabpanel" aria-labelledby="profile-tab">
                         <h5 class="mb-4 fw-bold">Account Information</h5>
                         <form method="post" action="{{ route('profile.update') }}">
@@ -113,7 +110,6 @@
                             <button type="submit" class="btn btn-primary rounded-pill px-4 mt-3">Save Changes</button>
                         </form>
                     </div>
-                    <!-- Social Links Tab -->
                     <div class="tab-pane fade" id="social-pane" role="tabpanel" aria-labelledby="social-tab">
                         <h5 class="mb-4 fw-bold">Social Profiles</h5>
                         <form method="post" action="{{ route('profile.update') }}">
@@ -138,30 +134,53 @@
                             <button type="submit" class="btn btn-primary rounded-pill px-4 mt-3">Save Social Links</button>
                         </form>
                     </div>
-                    <!-- Change Password Tab -->
+                    
                     <div class="tab-pane fade" id="password-pane" role="tabpanel" aria-labelledby="password-tab">
                         <h5 class="mb-4 fw-bold">Update Password</h5>
                         <form method="post" action="{{ route('profile.update') }}">
                             @csrf
                             @method('patch')
                             <input type="hidden" name="section" value="password">
+
+                            {{-- Current Password Field --}}
                             <div class="mb-3">
                                 <label for="current_password" class="form-label fw-semibold">Current Password</label>
-                                <input type="password" class="form-control form-control-lg @error('current_password') is-invalid @enderror" id="current_password" name="current_password" required>
-                                @error('current_password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                <div class="input-group">
+                                    <input type="password" class="form-control form-control-lg @error('current_password') is-invalid @enderror" id="current_password" name="current_password" required>
+                                    <span class="input-group-text p-0 border-start-0 bg-transparent">
+                                        <i class="bi bi-eye-slash password-toggle p-3" data-target="current_password"></i>
+                                    </span>
+                                    @error('current_password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                </div>
                             </div>
+
+                            {{-- New Password Field --}}
                             <div class="mb-3">
                                 <label for="password" class="form-label fw-semibold">New Password</label>
-                                <input type="password" class="form-control form-control-lg @error('password') is-invalid @enderror" id="password" name="password" required>
-                                @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                <div class="input-group">
+                                    <input type="password" class="form-control form-control-lg @error('password') is-invalid @enderror" id="password" name="password" required>
+                                    <span class="input-group-text p-0 border-start-0 bg-transparent">
+                                        <i class="bi bi-eye-slash password-toggle p-3" data-target="password"></i>
+                                    </span>
+                                    @error('password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                </div>
                             </div>
+                            
+                            {{-- Confirm New Password Field --}}
                             <div class="mb-3">
                                 <label for="password_confirmation" class="form-label fw-semibold">Confirm New Password</label>
-                                <input type="password" class="form-control form-control-lg" id="password_confirmation" name="password_confirmation" required>
+                                <div class="input-group">
+                                    <input type="password" class="form-control form-control-lg" id="password_confirmation" name="password_confirmation" required>
+                                    <span class="input-group-text p-0 border-start-0 bg-transparent">
+                                        <i class="bi bi-eye-slash password-toggle p-3" data-target="password_confirmation"></i>
+                                    </span>
+                                </div>
                             </div>
+
                             <button type="submit" class="btn btn-primary rounded-pill px-4 mt-3">Update Password</button>
                         </form>
                     </div>
+                    
                 </div>
             </div>
         </div>
@@ -170,12 +189,40 @@
 @endsection
 
 @push('scripts')
+<style>
+    /* Custom style for the password toggle icon */
+    .password-toggle {
+        cursor: pointer;
+        color: #6c757d; /* Muted color for the icon */
+        transition: color 0.15s ease-in-out;
+    }
+    .password-toggle:hover {
+        color: #0d6efd; /* Highlight on hover */
+    }
+    /* Ensure the input-group-text doesn't add extra borders/backgrounds */
+    .input-group-text {
+        border-color: #dee2e6;
+        border-radius: 0 0.5rem 0.5rem 0; /* Match Bootstrap rounded-4 */
+    }
+    .input-group:focus-within .input-group-text {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    /* Fix for invalid-feedback positioning in input-group (must be display block to work) */
+    .input-group > .invalid-feedback.d-block {
+        position: absolute;
+        width: 100%;
+        margin-top: calc(0.5rem + 0.9rem); /* Adjust based on form-control-lg height */
+    }
+</style>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const profileImageUpload = document.getElementById('user_pic_upload');
         const profileImagePreview = document.getElementById('profileImagePreview');
         const uploadImageBtn = document.getElementById('uploadImageBtn');
 
+        // Logic for image preview and showing upload button
         profileImageUpload.addEventListener('change', function(event) {
             const [file] = event.target.files;
             if (file) {
@@ -184,21 +231,63 @@
             }
         });
 
+        // --- PASSWORD TOGGLE FUNCTIONALITY START ---
+        const passwordToggles = document.querySelectorAll('.password-toggle');
+
+        passwordToggles.forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                // Get the ID of the input field from the data-target attribute
+                const inputId = this.getAttribute('data-target');
+                const passwordInput = document.getElementById(inputId);
+
+                // Toggle the input type between 'password' and 'text'
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    // Change icon from 'slash' (hidden) to 'open' (visible)
+                    this.classList.remove('bi-eye-slash');
+                    this.classList.add('bi-eye');
+                } else {
+                    passwordInput.type = 'password';
+                    // Change icon from 'open' (visible) to 'slash' (hidden)
+                    this.classList.remove('bi-eye');
+                    this.classList.add('bi-eye-slash');
+                }
+            });
+        });
+        // --- PASSWORD TOGGLE FUNCTIONALITY END ---
+
+
         // If there are validation errors, switch to the correct tab
         @if($errors->any())
             let activeTabId = 'profile-tab'; // Default to profile tab
             @if($errors->has('twitter_profile') || $errors->has('facebook_profile') || $errors->has('linkedin_profile'))
                 activeTabId = 'social-tab';
-            @elseif ($errors->has('current_password') || $errors->has('password'))
+            @elseif ($errors->has('current_password') || $errors->has('password') || $errors->has('user_pic'))
                 activeTabId = 'password-tab';
             @endif
             
             const triggerEl = document.querySelector('#' + activeTabId);
             if (triggerEl) {
-                bootstrap.Tab.getOrCreateInstance(triggerEl).show();
+                // Manually handle Bootstrap tab switching (necessary when done via JS after errors)
+                
+                // Remove active class from all nav-links and add to the target
+                document.querySelectorAll('#myTab .nav-link').forEach(nav => nav.classList.remove('active'));
+                triggerEl.classList.add('active');
+
+                // Hide all panes and show the target pane
+                document.querySelectorAll('#myTabContent .tab-pane').forEach(pane => {
+                    pane.classList.remove('show', 'active');
+                    pane.setAttribute('aria-selected', 'false');
+                });
+                
+                const targetPaneId = triggerEl.getAttribute('data-bs-target');
+                const targetPane = document.querySelector(targetPaneId);
+                if (targetPane) {
+                    targetPane.classList.add('show', 'active');
+                    triggerEl.setAttribute('aria-selected', 'true');
+                }
             }
         @endif
     });
 </script>
 @endpush
-

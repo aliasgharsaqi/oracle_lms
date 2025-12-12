@@ -18,9 +18,9 @@
             @endcan
         </div>
 
-        <div class="p-0">
+        <div class="p-4"> {{-- General card padding --}}
             @if (session('success'))
-            <div class="mx-4 my-3 bg-green-100 text-green-800 px-4 py-3 rounded-lg flex items-center justify-between shadow-sm"
+            <div class="mb-4 bg-green-100 text-green-800 px-4 py-3 rounded-lg flex items-center justify-between shadow-sm"
                 role="alert">
                 <span class="flex items-center gap-2">
                     <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
@@ -31,84 +31,87 @@
             </div>
             @endif
 
-            <div class="overflow-x-auto">
-                <table class="min-w-full table-auto text-sm text-left" id="subjectsTable">
-                    <thead class="bg-gray-100 text-gray-700 text-nowrap">
-                        <tr>
-                            <th class="px-4 py-3">#</th>
-                            <th class="px-4 py-3">Subject Name</th>
-                            <th class="px-4 py-3">Code</th>
-                            <th class="px-4 py-3">Assigned Class</th>
-                            <th class="px-4 py-3">Type</th>
-                            <th class="px-4 py-3">Status</th>
-                            <th class="px-4 py-3 text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($subjects as $key => $subject)
-                        <tr class="border-b hover:bg-gray-50">
-                            <td class="px-4 py-3">{{ $key + 1 }}</td>
-                            <td class="px-4 py-3 font-semibold max-w-[200px] truncate">{{ $subject->name }}</td>
-                            <td class="px-4 py-3">{{ $subject->subject_code ?? 'N/A' }}</td>
-                            <td class="px-4 py-3">
-                                @if ($subject->schoolClass)
-                                <span class="badge bg-info text-dark">{{ $subject->schoolClass->name }}</span>
-                                @else
-                                <span class="badge bg-secondary">Not Assigned</span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-3">
-                                <span class="badge bg-{{ $subject->type == 'core' ? 'primary' : 'warning text-dark' }}">
-                                    {{ ucfirst($subject->type) }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3">
-                                @can('Manage Subject Status')
-                                <form action="{{ route('subjects.toggleStatus', $subject->id) }}" method="POST" class="inline-block">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit"
-                                        class="btn btn-sm {{ $subject->active ? 'badge-gradient-success' : 'badge-gradient-warning' }}">
-                                        {{ $subject->active ? 'Active' : 'Inactive' }}
-                                    </button>
-                                </form>
-                                @else
-                                <span class="btn btn-sm {{ $subject->active ? 'badge-gradient-success' : 'badge-gradient-warning' }} disabled">
-                                    {{ $subject->active ? 'Active' : 'Inactive' }}
-                                </span>
-                                @endcan
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                <div class="flex flex-wrap justify-center gap-2">
-                                    @can('Edit Subject')
-                                    <a href="{{ route('subjects.edit', $subject->id) }}"
-                                        class="btn btn-icon badge-gradient-primary">
-                                        <i class="bi bi-pencil-square"></i>
-                                    </a>
-                                    @endcan
-                                    @can('Delete Subject')
-                                    <form action="{{ route('subjects.destroy', $subject->id) }}" method="POST" class="inline-block"
-                                        onsubmit="return confirm('Are you sure you want to delete this subject?')">
+            {{-- DataTables Wrapper starts here --}}
+            <div class="data-table-wrapper">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto text-sm text-left" id="subjectsTable">
+                        <thead class="bg-gray-100 text-gray-700 text-nowrap">
+                            <tr>
+                                <th class="px-4 py-3">#</th>
+                                <th class="px-4 py-3">Subject Name</th>
+                                <th class="px-4 py-3">Code</th>
+                                <th class="px-4 py-3">Assigned Class</th>
+                                <th class="px-4 py-3">Type</th>
+                                <th class="px-4 py-3">Status</th>
+                                <th class="px-4 py-3 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($subjects as $key => $subject)
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="px-4 py-3">{{ $key + 1 }}</td>
+                                <td class="px-4 py-3 font-semibold max-w-[200px] truncate">{{ $subject->name }}</td>
+                                <td class="px-4 py-3">{{ $subject->subject_code ?? 'N/A' }}</td>
+                                <td class="px-4 py-3">
+                                    @if ($subject->schoolClass)
+                                    <span class="badge bg-info text-dark">{{ $subject->schoolClass->name }}</span>
+                                    @else
+                                    <span class="badge bg-secondary">Not Assigned</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="badge bg-{{ $subject->type == 'core' ? 'primary' : 'warning text-dark' }}">
+                                        {{ ucfirst($subject->type) }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    @can('Manage Subject Status')
+                                    <form action="{{ route('subjects.toggleStatus', $subject->id) }}" method="POST" class="inline-block">
                                         @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-icon badge-gradient-danger">
-                                            <i class="bi bi-trash"></i>
+                                        @method('PATCH')
+                                        <button type="submit"
+                                            class="btn btn-sm {{ $subject->active ? 'badge-gradient-success' : 'badge-gradient-warning' }}">
+                                            {{ $subject->active ? 'Active' : 'Inactive' }}
                                         </button>
                                     </form>
+                                    @else
+                                    <span class="btn btn-sm {{ $subject->active ? 'badge-gradient-success' : 'badge-gradient-warning' }} disabled">
+                                        {{ $subject->active ? 'Active' : 'Inactive' }}
+                                    </span>
                                     @endcan
-                                </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="7" class="text-center text-gray-500 py-6">
-                                <i class="bi bi-emoji-frown text-lg"></i> No subjects found.
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <div class="flex flex-wrap justify-center gap-2">
+                                        @can('Edit Subject')
+                                        <a href="{{ route('subjects.edit', $subject->id) }}"
+                                            class="btn btn-icon badge-gradient-primary">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        @endcan
+                                        @can('Delete Subject')
+                                        <form action="{{ route('subjects.destroy', $subject->id) }}" method="POST" class="inline-block"
+                                            onsubmit="return confirm('Are you sure you want to delete this subject?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-icon badge-gradient-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                        @endcan
+                                    </div>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="7" class="text-center text-gray-500 py-6">
+                                    <i class="bi bi-emoji-frown text-lg"></i> No subjects found.
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div> 
         </div>
     </div>
 </div>
@@ -116,11 +119,16 @@
 @endsection
 
 @push('scripts')
+
+
 <script>
-    // Note: Ensure you have jQuery and DataTables included in your project for this to work.
     $(document).ready(function() {
         $('#subjectsTable').DataTable({
-            dom: 'Bfrtip',
+           dom: 
+                "<'flex flex-col md:flex-row justify-between items-center my-3 mx-3'<'flex items-center gap-2'B><'ml-auto'f>>" + // Buttons + Search aligned
+                "<'overflow-x-auto'tr>" + // Table with responsive scroll
+                "<'flex flex-col md:flex-row justify-between items-center my-3'<'text-sm'i><'mt-2 md:mt-0'p>>", // Info + Pagination aligned
+
             buttons: [
                 'copy', 'csv', 'excel', 'pdf', 'print', 'colvis'
             ],

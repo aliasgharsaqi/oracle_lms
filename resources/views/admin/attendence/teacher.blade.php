@@ -5,537 +5,439 @@
 
 @section('content')
 
-    <div class=" p-6 rounded-2xl shadow-lg max-w-2xl mx-auto my-6">
-    <form method="GET" action="{{ route('attendence.teacher') }}" class="space-y-4">
-        <h2 class="text-xl font-semibold text-gray-800 mb-3">📅 Attendance Filter</h2>
+{{-- ========================================================= --}}
+{{-- 1. TOP SETTINGS & FILTER CARD --}}
+{{-- ========================================================= --}}
+<div class="p-6 rounded-2xl shadow-lg max-w-4xl mx-auto my-6 bg-white">
+    {{-- Filter Form --}}
+    <form method="GET" action="{{ route('attendence.teacher') }}" class="space-y-4" id="filter-form">
+        
+        <div class="flex justify-between items-center mb-3 border-b border-gray-100 pb-2">
+            <h2 class="text-xl font-semibold text-gray-800">📅 Attendance Settings</h2>
+            
+            {{-- SAVE BUTTON (Saves time to Database via AJAX) --}}
+            <button type="button" id="btn-save-time" 
+                class="text-xs bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-black transition-all flex items-center gap-2 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                Save Default Time
+            </button>
+        </div>
 
-        <div>
-            <label for="date" class="block text-sm font-medium text-gray-700 mb-1">
-                Select Date
-            </label>
-            <div class="flex flex-col sm:flex-row items-center gap-4">
-                <input 
-                    type="date" 
-                    name="date" 
-                    id="date"
-                    value="{{ $selected_date->format('Y-m-d') }}"
-                    class="w-full sm:w-auto flex-1 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 text-gray-700"
-                >
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+            {{-- Date Input --}}
+            <div>
+                <label for="date" class="block text-xs font-bold text-gray-500 uppercase mb-1">Select Date</label>
+                <input type="date" name="date" id="date" value="{{ $selected_date->format('Y-m-d') }}"
+                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 text-gray-700">
+            </div>
+            
+            {{-- Start Time Input --}}
+            <div>
+                <label for="school_start_time" class="block text-xs font-bold text-gray-500 uppercase mb-1">School Start Time</label>
+                {{-- Value Controller se aa rahi hai (Database/Default) --}}
+                <input type="time" name="school_start_time" id="school_start_time" value="{{ $schoolStartTime }}"
+                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 px-3 py-2 text-gray-700 font-mono bg-green-50">
+                <p class="text-[10px] text-gray-400 mt-1">Check-in after this is marked <b>LATE</b> automatically.</p>
+            </div>
 
-                <button 
-                    type="submit"
-                    class="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg transition-all duration-300"
-                >
-                    Filter
-                </button>
+            {{-- End Time Input --}}
+            <div>
+                <label for="school_end_time" class="block text-xs font-bold text-gray-500 uppercase mb-1">School End Time</label>
+                <input type="time" name="school_end_time" id="school_end_time" value="{{ $schoolEndTime }}"
+                    class="w-full rounded-lg border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 px-3 py-2 text-gray-700 font-mono bg-red-50">
+                <p class="text-[10px] text-gray-400 mt-1">Used for check-out reference.</p>
             </div>
         </div>
 
-        <div class="border-t border-gray-200 my-4"></div>
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2 border-t border-gray-100">
+            <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg transition-all">
+                Filter Records
+            </button>
 
-        <div class="text-center flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
-            <a 
-                href="{{ route('attendence.teacher.monthly_report') }}" 
-                class="inline-flex items-center text-blue-700 font-medium hover:text-blue-800 transition-all duration-300"
-            >
-                View Monthly Report 
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-            </a>
-
-            <span class="text-gray-300 hidden sm:inline">|</span>
-
-            {{-- NEW PENDING LEAVES LINK --}}
-            <a 
-                href="{{ route('attendence.teacher.pending_leaves') }}" 
-                class="inline-flex items-center text-yellow-700 font-medium hover:text-yellow-800 transition-all duration-300 relative"
-            >
-                View Pending Leaves
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {{-- You can add a badge here later if you pass a $pending_count --}}
-            </a>
+            <div class="flex gap-4 text-sm font-medium">
+                <a href="{{ route('attendence.teacher.monthly_report') }}" class="text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                    Monthly Report <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                </a>
+                <span class="text-gray-300">|</span>
+                <a href="{{ route('attendence.teacher.pending_leaves') }}" class="text-yellow-600 hover:text-yellow-800 flex items-center gap-1">
+                    Pending Leaves <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </a>
+            </div>
         </div>
     </form>
 </div>
 
+{{-- ========================================================= --}}
+{{-- 2. TEACHERS GRID --}}
+{{-- ========================================================= --}}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    @foreach ($teachers as $teacher)
+        @php
+            // --- LOGIC BLOCK ---
+            $attendance = $teacher->attendanceRecord; 
+            $isToday = $selected_date->isToday();
+            $status = $attendance->status ?? 'none';
+            
+            $leaveStatus = $attendance->leave_status ?? null;
+            $leaveType = $attendance->leave_type ?? null;
+            $isLeavePending = $leaveStatus === 'pending';
+            $isLeaveApproved = $leaveStatus === 'approved';
+            
+            $hasCheckedIn = $attendance && $attendance->check_in && !$attendance->check_out; 
+            $hasCheckedOut = $attendance && $attendance->check_out;
+            $isAbsent = $status === 'absent';
+            $isLeave = $status === 'leave' && $isLeaveApproved;
+            $isShortLeave = $status === 'short_leave' && $isLeaveApproved;
+            $isLate = $status === 'late_arrival';
+            $isPresent = $status === 'present';
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            // Late Time Formatter (e.g., 1h 15m)
+            $lateTimeText = null;
+            if ($attendance && $attendance->late_minutes > 0) {
+                $lateMins = $attendance->late_minutes;
+                $h = floor($lateMins / 60);
+                $m = $lateMins % 60;
+                $lateTimeText = ($h > 0 ? "{$h}h " : "") . "{$m}m";
+            }
 
-        @foreach ($teachers as $teacher)
-            {{-- Set up dynamic status variables --}}
-            @php
-                $attendance = $teacher->attendanceRecord; 
-                $isToday = $selected_date->isToday();
+            // Status Dot Color
+            $dotColor = 'bg-gray-300';
+            if ($isPresent) $dotColor = 'bg-green-500';
+            if ($isLate) $dotColor = 'bg-yellow-500'; 
+            if ($isAbsent) $dotColor = 'bg-red-500';
+            if ($isLeave || $isShortLeave) $dotColor = 'bg-blue-500';
+            if ($isLeavePending) $dotColor = 'bg-yellow-500 animate-pulse'; 
 
-                $status = $attendance->status ?? 'none';
-                
-                // NEW: Check leave status
-                $leaveStatus = $attendance->leave_status ?? null;
-                $leaveType = $attendance->leave_type ?? null;
-                $isLeavePending = $leaveStatus === 'pending';
-                $isLeaveApproved = $leaveStatus === 'approved';
-                $isLeaveRejected = $leaveStatus === 'rejected';
+            $statusTitle = ucfirst(str_replace('_', ' ', $status));
+            if($isLate && $lateTimeText) $statusTitle .= " ($lateTimeText)";
+        @endphp
 
-                $hasCheckedIn = $attendance && $attendance->check_in && !$attendance->check_out; 
-                $hasCheckedOut = $attendance && $attendance->check_out;
-                
-                $isAbsent = $status === 'absent';
-                // Only "Approved" leave counts as leave now
-                $isLeave = $status === 'leave' && $isLeaveApproved;
-                $isShortLeave = $status === 'short_leave' && $isLeaveApproved;
-                $isLate = $status === 'late_arrival';
-                $isPresent = $status === 'present';
-
-                // Determine dot color
-                $dotColor = 'bg-gray-400'; // Default (not marked)
-                if ($isPresent) $dotColor = 'bg-green-500';
-                if ($isLate) $dotColor = 'bg-yellow-500'; 
-                if ($isAbsent) $dotColor = 'bg-red-500';
-                if ($isLeave || $isShortLeave) $dotColor = 'bg-blue-500'; // Approved Leave
-                
-                if ($hasCheckedIn) $dotColor = 'bg-green-500'; // Present
-                if ($hasCheckedOut) $dotColor = 'bg-blue-500'; // Checked Out
-                
-                // NEW: Pending status overrides all
-                if ($isLeavePending) $dotColor = 'bg-yellow-500'; // Pending
-                
-                // Set title for status dot
-                $statusTitle = ucfirst(str_replace('_', ' ', $status));
-                if ($isLeavePending) {
-                    $statusTitle = 'Leave Pending';
-                } elseif ($isLeave) {
-                    $statusTitle = 'Leave (Approved)';
-                } elseif ($isShortLeave) {
-                    $statusTitle = 'Short Leave (Approved)';
-                }
-            @endphp
-
-            {{-- Main Attendance Card --}}
-            <div class="bg-white w-full shadow-lg rounded-2xl p-4 space-y-4">
-
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                         @if($teacher->user->user_pic ?? '')
-                                <img src="{{ asset('storage/' . $teacher->user->user_pic) }}"
-                                    alt="{{ $teacher->user->name }}"
-                                    class="rounded-full shadow-sm w-11 h-11 object-cover">
-                                @endif
-                        <div>
-                            <h2 class="text-lg font-bold text-gray-900">{{ optional($teacher->user)->name ?? 'No Name' }}</h2>
-                            <p class="text-xs text-gray-500">{{ optional($teacher->user)->email ?? 'No Email' }}</p>
-                        </div>
+        <div class="bg-white w-full shadow-lg rounded-2xl p-4 space-y-4 border border-gray-100 relative overflow-hidden">
+            
+            {{-- Card Header --}}
+            <div class="flex items-center justify-between z-10 relative">
+                <div class="flex items-center gap-3">
+                     @if($teacher->user->user_pic ?? '')
+                        <img src="{{ asset('storage/' . $teacher->user->user_pic) }}" alt="{{ $teacher->user->name }}" class="rounded-full shadow-sm w-12 h-12 object-cover border border-gray-200">
+                     @endif
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900 leading-tight">{{ optional($teacher->user)->name ?? 'No Name' }}</h2>
+                        <p class="text-xs text-gray-500">{{ optional($teacher->user)->email ?? 'No Email' }}</p>
                     </div>
-                    {{-- UPDATED: Title now reflects pending status --}}
-                    <div id="status-dot-{{ $teacher->id }}" class="w-3 h-3 {{ $dotColor }} rounded-full shadow-sm transition-colors duration-300" title="Status: {{ $statusTitle }}"></div>
                 </div>
+                <div class="w-4 h-4 {{ $dotColor }} rounded-full shadow-sm ring-2 ring-white" title="{{ $statusTitle }}"></div>
+            </div>
 
-                <div class="flex justify-between items-center pt-4 border-t border-gray-100">
-                    <span class="text-sm text-gray-600 font-medium">Monthly Salary</span>
-                    <span class="text-2xl font-bold text-blue-600">
-                        {{ number_format($teacher->monthly_salary ?? 50000) }}
-                        <span class="text-gray-500 text-sm font-normal ml-1">PKR</span>
-                    </span>
-                </div>
+            {{-- Salary Info --}}
+            <div class="flex justify-between items-center pt-3 border-t border-gray-100">
+                <span class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Salary</span>
+                <span class="text-lg font-bold text-blue-600">{{ number_format($teacher->monthly_salary ?? 0) }} <span class="text-xs text-gray-400">PKR</span></span>
+            </div>
 
-                <div class="pt-4 border-t border-gray-100 space-y-2">
-                    <p class="text-gray-800 font-semibold text-base mb-3">
-                        Attendance for: {{ $selected_date->format('M d, Y') }}
-                    </p>
-
-                    {{-- Check if the selected date is TODAY --}}
-                    @if ($isToday)
-                        {{-- ********* TODAY's LOGIC (Buttons with timestamps) ********* --}}
-                        
-                        @if ($hasCheckedOut)
-                            <p class="text-sm text-center text-blue-600 font-medium p-3 bg-blue-50 rounded-lg">
-                                Checked out for the day.
-                            </p>
-                            @if ($attendance->check_in)
-                                <p class="text-xs text-center text-gray-500">
-                                    In: {{ $attendance->check_in->format('h:i A') }} | Out: {{ $attendance->check_out->format('h:i A') }}
-                                </p>
-                            @endif
-                        
-                        @else
-                            {{-- Show all buttons with active/disabled states --}}
-                            
-                            @if ($hasCheckedIn)
-                                {{-- Show Check Out button --}}
-                                <button data-teacher-id="{{ $teacher->id }}" data-action="check_out"
-                                    class="btn-attendance-action w-full flex items-center justify-center gap-2 bg-blue-100 text-blue-700 text-sm font-semibold px-3 py-2 rounded-lg shadow-sm hover:bg-blue-200 transition-all">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0-3-3m0 0 3-3m3 3H9" /></svg>
-                                    Check Out ({{ $attendance->check_in->format('h:i A') }})
-                                </button>
-                            @else
-                                {{-- Show Check In button --}}
-                                @php
-                                    // UPDATED: Cannot check in if leave is pending
-                                    $checkInDisabled = $isPresent || $isLate || $isLeavePending || $isLeave || $isShortLeave;
-                                @endphp
-                                <button data-teacher-id="{{ $teacher->id }}" data-action="check_in"
-                                    class="btn-attendance-action w-full flex items-center justify-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition-all
-                                    {{ $checkInDisabled ? 'bg-green-500 text-white cursor-not-allowed' : 'bg-green-100 text-green-700 hover:bg-green-200' }}"
-                                    {{ $checkInDisabled ? 'disabled' : '' }}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" /></svg>
-                                    {{ $checkInDisabled ? 'Checked In' : 'Check In' }}
-                                </button>
-                            @endif
-
-                            <div class="grid grid-cols-2 gap-2">
-                                <button data-teacher-id="{{ $teacher->id }}" data-action="absent"
-                                    class="btn-attendance-action flex-1 flex items-center justify-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition-all
-                                    {{ $isAbsent ? 'bg-red-500 text-white cursor-not-allowed' : 'bg-red-100 text-red-700 hover:bg-red-200' }}
-                                    {{ $isAbsent || $hasCheckedIn || $isLeavePending ? 'disabled' : '' }}">
-                                    Absent
-                                </button>
-                                
-                                @php
-                                    $lateDisabled = $isLate || $hasCheckedIn || $isAbsent || $isLeave || $isShortLeave || $isLeavePending;
-                                @endphp
-                                <button data-teacher-id="{{ $teacher->id }}" data-action="late_arrival"
-                                    class="btn-attendance-action flex-1 flex items-center justify-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition-all
-                                    {{ $isLate ? 'bg-yellow-500 text-white cursor-not-allowed' : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' }}
-                                    {{ $lateDisabled ? 'disabled' : '' }}">
-                                    Late
-                                </button>
-                                
-                                {{-- UPDATED: Short Leave Button --}}
-                                <button data-teacher-id="{{ $teacher->id }}" data-action="short_leave" data-teacher-name="{{ optional($teacher->user)->name }}"
-                                    class="btn-leave-modal flex-1 flex items-center justify-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition-all
-                                    {{ $isLeavePending && $leaveType == 'short_leave' ? 'bg-yellow-500 text-white cursor-not-allowed' : ($isShortLeave ? 'bg-purple-500 text-white cursor-not-allowed' : 'bg-purple-100 text-purple-700 hover:bg-purple-200') }}"
-                                    {{ $isLeavePending || $isShortLeave ? 'disabled' : '' }}>
-                                    {{ $isLeavePending && $leaveType == 'short_leave' ? 'Pending' : ($isShortLeave ? 'On Leave' : 'Short Leave') }}
-                                </button>
-
-                                {{-- UPDATED: Full Leave Button --}}
-                                <button data-teacher-id="{{ $teacher->id }}" data-action="leave" data-teacher-name="{{ optional($teacher->user)->name }}"
-                                    class="btn-leave-modal flex-1 flex items-center justify-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition-all
-                                    {{ $isLeavePending && $leaveType == 'leave' ? 'bg-yellow-500 text-white cursor-not-allowed' : ($isLeave ? 'bg-blue-500 text-white cursor-not-allowed' : 'bg-blue-100 text-blue-700 hover:bg-blue-200') }}"
-                                    {{ $isLeavePending || $isLeave ? 'disabled' : '' }}>
-                                    {{ $isLeavePending && $leaveType == 'leave' ? 'Pending' : ($isLeave ? 'On Leave' : 'Apply Leave') }}
-                                </button>
+            {{-- ACTION AREA --}}
+            <div class="pt-2">
+                
+                @if ($isToday)
+                    {{-- ====== A. TODAY'S ACTIONS (Live) ====== --}}
+                    
+                    @if ($hasCheckedOut)
+                        {{-- 1. Checked Out State --}}
+                        <div class="bg-blue-50 p-3 rounded-xl text-center border border-blue-100">
+                            <p class="text-blue-700 font-bold text-sm">Session Completed</p>
+                            <div class="flex justify-center gap-4 mt-2 text-xs text-gray-600">
+                                <div><span class="block text-gray-400 uppercase text-[10px]">In</span> {{ $attendance->check_in->format('h:i A') }}</div>
+                                <div><span class="block text-gray-400 uppercase text-[10px]">Out</span> {{ $attendance->check_out->format('h:i A') }}</div>
                             </div>
-                        @endif
+                        </div>
 
                     @else
-                        {{-- ********* PAST DATE LOGIC (Buttons for STATUS only) ********* --}}
-                        
-                        @php
-                            $presentActive = $isPresent;
-                            $absentActive = $isAbsent && !$isLeavePending; // Don't show active absent if leave is pending
-                            $leaveActive = $isLeave;
-                            $shortLeaveActive = $isShortLeave;
-                            $lateActive = $isLate;
-                        @endphp
-
-                        <div class="grid grid-cols-2 gap-2">
-                            <button 
-                                data-teacher-id="{{ $teacher->id }}" 
-                                data-action="present"
-                                class="btn-past-action flex-1 items-center justify-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition-all
-                                {{ $presentActive ? 'bg-green-500 text-white cursor-not-allowed' : 'bg-green-100 text-green-700 hover:bg-green-200' }}"
-                                {{ $presentActive || $isLeavePending ? 'disabled' : '' }}>
-                                Present
+                        @if ($hasCheckedIn)
+                            {{-- 2. Checked In State (Show Check Out) --}}
+                             <button data-teacher-id="{{ $teacher->id }}" data-action="check_out"
+                                class="btn-attendance-action w-full py-2.5 bg-blue-100 text-blue-700 font-bold rounded-xl hover:bg-blue-200 transition-colors flex items-center justify-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                                Check Out Now
                             </button>
-                            <button 
-                                data-teacher-id="{{ $teacher->id }}" 
-                                data-action="absent"
-                                class="btn-past-action flex-1 items-center justify-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition-all
-                                {{ $absentActive ? 'bg-red-500 text-white cursor-not-allowed' : 'bg-red-100 text-red-700 hover:bg-red-200' }}"
-                                {{ $absentActive || $isLeavePending ? 'disabled' : '' }}>
-                                Absent
-                            </button>
-                            <button 
-                                data-teacher-id="{{ $teacher->id }}" 
-                                data-action="late_arrival"
-                                class="btn-past-action flex-1 items-center justify-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition-all
-                                {{ $lateActive ? 'bg-yellow-500 text-white cursor-not-allowed' : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' }}"
-                                {{ $lateActive || $isLeavePending ? 'disabled' : '' }}>
-                                Late
-                            </button>
+                        @else
+                            {{-- 3. Not Marked (Show Check In) --}}
+                            @php $disableCheckIn = $isPresent || $isLate || $isLeave || $isShortLeave || $isLeavePending; @endphp
                             
-                            {{-- UPDATED: Past Leave Button --}}
-                            <button 
-                                data-teacher-id="{{ $teacher->id }}" 
-                                data-action="leave"
-                                data-teacher-name="{{ optional($teacher->user)->name }}"
-                                class="btn-past-leave-modal flex-1 items-center justify-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition-all
-                                {{ $isLeavePending ? 'bg-yellow-500 text-white cursor-not-allowed' : ($leaveActive ? 'bg-blue-500 text-white cursor-not-allowed' : 'bg-blue-100 text-blue-700 hover:bg-blue-200') }}"
-                                {{ $isLeavePending || $leaveActive ? 'disabled' : '' }}>
-                                {{ $isLeavePending ? 'Pending' : ($leaveActive ? 'On Leave' : 'Leave') }}
+                            <button data-teacher-id="{{ $teacher->id }}" data-action="check_in"
+                                class="btn-attendance-action w-full py-3 rounded-xl font-bold shadow-sm transition-all transform hover:-translate-y-0.5
+                                {{ $disableCheckIn ? 'bg-green-500 text-white opacity-70 cursor-not-allowed' : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700' }}"
+                                {{ $disableCheckIn ? 'disabled' : '' }}>
+                                {{ $disableCheckIn ? ($isLate ? 'Marked Late' : 'Checked In') : 'Check In' }}
                             </button>
-                        </div>
-                        
-                        @if ($attendance && $attendance->notes)
-                            <p class="text-xs text-gray-600 mt-2">
-                                <strong>Notes:</strong> {{ $attendance->notes }}
-                                @if ($isLeaveRejected)
-                                    <span class="font-bold text-red-600">(Leave Rejected)</span>
-                                @endif
-                            </p>
                         @endif
 
+                        {{-- Secondary Actions (Absent / Leaves) --}}
+                        <div class="grid grid-cols-3 gap-2 mt-3">
+                            <button data-teacher-id="{{ $teacher->id }}" data-action="absent" 
+                                class="btn-attendance-action bg-red-50 text-red-600 py-2 rounded-lg text-xs font-bold hover:bg-red-100 border border-red-100">
+                                Absent
+                            </button>
+                            <button data-teacher-id="{{ $teacher->id }}" data-action="short_leave" data-teacher-name="{{ optional($teacher->user)->name }}" 
+                                class="btn-leave-modal bg-purple-50 text-purple-600 py-2 rounded-lg text-xs font-bold hover:bg-purple-100 border border-purple-100">
+                                Short Lv
+                            </button>
+                            <button data-teacher-id="{{ $teacher->id }}" data-action="leave" data-teacher-name="{{ optional($teacher->user)->name }}" 
+                                class="btn-leave-modal bg-blue-50 text-blue-600 py-2 rounded-lg text-xs font-bold hover:bg-blue-100 border border-blue-100">
+                                Full Lv
+                            </button>
+                        </div>
                     @endif
-                </div>
 
+                @else
+                    {{-- ====== B. PAST DATE ACTIONS (Manual Updates) ====== --}}
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                         <button data-teacher-id="{{ $teacher->id }}" data-action="present" class="btn-past-action bg-green-50 text-green-700 py-2 rounded-lg text-xs font-bold hover:bg-green-100 border border-green-100">Present</button>
+                         <button data-teacher-id="{{ $teacher->id }}" data-action="absent" class="btn-past-action bg-red-50 text-red-700 py-2 rounded-lg text-xs font-bold hover:bg-red-100 border border-red-100">Absent</button>
+                    </div>
+                    
+                    {{-- Past Manual Late & Leave --}}
+                    <div class="grid grid-cols-2 gap-2 mt-2">
+                        {{-- Manual Late Button -> Opens Modal --}}
+                        <button data-teacher-id="{{ $teacher->id }}" data-teacher-name="{{ optional($teacher->user)->name }}" 
+                            class="btn-late-modal bg-yellow-50 text-yellow-700 py-2 rounded-lg text-xs font-bold hover:bg-yellow-100 border border-yellow-100 flex items-center justify-center gap-1">
+                            Late @if($isLate && $lateTimeText)<span class="bg-white px-1 rounded shadow-sm text-[10px]">{{ $lateTimeText }}</span>@endif
+                        </button>
+                        
+                        <button data-teacher-id="{{ $teacher->id }}" data-action="leave" data-teacher-name="{{ optional($teacher->user)->name }}" 
+                            class="btn-past-leave-modal bg-blue-50 text-blue-700 py-2 rounded-lg text-xs font-bold hover:bg-blue-100 border border-blue-100">
+                            {{ $isLeave ? 'On Leave' : 'Leave' }}
+                        </button>
+                    </div>
+
+                     @if ($attendance && $attendance->notes) 
+                        <p class="text-[10px] text-gray-500 mt-2 bg-gray-50 p-1.5 rounded border border-gray-100">
+                            <strong>Note:</strong> {{Str::limit($attendance->notes, 40)}}
+                        </p> 
+                    @endif
+                @endif
             </div>
-        @endforeach
-    </div>
+        </div>
+    @endforeach
+</div>
 
-    <div id="leave-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-gray-900" id="modal-title">Apply Leave</h3>
-                <button id="modal-close-btn" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+{{-- ========================================================= --}}
+{{-- 3. MODALS (Hidden by Default) --}}
+{{-- ========================================================= --}}
+
+{{-- A. LEAVE MODAL --}}
+<div id="leave-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md transform transition-all scale-100">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-xl font-bold text-gray-800">Apply Leave</h3>
+            <button onclick="document.getElementById('leave-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+        </div>
+        <form id="leave-modal-form" data-form-type="today">
+            <input type="hidden" id="modal_teacher_id" name="teacher_id">
+            <input type="hidden" id="modal_leave_type" name="leave_type">
+            
+            <div class="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <p class="text-sm text-gray-600">Applicant: <span id="modal-teacher-name" class="font-bold text-gray-800"></span></p>
             </div>
             
-            <form id="leave-modal-form" data-form-type="today"> {{-- Naya attribute --}}
-                <input type="hidden" id="modal_teacher_id" name="teacher_id">
-                <input type="hidden" id="modal_leave_type" name="leave_type">
-
-                <div class="mb-4">
-                    <p class="text-sm">Applying for: <span id="modal-teacher-name" class="font-semibold"></span></p>
-                </div>
-                
-                <div>
-                    <label for="modal_reason" class="block text-sm font-medium text-gray-700">Reason</label>
-                    <textarea id="modal_reason" name="reason" rows="3" required
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                        placeholder="Please provide a reason..."></textarea>
-                    <p id="modal-error" class="text-red-500 text-sm mt-1 hidden"></p>
-                </div>
-
-                <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" id="modal-cancel-btn" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-200 transition-all">
-                        Cancel
-                    </button>
-                    <button type="submit" id="modal-submit-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-blue-700 transition-all">
-                        Submit
-                    </button>
-                </div>
-            </form>
-        </div>
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Reason</label>
+                <textarea name="reason" rows="3" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2" placeholder="Enter valid reason..." required></textarea>
+            </div>
+            
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" onclick="document.getElementById('leave-modal').classList.add('hidden')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium">Cancel</button>
+                <button type="submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md font-medium">Submit Request</button>
+            </div>
+        </form>
     </div>
+</div>
+
+{{-- B. MANUAL LATE MODAL (For Past Dates Only) --}}
+<div id="late-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Manual Late Entry</h3>
+        <form id="late-modal-form">
+            <input type="hidden" id="late_modal_teacher_id" name="teacher_id">
+            
+            <p class="text-sm text-gray-600 mb-4">Editing for: <span id="late-modal-teacher-name" class="font-bold"></span></p>
+            
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Minutes Late</label>
+            <input type="number" id="late_minutes" name="late_minutes" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-yellow-500 focus:ring-yellow-500 text-lg p-2" placeholder="e.g. 15" min="1" required>
+            
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" onclick="document.getElementById('late-modal').classList.add('hidden')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Cancel</button>
+                <button type="submit" class="px-5 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 shadow-md">Update</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+document.addEventListener('DOMContentLoaded', function () {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-        // --- 1. AAJ (Today) ke Quick Actions (Check In, Out, Absent, Late) ---
-        document.body.addEventListener('click', function(e) {
-            const button = e.target.closest('.btn-attendance-action');
-            if (button) {
-                const teacherId = button.dataset.teacherId;
-                const action = button.dataset.action;
+    // =========================================================
+    // 1. SAVE TIME SETTINGS (Top Black Button)
+    // =========================================================
+    const saveBtn = document.getElementById('btn-save-time');
+    if(saveBtn) {
+        saveBtn.addEventListener('click', function() {
+            const startTime = document.getElementById('school_start_time').value;
+            const endTime = document.getElementById('school_end_time').value;
 
-                if (!teacherId || !action) return;
+            if(!startTime || !endTime) { alert('Please select both Start and End time.'); return; }
 
-                button.disabled = true;
-                button.innerHTML = 'Processing...';
+            const originalText = saveBtn.innerHTML;
+            saveBtn.innerHTML = 'Saving...'; saveBtn.disabled = true;
 
-                fetch("{{ route('attendence.teacher.mark') }}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        teacher_id: teacherId,
-                        action: action
-                    })
-                })
-                .then(response => response.json().then(data => ({ok: response.ok, data})))
-                .then(({ok, data}) => {
-                    if (ok) {
-                        location.reload(); 
-                    } else {
-                        throw new Error(data.error || 'Request failed');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error: ' + error.message);
-                    location.reload(); // Error pe bhi reload karein
-                });
-            }
-        });
-
-        // --- 2. AAJ (Today) ka Leave Modal Trigger ---
-        const modal = document.getElementById('leave-modal');
-        const modalForm = document.getElementById('leave-modal-form');
-        const modalCloseBtn = document.getElementById('modal-close-btn');
-        const modalCancelBtn = document.getElementById('modal-cancel-btn');
-        const modalSubmitBtn = document.getElementById('modal-submit-btn');
-        const modalError = document.getElementById('modal-error');
-        
-        document.body.addEventListener('click', function(e) {
-            const button = e.target.closest('.btn-leave-modal');
-            if (button) {
-                if (button.disabled) return; 
-
-                document.getElementById('modal_teacher_id').value = button.dataset.teacherId;
-                document.getElementById('modal_leave_type').value = button.dataset.action;
-                document.getElementById('modal-teacher-name').textContent = button.dataset.teacherName;
-                document.getElementById('modal-title').textContent = (button.dataset.action === 'leave' ? 'Apply Full-Day Leave' : 'Apply Short Leave');
-                
-                modalForm.dataset.formType = 'today'; // Set form type TODAY
-                
-                modalError.classList.add('hidden');
-                modalForm.reset(); 
-                modal.classList.remove('hidden'); 
-            }
-        });
-
-        // --- 3. NAYA: PAST Date ke Quick Actions (Present, Absent, Late) ---
-        document.body.addEventListener('click', function(e) {
-            const button = e.target.closest('.btn-past-action');
-            if (button) {
-                const teacherId = button.dataset.teacherId;
-                const action = button.dataset.action;
-                const selectedDate = document.getElementById('date').value;
-
-                if (!teacherId || !action || !selectedDate) return;
-
-                button.disabled = true;
-                button.innerHTML = 'Updating...';
-
-                fetch("{{ route('attendence.teacher.update_past') }}", { // Naya Route
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        teacher_id: teacherId,
-                        action: action,
-                        date: selectedDate // Date ko sath bhejein
-                    })
-                })
-                .then(response => response.json().then(data => ({ok: response.ok, data})))
-                .then(({ok, data}) => {
-                    if (ok) {
-                        location.reload(); 
-                    } else {
-                        throw new Error(data.error || 'Request failed');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error: ' + error.message);
-                    location.reload();
-                });
-            }
-        });
-
-        // --- 4. NAYA: PAST Date ka Leave Modal Trigger ---
-        document.body.addEventListener('click', function(e) {
-            const button = e.target.closest('.btn-past-leave-modal');
-            if (button) {
-                if (button.disabled) return; 
-
-                document.getElementById('modal_teacher_id').value = button.dataset.teacherId;
-                document.getElementById('modal_leave_type').value = button.dataset.action;
-                document.getElementById('modal-teacher-name').textContent = button.dataset.teacherName;
-                document.getElementById('modal-title').textContent = 'Update Past Leave';
-                
-                modalForm.dataset.formType = 'past'; // Set form type PAST
-                
-                modalError.classList.add('hidden');
-                modalForm.reset(); 
-                modal.classList.remove('hidden'); 
-            }
-        });
-
-        // --- 5. MODIFIED: Reusable Modal Submit Handler ---
-        modalForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            modalSubmitBtn.disabled = true;
-            modalSubmitBtn.textContent = 'Submitting...';
-            modalError.classList.add('hidden');
-            
-            const formData = new FormData(modalForm);
-            const selectedDate = document.getElementById('date').value;
-            
-            // Ye check karein ke form "today" ka hai ya "past" ka
-            const formType = modalForm.dataset.formType || 'today';
-            let url = "";
-
-            if (formType === 'past') {
-                url = "{{ route('attendence.teacher.update_past') }}";
-                formData.append('date', selectedDate); // Past date ke liye date add karein
-
-                // ==========================================================
-                // === THE FIX IS HERE ===
-                // The controller expects 'action', but the form only has 'leave_type'.
-                // We must read the value from 'leave_type' and add it as 'action'.
-                var action = document.getElementById('modal_leave_type').value;
-                formData.append('action', action);
-                // ==========================================================
-
-            } else {
-                url = "{{ route('attendence.teacher.leave') }}";
-                // Today ke liye date add karne ki zaroorat nahi, controller khud kar lega
-                // The 'apply_leave' controller correctly reads 'leave_type', so no change is needed.
-            }
-
-            fetch(url, {
+            fetch("{{ route('attendence.save_settings') }}", {
                 method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json'
-                },
-                body: formData
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify({ start_time: startTime, end_time: endTime })
             })
-            .then(response => response.json().then(data => ({ok: response.ok, data})))
-            .then(({ok, data}) => {
-                if (ok) {
-                    closeModal();
-                    
-                    // Give specific feedback
-                    if (data.leave_status === 'pending') {
-                        alert('Leave request submitted and is pending approval.');
-                    } else {
-                        alert('Attendance updated successfully!');
-                    }
-                    
-                    location.reload(); 
-                } else {
-                    // This is where your error was likely coming from (Validation Error)
-                    if (data.errors) {
-                        if (data.errors.reason) {
-                            throw new Error(data.errors.reason[0]);
-                        }
-                        if (data.errors.action) {
-                            throw new Error(data.errors.action[0]);
-                        }
-                    }
-                    throw new Error(data.error || 'An error occurred. Please check console.');
-                }
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) alert(data.message);
+                else alert('Error saving settings.');
             })
-            .catch(error => {
-                console.error('Error:', error);
-                modalError.textContent = error.message;
-                modalError.classList.remove('hidden');
-            })
-            .finally(() => {
-                modalSubmitBtn.disabled = false;
-                modalSubmitBtn.textContent = 'Submit';
-            });
+            .catch(err => alert('Error occurred.'))
+            .finally(() => { saveBtn.innerHTML = originalText; saveBtn.disabled = false; });
         });
+    }
 
-        // Close Modal ke universal helpers
-        function closeModal() {
-            modal.classList.add('hidden');
+    // =========================================================
+    // 2. LIVE ACTIONS (Check In/Out, Absent)
+    // =========================================================
+    document.body.addEventListener('click', function(e) {
+        const button = e.target.closest('.btn-attendance-action');
+        if (button) {
+            const teacherId = button.dataset.teacherId;
+            const action = button.dataset.action;
+            
+            // Get Current Values from Inputs for Auto-Calc
+            const startTime = document.getElementById('school_start_time').value;
+            const endTime = document.getElementById('school_end_time').value;
+
+            if (!teacherId || !action) return;
+            button.disabled = true; button.innerHTML = 'Processing...';
+
+            fetch("{{ route('attendence.teacher.mark') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify({ 
+                    teacher_id: teacherId, 
+                    action: action,
+                    school_start_time: startTime, // Send dynamic time
+                    school_end_time: endTime
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) location.reload();
+                else { alert(data.error || 'Something went wrong'); button.disabled = false; button.innerHTML = 'Try Again'; }
+            })
+            .catch(err => { console.error(err); location.reload(); });
         }
-        modalCloseBtn.addEventListener('click', closeModal);
-        modalCancelBtn.addEventListener('click', closeModal);
     });
+
+    // =========================================================
+    // 3. PAST ACTIONS (Present/Absent Buttons)
+    // =========================================================
+    document.body.addEventListener('click', function(e) {
+        const button = e.target.closest('.btn-past-action');
+        if (button) {
+            const teacherId = button.dataset.teacherId;
+            const action = button.dataset.action;
+            const selectedDate = document.getElementById('date').value;
+
+            if (!teacherId || !action) return;
+            button.disabled = true; button.innerHTML = '...';
+
+            fetch("{{ route('attendence.teacher.update_past') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                body: JSON.stringify({ teacher_id: teacherId, action: action, date: selectedDate })
+            }).then(() => location.reload());
+        }
+    });
+
+    // =========================================================
+    // 4. LEAVE MODAL LOGIC (Shared for Today & Past)
+    // =========================================================
+    const leaveModal = document.getElementById('leave-modal');
+    const leaveForm = document.getElementById('leave-modal-form');
+    
+    document.body.addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn-leave-modal, .btn-past-leave-modal');
+        if(btn && !btn.disabled) {
+            document.getElementById('modal_teacher_id').value = btn.dataset.teacherId;
+            document.getElementById('modal_leave_type').value = btn.dataset.action;
+            document.getElementById('modal-teacher-name').textContent = btn.dataset.teacherName;
+            
+            // Distinguish Today vs Past based on class
+            if(btn.classList.contains('btn-past-leave-modal')) {
+                leaveForm.dataset.formType = 'past';
+            } else {
+                leaveForm.dataset.formType = 'today';
+            }
+            leaveModal.classList.remove('hidden');
+        }
+    });
+
+    leaveForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(leaveForm);
+        const selectedDate = document.getElementById('date').value;
+        let url = "{{ route('attendence.teacher.leave') }}";
+
+        // Logic switch for Past dates
+        if(leaveForm.dataset.formType === 'past') {
+            url = "{{ route('attendence.teacher.update_past') }}";
+            formData.append('date', selectedDate);
+            formData.append('action', document.getElementById('modal_leave_type').value);
+        }
+
+        fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken }, body: formData })
+        .then(res => res.json())
+        .then(data => { location.reload(); });
+    });
+
+    // =========================================================
+    // 5. MANUAL LATE MODAL (Past Dates Only)
+    // =========================================================
+    const lateModal = document.getElementById('late-modal');
+    const lateForm = document.getElementById('late-modal-form');
+
+    document.body.addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn-late-modal');
+        if(btn) {
+            document.getElementById('late_modal_teacher_id').value = btn.dataset.teacherId;
+            document.getElementById('late-modal-teacher-name').textContent = btn.dataset.teacherName;
+            document.getElementById('late_minutes').value = '';
+            lateModal.classList.remove('hidden');
+        }
+    });
+
+    lateForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const minutes = document.getElementById('late_minutes').value;
+        const teacherId = document.getElementById('late_modal_teacher_id').value;
+        const selectedDate = document.getElementById('date').value;
+
+        fetch("{{ route('attendence.teacher.update_past') }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ 
+                teacher_id: teacherId, 
+                action: 'late_arrival', 
+                date: selectedDate,
+                late_minutes: minutes 
+            })
+        }).then(() => location.reload());
+    });
+});
 </script>
 @endpush
