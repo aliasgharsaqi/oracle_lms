@@ -8,41 +8,54 @@
     <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-8">
         
         {{-- Teacher Selector and Action Buttons with Date Filter --}}
-        <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-200 mb-8 max-w-7xl mx-auto">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                
-                {{-- Selector --}}
-                <div class="col-span-2 relative">
-                    <h2 class="text-xl font-bold text-slate-700 mb-2">Teacher Selector</h2>
-                    <select id="teacherSelector" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-3 transition shadow-sm hover:border-indigo-400 appearance-none pr-10">
-                        <option value="" disabled selected>Select a teacher...</option>
-                        @foreach($teachers as $teacher)
-                            <option value="{{ $teacher->id }}" 
-                                    data-pic="{{ asset('storage/' . $teacher->user->user_pic) }}"
-                                    data-name="{{ $teacher->user->name }}">
-                                {{ $teacher->user->name }} ({{ $teacher->user->email }})
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                {{-- Date Filter --}}
-                <div class="relative">
-                    <h2 class="text-xl font-bold text-slate-700 mb-2">Filter Date</h2>
-                    <input type="date" id="dateFilter" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-3 transition shadow-sm hover:border-indigo-400" value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
-                </div>
-                
-                {{-- Action Buttons --}}
-                <div class="flex items-center justify-end gap-3 pt-6">
-                    <button id="assignTaskBtn" class="btn btn-gradient-success rounded-pill py-2 disabled:opacity-50" disabled>
-                        <i class="bi bi-plus-circle me-1"></i> Assign Task
-                    </button>
-                    <a id="monthlyReportLink" href="{{ route('teacher_diary.monthly_report') }}" class="btn btn-outline-primary rounded-pill px-4 py-2 disabled:opacity-50" disabled>
-                        <i class="bi bi-calendar-check me-1"></i> Monthly Report
-                    </a>
-                </div>
+    <div class="bg-white p-6 rounded-2xl shadow-2xl border border-slate-200 mb-8 max-w-7xl mx-auto">
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start">
+        
+        {{-- Selector --}}
+        {{-- WIDTH ADJUSTED: Mobile col-span-2 for prominence, Desktop col-span-1 for alignment --}}
+        <div class="relative"> 
+            <h2 class="text-base font-bold text-slate-800 mb-2 uppercase tracking-wider">Teacher Selection</h2>
+            <div class="relative">
+                 <select id="teacherSelector" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-3.5 transition shadow-inner hover:border-indigo-400 appearance-none pr-10">
+                    <option value="" disabled selected>Select a teacher...</option>
+                    @foreach($teachers as $teacher)
+                        <option value="{{ $teacher->id }}" 
+                            data-pic="{{ asset('storage/' . $teacher->user->user_pic) }}"
+                            data-name="{{ $teacher->user->name }}">
+                            {{ $teacher->user->name }} ({{ $teacher->user->email }})
+                        </option>
+                    @endforeach
+                </select>
+                {{-- Custom Chevron Down Icon for visual appeal --}}
+                <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
             </div>
         </div>
+
+        {{-- Date Filter --}}
+        <div class="relative">
+            <h2 class="text-base font-bold text-slate-800 mb-2 uppercase tracking-wider">Filter Date</h2>
+            <input type="date" id="dateFilter" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-3.5 transition shadow-inner hover:border-indigo-400" value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
+        </div>
+        
+        {{-- Action Buttons (Vertical Column Alignment) --}}
+        {{-- This section is aligned vertically and takes up the remaining space --}}
+        <div class="flex flex-row items-end md:items-center justify-center gap-3 md:gap-4 mt-4 md:mt-0 md:pt-3"> 
+            
+            {{-- Button 1: Assign Task --}}
+            <button id="assignTaskBtn" class="w-full md:w-auto px-4 py-2.5 text-white font-semibold rounded-xl transition disabled:opacity-50 bg-green-600 hover:bg-green-700 shadow-md">
+                <i class="fa-solid fa-plus-circle me-1"></i> Assign Task
+            </button>
+            
+            {{-- Button 2: Monthly Report --}}
+            <a id="monthlyReportLink" href="{{ route('teacher_diary.monthly_report') }}" 
+               class="w-full md:w-auto px-4 py-2.5 font-semibold transition disabled:opacity-50 border border-indigo-500 text-indigo-600 rounded-xl hover:bg-indigo-50 shadow-md flex items-center justify-center gap-2">
+                <i class="fa-solid fa-calendar-check me-1"></i> Monthly Report
+            </a>
+            
+        </div>
+    </div>
+</div>
 
         {{-- Teacher Content Area --}}
         <section id="teacherContent" class="max-w-7xl mx-auto">

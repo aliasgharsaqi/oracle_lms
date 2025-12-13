@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 
 class FeePaymentController extends Controller
 {
-    public function index(Request $request): View
+public function index(Request $request): View
     {
         $school_id = Auth::user()->school_id;
         $classes = SchoolClass::where('school_id', $school_id)->get();
@@ -26,43 +26,56 @@ class FeePaymentController extends Controller
         $year = $voucherDate->year;
         $month = $voucherDate->month; // Get the month number
 
+        // 1. **CRITICAL FIX: Check if class_id is valid before proceeding**
         if ($request->filled('class_id')) {
-            $selectedClass = SchoolClass::find($request->class_id);
-            $studentsInClass = Student::where('school_class_id', $selectedClass->id)
-                ->where('school_id', $school_id)
-                ->with([
-                    'user',
-                    'feeVouchers',
-                    'feePlans' => function ($query) use ($year) {
-                        $query->where('year', $year);
-                    },
-                    'feePlans.monthlyTuitionFees' => function ($query) use ($month) {
-                        $query->where('month', $month);
-                    }
-                ])
-                ->get();
+            // Attempt to find the class
+            $selectedClass = SchoolClass::where('id', $request->class_id)
+                                        ->where('school_id', $school_id) // Ensure class belongs to the school
+                                        ->first(); 
+            
+            // If the class is found, proceed with fetching students
+            if ($selectedClass) {
+                $studentsInClass = Student::where('school_class_id', $selectedClass->id) // SAFE now
+                    ->where('school_id', $school_id)
+                    ->with([
+                        // ... rest of the relations ...
+                        'user',
+                        'feeVouchers',
+                        'feePlans' => function ($query) use ($year) {
+                            $query->where('year', $year);
+                        },
+                        'feePlans.monthlyTuitionFees' => function ($query) use ($month) {
+                            $query->where('month', $month);
+                        }
+                    ])
+                    ->get();
 
-            foreach ($studentsInClass as $student) {
-                $vouchersThisYear = $student->feeVouchers->filter(
-                    fn($v) => Carbon::parse($v->voucher_month)->year == $year
-                );
-                $currentAnnualPlan = $student->feePlans->first();
+                foreach ($studentsInClass as $student) {
+                    // ... rest of the logic ...
+                    $vouchersThisYear = $student->feeVouchers->filter(
+                        fn($v) => Carbon::parse($v->voucher_month)->year == $year
+                    );
+                    $currentAnnualPlan = $student->feePlans->first();
 
-                $currentMonthlyPlan = $currentAnnualPlan ? $currentAnnualPlan->monthlyTuitionFees->first() : null;
-                $student->has_plan_for_month = (bool) $currentMonthlyPlan;
+                    $currentMonthlyPlan = $currentAnnualPlan ? $currentAnnualPlan->monthlyTuitionFees->first() : null;
+                    $student->has_plan_for_month = (bool) $currentMonthlyPlan;
 
-                $student->total_payable = $currentAnnualPlan ? (float) $currentAnnualPlan->total_annual_fees : 0.00;
+                    // Ensure feePlans has been loaded before accessing total_annual_fees
+                    $student->total_payable = $currentAnnualPlan ? (float) $currentAnnualPlan->total_annual_fees : 0.00;
 
-                $student->total_paid = $vouchersThisYear->sum('amount_paid');
-                $student->total_remaining = $student->total_payable - $student->total_paid;
+                    $student->total_paid = $vouchersThisYear->sum('amount_paid');
+                    $student->total_remaining = $student->total_payable - $student->total_paid;
 
-                $student->voucher = $vouchersThisYear->first(function ($voucher) use ($voucherDate) {
-                    return $voucher->voucher_month && $voucher->voucher_month->isSameDay($voucherDate);
-                });
-                $student->is_defaulter = $this->checkIfDefaulter($student, $voucherDate);
+                    $student->voucher = $vouchersThisYear->first(function ($voucher) use ($voucherDate) {
+                        // NOTE: $voucher->voucher_month is a Carbon instance only if casting is set on FeeVoucher model
+                        return $voucher->voucher_month && Carbon::parse($voucher->voucher_month)->isSameDay($voucherDate);
+                    });
+                    $student->is_defaulter = $this->checkIfDefaulter($student, $voucherDate);
 
-                $students->push($student);
-            }
+                    $students->push($student);
+                }
+            } 
+            // If $selectedClass is null (not found), $students remains empty, which is correct behavior.
         }
 
         return view('admin.fees.payments.index', compact('classes', 'students', 'selectedClass', 'selectedMonth'));
