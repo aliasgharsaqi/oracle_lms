@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\StudentLeaveController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Admin\TeacherDiaryController;
+use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
@@ -172,7 +173,15 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::get('attendence/monthly-report', [AttendenceController::class, 'monthly_report'])->name('attendence.teacher.monthly_report');
     Route::post('/attendance/save-time-settings', [AttendenceController::class, 'save_time_settings'])->name('attendence.save_settings');
 });
-
+Route::group(['prefix' => 'admin', 'middleware' => ['auth']], function () {
+ Route::get('/transactions', [TransactionController::class, 'index'])->name('admin.transactions.index');
+    
+    // API Endpoints for CRUD:
+    Route::post('/transactions', [TransactionController::class, 'store']); // Create
+    // The {transaction} wildcard MUST match the injected model name in the controller method signature
+    Route::put('/transactions/{transaction}', [TransactionController::class, 'update']); // Update
+    Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy']); // Delete
+});
 // Teacher Leave Approval Routes (Accessible via 'auth' middleware)
 Route::controller(AttendenceController::class)->prefix('admin')->middleware(['auth'])->group(function () {
     Route::get('attendance/pending-leaves', 'show_pending_leaves')
@@ -216,9 +225,9 @@ Route::get('/chatbot', function () {
     return view('admin.chatbot');
 })->name('chatbot');
 
-Route::get('/transaction', function () {
-    return view('admin.transaction');
-})->name('transaction');
+// Route::get('/transaction', function () {
+//     return view('admin.transaction');
+// })->name('transaction');
 
 Route::get('/quize_detail', function () {
     return view('admin.quize_detail');
