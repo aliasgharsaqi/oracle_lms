@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Scopes\SchoolScope;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\StudentDiary; // NEW: Import the progress model
 
 class Student extends Model
 {
@@ -33,30 +34,18 @@ class Student extends Model
         return $this->belongsTo(SchoolClass::class);
     }
 
-    public function feeVouchers()
+    // ... (other existing relationships) ...
+
+    public function leaveRequests()
     {
-        return $this->hasMany(StudentFeeVoucher::class);
+        return $this->hasMany(StudentLeaveRequest::class);
     }
     
-    public function feePlans()
+    // NEW: RELATIONSHIP ADDED TO FIX THE CONTROLLER CRASH
+    public function diaryEntries()
     {
-        return $this->hasMany(StudentFeePlan::class);
+        return $this->hasMany(StudentDiary::class);
     }
-
-    public function marks()
-    {
-        return $this->hasMany(Mark::class);
-    }
-
-    // --- ADD THIS FUNCTION ---
-    /**
-     * Get all of the attendance records for the student.
-     */
-    public function attendances()
-    {
-        return $this->hasMany(StudentAttendance::class);
-    }
-    // --- END OF ADDITION ---
 
     protected static function booted()
     {
@@ -66,10 +55,5 @@ class Student extends Model
     public function school()
     {
         return $this->belongsTo(School::class);
-    }
-
-    public function leaveRequests()
-    {
-        return $this->hasMany(StudentLeaveRequest::class);
     }
 }

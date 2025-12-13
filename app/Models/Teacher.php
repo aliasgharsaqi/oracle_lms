@@ -46,10 +46,10 @@ class Teacher extends Model
     }
 
     // --- NEW RELATIONSHIP FOR DIARY/TASKS ---
-    public function assignments()
-    {
-        return $this->hasMany(TeacherAssignment::class);
-    }
+    // public function assignments()
+    // {
+    //     return $this->hasMany(TeacherAssignment::class);
+    // }
     // --- END NEW RELATIONSHIP ---
 
     protected static function booted()
@@ -60,5 +60,14 @@ class Teacher extends Model
     public function school()
     {
         return $this->belongsTo(\App\Models\School::class);
+    }
+    public function schedules()
+    {
+        // 'teacher_id' is the foreign key in the 'schedules' table
+        return $this->hasMany(Schedule::class, 'teacher_id'); 
+    }
+    public function assignments()
+    {
+        return $this->hasMany(TeacherAssignment::class, 'teacher_id');
     }
 }
