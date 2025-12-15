@@ -8,11 +8,11 @@
     <main class="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-8">
 
         {{-- Filter Section --}}
-        <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-200 mb-8  mx-auto">
+        <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-200 mb-8  mx-auto">
             <div class="flex items-center gap-3 mb-4">
                 <div class="bg-indigo-100 p-2 rounded-lg">
                     <svg class="h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h12M3.75 3h16.5M3.75 3a2.25 2.25 0 012.25-2.25h12a2.25 2.25 0 012.25 2.25M3.75 14.25v2.25A2.25 2.25 0 006 18.75h12A2.25 2.25 0 0020.25 16.5v-2.25" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h12M3.75 3h16.5M3.75 3a2.25 2.25 0 012.25-2.25h12a2.25 2.25 0 012.25 2.25M3.75 14.25v2.25A2.25 2.25 0 006 18.75h12A2.25 2.25 0 0020.25 16.5v-2.25" />
                     </svg>
                 </div>
                 <div>
@@ -71,6 +71,7 @@
     {{-- =================================================================================== --}}
 
     <template id="initialStateTemplate">
+        {{-- Corrected background/padding classes --}}
         <div class="text-center p-10 bg-white rounded-2xl shadow-lg border border-slate-200" data-role="initial-message-container">
             <svg class="mx-auto h-16 w-16 text-indigo-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h12M3.75 3h16.5M3.75 3a2.25 2.25 0 012.25-2.25h12a2.25 2.25 0 012.25 2.25M3.75 14.25v2.25A2.25 2.25 0 006 18.75h12A2.25 2.25 0 0020.25 16.5v-2.25" /></svg>
             <h3 class="mt-4 text-2xl font-bold text-slate-800" data-role="initial-message-title">Welcome to the Progress Editor</h3>
@@ -154,9 +155,9 @@
             <td class="py-2 px-3 italic text-slate-600" data-role="notes-cell"></td>
             <td class="py-2 px-3 text-center">
                  <button class="add-edit-btn-row text-xs font-bold px-2 py-1 rounded-md transition"
-                        data-role="row-edit-button">
-                    Edit
-                </button>
+                         data-role="row-edit-button">
+                     Edit
+                 </button>
             </td>
         </tr>
     </template>
@@ -219,12 +220,16 @@ function renderInitialState(message, isError = false) {
 
     if (isError) {
         container.classList.remove('border-slate-200');
-        container.classList.add('border-red-200');
+        container.classList.add('border-red-200', 'bg-red-50'); // Added bg-red-50 for error style
         title.classList.remove('text-slate-800');
         title.classList.add('text-red-800');
         title.textContent = "Data Fetch Error";
     } else {
-         title.textContent = "Welcome to the Progress Editor";
+        container.classList.remove('bg-red-50', 'border-red-200');
+        container.classList.add('border-slate-200');
+        title.classList.remove('text-red-800');
+        title.classList.add('text-slate-800');
+        title.textContent = "Welcome to the Progress Editor";
     }
     text.textContent = message;
 
@@ -320,7 +325,7 @@ async function renderSubjectProgress() {
         return; 
     }
 
-    progressContent.innerHTML = `<div class="text-center p-10">
+    progressContent.innerHTML = `<div class="text-center p-10 bg-white rounded-2xl shadow-lg border border-slate-200">
         <p class="text-lg font-semibold text-indigo-600">Loading student progress...</p>
     </div>`;
     loadButton.disabled = true;
@@ -339,26 +344,35 @@ async function renderSubjectProgress() {
             })
         });
 
+        // --- START DIAGNOSTICS FOR 500 ERROR ---
         if (!response.ok) {
-            let errorMessage = `Server returned status ${response.status}.`;
+            // Read the raw text response for debugging server errors (500)
+            const rawText = await response.text();
+            console.error('Server responded with an error:', response.status, rawText);
+            
+            // Attempt to parse JSON for validation errors (422)
             try {
-                 const errorData = await response.json();
-                 errorMessage = errorData.message || errorMessage;
+                const errorData = JSON.parse(rawText);
+                throw new Error(errorData.message || `Validation failed: ${JSON.stringify(errorData.errors)}`);
             } catch (e) {
-                 errorMessage = `A critical server error (500) occurred. Please check network response for details.`;
+                // If it wasn't JSON, it's likely an HTML 500 error page or route issue
+                throw new Error(`Critical server error (${response.status}). Check console for HTML/text response.`);
             }
-            throw new Error(errorMessage);
         }
+        // --- END DIAGNOSTICS ---
 
         const data = await response.json();
         const studentsInClass = data.students_progress;
         
+        // TEMPORARY LOGGING: Check the incoming data structure
+        console.log("Received Student Data:", data); // Log the full data object
+
         const isSingleSubjectView = !!data.subject_name; 
         const allClassSubjects = data.all_class_subjects || []; // Get the full subject list
 
         if (studentsInClass.length === 0) {
-             renderInitialState(`No students found registered in ${data.class_name}.`, false);
-             return;
+              renderInitialState(`No students found registered in ${data.class_name}.`, false);
+              return;
         }
         
         const listContainer = document.createElement('div');
@@ -448,6 +462,9 @@ async function renderSubjectProgress() {
                     tableBody.appendChild(rowContent);
                 });
 
+                // The allSubjectsContent contains the table structure
+                // We inject it into the contentWrapper, replacing the initial simple view
+                contentWrapper.innerHTML = ''; 
                 contentWrapper.appendChild(allSubjectsContent);
             }
 
@@ -503,7 +520,7 @@ async function handleProgressAction(e) {
         const oldForm = studentCardContainer.querySelector('.form-reveal');
         if (oldForm) oldForm.remove();
 
-        // Inject new form
+        // Inject new form (append directly to the card container)
         studentCardContainer.appendChild(formContent);
         
         // Hide the specific button that was clicked
@@ -566,7 +583,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Delegated event listener for dynamically created buttons
     progressContent.addEventListener('click', handleProgressAction);
     
-    renderInitialState();
+    renderInitialState('Please select a Class and Date, then click "View Progress."');
 });
 </script>
 @endpush

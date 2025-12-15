@@ -47,9 +47,19 @@ class Student extends Model
         return $this->hasMany(StudentDiary::class);
     }
 
+    public function feeVouchers()
+    {
+        return $this->hasMany(StudentFeeVoucher::class, 'student_id'); 
+    }
+
     protected static function booted()
     {
         static::addGlobalScope(new SchoolScope);
+    }
+
+    public function feePlans()
+    {
+       return $this->hasMany(StudentFeePlan::class, 'student_id');
     }
 
     public function school()
