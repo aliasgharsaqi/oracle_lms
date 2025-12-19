@@ -83,7 +83,11 @@
         <div class="bg-white p-4 rounded-lg shadow-sm border-l-4" data-role="student-card-container">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <img class="h-10 w-10 rounded-full object-cover" data-role="student-avatar" src="" alt="">
+                    <img class="h-12 w-12 rounded-full object-cover border border-slate-200" 
+                             data-role="student-avatar" 
+                             src="" 
+                             alt=""
+                             onerror="this.src='https://ui-avatars.com/api/?background=random&color=fff&name=Student';">
                     <p class="font-bold text-slate-800" data-role="student-name"></p>
                 </div>
                 {{-- This button is visible only in Single Subject View --}}
