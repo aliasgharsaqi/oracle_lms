@@ -288,10 +288,20 @@
 
         @can('student_diary')
             <li>
-                <a href="{{ route('student_diary') }}"
-                    class="nav-link d-flex align-items-center text-white {{ request()->routeIs('student_diary') ? 'active' : '' }}"
+                <a href="{{ route('progress.index') }}"
+                    class="nav-link d-flex align-items-center text-white {{ request()->routeIs('progress.index') ? 'active' : '' }}"
                     style="gap: 6px; padding: 2px 12px;">
                     <i class="bi bi-journal-text"></i> Student Diary
+                </a>
+            </li>
+        @endcan
+        @can('transactions') {{-- Assuming a permission like 'Manage Transactions' --}}
+            <li class="nav-item">
+                <a href="{{ route('admin.transactions.index') }}"
+                    class="nav-link d-flex align-items-center {{ request()->routeIs('admin.transactions.index') ? 'active' : 'text-white' }}"
+                    style="gap: 8px; padding: 2px 12px;">
+                    <i class="bi bi-receipt-cutoff"></i>
+                    <span>Transactions</span>
                 </a>
             </li>
         @endcan

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\FeeReportController;
 use App\Http\Controllers\Admin\MarksController;
 use App\Http\Controllers\Admin\PdfController;
 use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Admin\QuizController;
 use App\Http\Controllers\Admin\ResultCardController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\ScheduleController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Admin\StudentAttendanceController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\StudentFeePlanController;
 use App\Http\Controllers\Admin\StudentLeaveController;
+use App\Http\Controllers\Admin\StudentProgressController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Admin\TeacherDiaryController;
@@ -108,14 +110,29 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     })->name('teacher_diary');
 
     Route::controller(TeacherDiaryController::class)->prefix('teacher-diary')->name('teacher_diary.')->group(function () {
-        Route::get('/', 'index')->name('index');                           // Main Diary view
-        Route::get('/record/{teacher}', 'getTeacherRecord')->name('record'); // AJAX to fetch teacher details
-        Route::post('/task', 'storeTask')->name('store_task');             // Modal POST to save assignments (multiple classes/subjects)
+        Route::get('/', 'index')->name('index'); // Main Diary view
+
+        Route::get('/search', 'searchTeachers')->name('search_teachers'); // AJAX route for dynamic teacher search
+
+        // CHANGED: Use a different endpoint for general task viewing vs. daily progress tracking
+        Route::get('/record/{teacher}', 'getTeacherRecord')->name('record');
+
+        // NEW: Endpoint to fetch the list of subjects/classes for daily progress tracking
+        Route::get('/daily-progress/{teacher}', 'getDailyProgressList')->name('daily_progress_list');
+
+        // NEW: Endpoint to save all daily progress notes in one go
+        Route::post('/daily-save', 'saveDailyProgress')->name('save_daily_progress');
+
+        Route::post('/task', 'storeTask')->name('store_task');                            // Modal POST to save assignments
         Route::post('/progress/{assignment}', 'updateProgress')->name('update_progress'); // AJAX to update status/notes
+        Route::get('/get-subjects', 'getSubjectsByClasses')->name('get_subjects');
         Route::match(['get', 'post'], '/monthly-report', 'monthlyReport')->name('monthly_report'); // Monthly Report View/Filter
-        
-        // ** FIX: Missing route for dynamic subject loading **
-        Route::get('/get-subjects', 'getSubjectsByClasses')->name('get_subjects'); // <-- ADDED
+    });
+    Route::get('/admin/quizzes', [QuizController::class, 'index'])->name('admin.quizzes.index');
+    Route::prefix('api/quizzes')->name('api.quizzes.')->group(function () {
+        Route::get('/', [QuizController::class, 'getAll'])->name('all');
+        Route::post('/', [QuizController::class, 'storeOrUpdate'])->name('store');
+        Route::delete('/{quiz}', [QuizController::class, 'destroy'])->name('destroy');
     });
 
     // Fee Plan & Payment Routes
@@ -173,15 +190,16 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::get('attendence/monthly-report', [AttendenceController::class, 'monthly_report'])->name('attendence.teacher.monthly_report');
     Route::post('/attendance/save-time-settings', [AttendenceController::class, 'save_time_settings'])->name('attendence.save_settings');
 });
+
+// Separate Group for Transactions (Adjusted scope slightly based on your original file)
 Route::group(['prefix' => 'admin', 'middleware' => ['auth']], function () {
- Route::get('/transactions', [TransactionController::class, 'index'])->name('admin.transactions.index');
-    
-    // API Endpoints for CRUD:
-    Route::post('/transactions', [TransactionController::class, 'store']); // Create
-    // The {transaction} wildcard MUST match the injected model name in the controller method signature
-    Route::put('/transactions/{transaction}', [TransactionController::class, 'update']); // Update
+    Route::get('/transactions', [TransactionController::class, 'index'])->name('admin.transactions.index');
+                                                                                             // API Endpoints for CRUD:
+    Route::post('/transactions', [TransactionController::class, 'store']);                   // Create
+    Route::put('/transactions/{transaction}', [TransactionController::class, 'update']);     // Update
     Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy']); // Delete
 });
+
 // Teacher Leave Approval Routes (Accessible via 'auth' middleware)
 Route::controller(AttendenceController::class)->prefix('admin')->middleware(['auth'])->group(function () {
     Route::get('attendance/pending-leaves', 'show_pending_leaves')
@@ -209,26 +227,21 @@ Route::prefix('leaves/student')->name('admin.student.leaves.')->group(function (
     Route::post('/action', [StudentLeaveController::class, 'actionOnLeave'])->name('action');
 });
 
+// Student Progress Module Routes
+Route::middleware(['auth', 'school.status'])->prefix('admin/progress')->name('progress.')->group(function () {
+    Route::get('/', [StudentProgressController::class, 'index'])->name('index');
+
+    // 2. AJAX: Get Subjects by Class ID
+    Route::get('/get-subjects/{class_id}', [StudentProgressController::class, 'getSubjectsByClass'])
+        ->name('get_subjects')
+        ->where('class_id', '[0-9]+');
+
+    // 3. AJAX: Get Student Progress Data by Class/Subject/Date
+    Route::post('/get-data', [StudentProgressController::class, 'getStudentProgressData'])->name('get_data');
+
+    // 4. AJAX: Save/Update Progress Data
+    Route::post('/save-progress', [StudentProgressController::class, 'saveProgress'])->name('save');
+});
+
 // Marks Export Route
 Route::get('marks/export', [MarksController::class, 'export'])->name('marks.export');
-
-// --- Static Routes ---
-Route::get('/student_diary', function () {
-    return view('admin.diary.student_diary');
-})->name('student_diary');
-
-Route::get('/quiz', function () {
-    return view('admin.quiz');
-})->name('quiz');
-
-Route::get('/chatbot', function () {
-    return view('admin.chatbot');
-})->name('chatbot');
-
-// Route::get('/transaction', function () {
-//     return view('admin.transaction');
-// })->name('transaction');
-
-Route::get('/quize_detail', function () {
-    return view('admin.quize_detail');
-})->name('quize_detail');

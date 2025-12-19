@@ -6,7 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\SchoolClass;
 use App\Models\Subject;
 use App\Models\Teacher;
-use App\Models\TeacherSchedule;
+// use App\Models\TeacherSchedule; // <-- REMOVED: Using generic Schedule model
+use App\Models\Schedule; // <-- ADDED: Using the correct Schedule model
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +22,7 @@ class ScheduleController extends Controller
         $user = Auth::user();
         // The SchoolScope on the model automatically handles filtering for School Admins.
         // We only need specific logic for Teachers.
-        $query = TeacherSchedule::with(['teacher.user', 'schoolClass', 'subject']);
+        $query = Schedule::with(['teacher.user', 'schoolClass', 'subject']); // CHANGED: TeacherSchedule to Schedule
 
         if ($user->hasRole('Teacher')) {
             if ($user->teacher) {
@@ -73,7 +74,7 @@ class ScheduleController extends Controller
         ]);
 
         foreach ($request->day_of_week as $day) {
-            TeacherSchedule::create([
+            Schedule::create([ // CHANGED: TeacherSchedule to Schedule
                 'school_id' => Auth::user()->school_id,
                 'teacher_id' => $request->teacher_id,
                 'class_id' => $request->class_id,
@@ -89,7 +90,7 @@ class ScheduleController extends Controller
 
     public function show($id): View|RedirectResponse
     {
-        $initialSchedule = TeacherSchedule::findOrFail($id);
+        $initialSchedule = Schedule::findOrFail($id); // CHANGED: TeacherSchedule to Schedule
 
         if (!$this->authorizeTeacherAccess($initialSchedule)) {
             return redirect()->route('schedules.index')->with('error', 'You are not authorized to access this schedule.');
@@ -97,7 +98,7 @@ class ScheduleController extends Controller
 
         $teacher = $initialSchedule->teacher;
 
-        $allSchedules = TeacherSchedule::where('teacher_id', $teacher->id)
+        $allSchedules = Schedule::where('teacher_id', $teacher->id) // CHANGED: TeacherSchedule to Schedule
             ->with(['schoolClass', 'subject'])
             ->orderBy('start_time')
             ->get();
@@ -112,7 +113,7 @@ class ScheduleController extends Controller
     public function edit($id): View|RedirectResponse
     {
         // Find the schedule by ID. `findOrFail` will throw a 404 if not found (respecting SchoolScope).
-        $schedule = TeacherSchedule::findOrFail($id);
+        $schedule = Schedule::findOrFail($id); // CHANGED: TeacherSchedule to Schedule
 
         if (!$this->authorizeTeacherAccess($schedule)) {
             return redirect()->route('schedules.index')->with('error', 'You are not authorized to access this schedule.');
@@ -130,7 +131,7 @@ class ScheduleController extends Controller
     public function update(Request $request, $id): RedirectResponse
     {
         // Find the schedule by ID.
-        $schedule = TeacherSchedule::findOrFail($id);
+        $schedule = Schedule::findOrFail($id); // CHANGED: TeacherSchedule to Schedule
 
         if (!$this->authorizeTeacherAccess($schedule)) {
             return redirect()->route('schedules.index')->with('error', 'You are not authorized to update this schedule.');
@@ -156,7 +157,7 @@ class ScheduleController extends Controller
     public function destroy($id): RedirectResponse
     {
         // Find the schedule by ID.
-        $schedule = TeacherSchedule::findOrFail($id);
+        $schedule = Schedule::findOrFail($id); // CHANGED: TeacherSchedule to Schedule
 
         if (!$this->authorizeTeacherAccess($schedule)) {
             return redirect()->route('schedules.index')->with('error', 'You are not authorized to delete this schedule.');
@@ -175,7 +176,7 @@ class ScheduleController extends Controller
     }
 
     // Simplified authorization, as SchoolScope handles most of the logic.
-    private function authorizeTeacherAccess(TeacherSchedule $schedule): bool
+    private function authorizeTeacherAccess(Schedule $schedule): bool // CHANGED: TeacherSchedule to Schedule
     {
         $user = Auth::user();
 
